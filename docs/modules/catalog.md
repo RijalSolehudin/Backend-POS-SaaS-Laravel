@@ -1,0 +1,28 @@
+# Catalog Module
+
+## Owns
+
+- Product category.
+- Product dan sellable state.
+- Base price dan outlet availability.
+- Variant dan modifier definitions pada phase lanjutan.
+
+## MVP Use Cases
+
+- Manage category.
+- Manage simple product.
+- Set outlet price/availability.
+- List sellable products untuk POS.
+
+## Invariants
+
+- SKU uniqueness mengikuti tenant scope.
+- Produk tidak dapat dijual pada outlet jika tidak aktif/tersedia.
+- Perubahan master price tidak mengubah snapshot order lama.
+
+## Open Decisions
+
+- Recipe ownership.
+- Variant/modifier inclusion dalam MVP.
+- Price book, scheduled price, dan tax category model.
+

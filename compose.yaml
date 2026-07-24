@@ -1,0 +1,22 @@
+services:
+  mariadb-testing:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ${POS_TEST_DB_DATABASE:-pos_testing}
+      MARIADB_USER: ${POS_TEST_DB_USERNAME:-pos}
+      MARIADB_PASSWORD: ${POS_TEST_DB_PASSWORD:-pos-testing-only}
+      MARIADB_ROOT_PASSWORD: ${POS_TEST_DB_ROOT_PASSWORD:-root-testing-only}
+    ports:
+      - "${POS_TEST_DB_PORT:-33067}:3306"
+    healthcheck:
+      test:
+        - CMD
+        - healthcheck.sh
+        - --connect
+        - --innodb_initialized
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    tmpfs:
+      - /var/lib/mysql
+
