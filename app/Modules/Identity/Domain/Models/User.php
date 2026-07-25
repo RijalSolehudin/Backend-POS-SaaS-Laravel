@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property string $id
@@ -23,11 +24,18 @@ use Illuminate\Notifications\Notifiable;
 #[UseFactory(UserFactory::class)]
 final class User extends Authenticatable
 {
+    use HasApiTokens;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory;
 
     use HasLowercaseUlids;
     use Notifiable;
+
+    public function isActive(): bool
+    {
+        return $this->status === UserStatus::Active;
+    }
 
     protected $guarded = [];
 

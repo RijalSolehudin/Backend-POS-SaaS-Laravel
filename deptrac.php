@@ -58,33 +58,41 @@ return static function (DeptracConfig $config): void {
             $applicationDependencies[] = Layer::withName('Identity Application');
         }
 
+        $infrastructureDependencies = [
+            $application,
+            $domain,
+            $sharedInfrastructure,
+            $sharedApplication,
+            $sharedDomain,
+        ];
+        $bootstrapDependencies = [
+            $presentation,
+            $infrastructure,
+            $application,
+            $domain,
+            $sharedInfrastructure,
+            $sharedApplication,
+            $sharedDomain,
+        ];
+
+        if ($module === 'Tenancy') {
+            $infrastructureDependencies[] = Layer::withName('Identity Application');
+            $bootstrapDependencies[] = Layer::withName('Identity Application');
+        }
+
         array_push($layers, $domain, $application, $infrastructure, $presentation, $bootstrap);
         array_push(
             $rulesets,
             Ruleset::forLayer($domain)->accesses($sharedDomain),
             Ruleset::forLayer($application)->accesses(...$applicationDependencies),
-            Ruleset::forLayer($infrastructure)->accesses(
-                $application,
-                $domain,
-                $sharedInfrastructure,
-                $sharedApplication,
-                $sharedDomain,
-            ),
+            Ruleset::forLayer($infrastructure)->accesses(...$infrastructureDependencies),
             Ruleset::forLayer($presentation)->accesses(
                 $application,
                 $domain,
                 $sharedApplication,
                 $sharedDomain,
             ),
-            Ruleset::forLayer($bootstrap)->accesses(
-                $presentation,
-                $infrastructure,
-                $application,
-                $domain,
-                $sharedInfrastructure,
-                $sharedApplication,
-                $sharedDomain,
-            ),
+            Ruleset::forLayer($bootstrap)->accesses(...$bootstrapDependencies),
         );
     }
 

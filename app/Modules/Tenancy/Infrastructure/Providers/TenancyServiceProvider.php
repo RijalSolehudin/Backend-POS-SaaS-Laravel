@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Tenancy\Infrastructure\Providers;
 
+use App\Modules\Identity\Application\Contracts\TenantAccessResolver;
 use App\Modules\Tenancy\Application\Contracts\TenancyAuditRecorder;
 use App\Modules\Tenancy\Infrastructure\Audit\DatabaseTenancyAuditRecorder;
+use App\Modules\Tenancy\Infrastructure\Identity\DatabaseTenantAccessResolver;
 use App\Modules\Tenancy\Presentation\Console\Commands\ProvisionTenantCommand;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,6 +17,7 @@ final class TenancyServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(base_path('config/tenancy.php'), 'tenancy');
         $this->app->bind(TenancyAuditRecorder::class, DatabaseTenancyAuditRecorder::class);
+        $this->app->bind(TenantAccessResolver::class, DatabaseTenantAccessResolver::class);
     }
 
     public function boot(): void

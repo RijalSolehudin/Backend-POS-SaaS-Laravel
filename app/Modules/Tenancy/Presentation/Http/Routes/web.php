@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Tenancy\Presentation\Http\Web\Controllers\PlatformTenantController;
+use App\Modules\Tenancy\Presentation\Http\Web\Controllers\TenantHomeController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('platform')
@@ -25,4 +26,12 @@ Route::prefix('platform')
             ->where('tenant', '[0-9a-hjkmnp-tv-z]{26}')
             ->name('tenants.disable')
             ->block();
+    });
+
+Route::prefix('admin/tenants/{tenant}')
+    ->name('tenant.')
+    ->where(['tenant' => '[0-9a-hjkmnp-tv-z]{26}'])
+    ->middleware(['web', 'tenant.authenticated', 'tenant.context', 'tenant.password-current'])
+    ->group(function (): void {
+        Route::get('/', TenantHomeController::class)->name('home');
     });

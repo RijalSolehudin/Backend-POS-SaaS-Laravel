@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(
             fn (Request $request): string => $request->is('platform', 'platform/*')
                 ? route('platform.login')
-                : '/login',
+                : route('tenant.login'),
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {

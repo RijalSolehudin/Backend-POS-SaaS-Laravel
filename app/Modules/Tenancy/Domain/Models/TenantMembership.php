@@ -8,6 +8,11 @@ use App\Modules\Tenancy\Domain\Enums\MembershipType;
 use App\Shared\Domain\Concerns\HasLowercaseUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $tenant_id
+ * @property string $user_id
+ * @property MembershipType $membership_type
+ */
 final class TenantMembership extends Model
 {
     use HasLowercaseUlids;
