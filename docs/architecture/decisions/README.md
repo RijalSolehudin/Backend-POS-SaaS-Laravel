@@ -42,6 +42,7 @@
 | [ADR-030](030-pint-and-larastan-quality-baseline.md) | Pint dan Larastan level 8 sebagai quality baseline |
 | [ADR-031](031-shared-minimal-actor-context.md) | Shared minimal immutable `ActorContext` |
 | [ADR-032](032-platform-identity-implementation-policy.md) | Platform identity credential, MFA, session, audit, dan recovery policy |
+| [ADR-033](033-platform-admin-shell-composition.md) | Shared Platform Admin shell dengan halaman capability module-local |
 
 ## Superseded ADRs
 

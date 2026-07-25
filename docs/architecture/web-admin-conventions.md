@@ -75,5 +75,5 @@ Route final ditentukan per module. Internal web route tidak menggunakan API vers
 
 ## Open Decisions
 
-- Lokasi Blade views: `resources/views/modules/...` atau di dalam module.
-- Design system dan shared presentation component catalog.
+- Lokasi Blade view dan komposisi Platform Admin shell ditetapkan pada [ADR-033](decisions/033-platform-admin-shell-composition.md): capability view tetap module-local, sedangkan layout dan primitive lintas-domain berada pada global `resources/`.
+- Design system dan shared presentation component catalog yang lebih luas tetap ditentukan secara inkremental; P01-03 hanya menetapkan primitive shell Platform Admin.

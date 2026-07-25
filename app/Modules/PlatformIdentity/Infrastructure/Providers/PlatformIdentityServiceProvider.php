@@ -131,5 +131,9 @@ final class PlatformIdentityServiceProvider extends ServiceProvider
 
         $router->aliasMiddleware('platform.session-policy', EnforcePlatformSessionPolicy::class);
         $router->aliasMiddleware('platform.confirmed', RequireRecentPlatformConfirmation::class);
+        $router->middlewareGroup('platform.authenticated', [
+            'auth:platform',
+            'platform.session-policy',
+        ]);
     }
 }

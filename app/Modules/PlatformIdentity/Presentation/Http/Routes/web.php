@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\PlatformIdentity\Presentation\Http\Controllers\PlatformHomeController;
 use App\Modules\PlatformIdentity\Presentation\Http\Controllers\PlatformLoginController;
 use App\Modules\PlatformIdentity\Presentation\Http\Controllers\PlatformLogoutController;
 use App\Modules\PlatformIdentity\Presentation\Http\Controllers\PlatformMfaChallengeController;
@@ -30,7 +31,8 @@ Route::prefix('platform')
             ->name('session-replacement.store')
             ->block();
 
-        Route::middleware(['auth:platform', 'platform.session-policy'])->group(function (): void {
+        Route::middleware('platform.authenticated')->group(function (): void {
+            Route::get('/', PlatformHomeController::class)->name('home');
             Route::get('security', [PlatformSecurityController::class, 'index'])->name('security');
             Route::post('logout', PlatformLogoutController::class)->name('logout')->block();
 
