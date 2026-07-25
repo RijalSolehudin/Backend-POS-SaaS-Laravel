@@ -80,6 +80,11 @@ return static function (DeptracConfig $config): void {
             $bootstrapDependencies[] = Layer::withName('Identity Application');
         }
 
+        if ($module === 'Identity') {
+            $infrastructureDependencies[] = Layer::withName('Tenancy Application');
+            $bootstrapDependencies[] = Layer::withName('Tenancy Application');
+        }
+
         array_push($layers, $domain, $application, $infrastructure, $presentation, $bootstrap);
         array_push(
             $rulesets,

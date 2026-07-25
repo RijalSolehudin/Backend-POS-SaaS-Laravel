@@ -9,9 +9,10 @@ use App\Modules\Identity\Application\Contracts\InitialTenantOwnerCreator;
 use App\Modules\Identity\Application\Contracts\UserAccessRevoker;
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\Identity\Infrastructure\Persistence\DatabaseUserAccessRevoker;
+use App\Modules\Identity\Infrastructure\Tenancy\DatabaseTenantUserDirectory;
 use App\Modules\Identity\Presentation\Http\Middleware\EnforceTenantSessionPolicy;
 use App\Modules\Identity\Presentation\Http\Middleware\RequireCurrentTenantPassword;
-use App\Modules\Identity\Presentation\Http\Middleware\ResolveTenantContext;
+use App\Modules\Tenancy\Application\Contracts\TenantUserDirectory;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
@@ -23,6 +24,7 @@ final class IdentityServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(base_path('config/identity.php'), 'identity');
         $this->app->bind(InitialTenantOwnerCreator::class, CreateInitialTenantOwner::class);
         $this->app->bind(UserAccessRevoker::class, DatabaseUserAccessRevoker::class);
+        $this->app->bind(TenantUserDirectory::class, DatabaseTenantUserDirectory::class);
     }
 
     public function boot(Router $router): void
@@ -33,7 +35,6 @@ final class IdentityServiceProvider extends ServiceProvider
         $this->loadViewsFrom($moduleRoot.'/Presentation/Resources/views', 'identity');
         $router->aliasMiddleware('tenant.session-policy', EnforceTenantSessionPolicy::class);
         $router->aliasMiddleware('tenant.password-current', RequireCurrentTenantPassword::class);
-        $router->aliasMiddleware('tenant.context', ResolveTenantContext::class);
         $router->middlewareGroup('tenant.authenticated', [
             'auth:web',
             'tenant.session-policy',

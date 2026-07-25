@@ -15,7 +15,7 @@ Persetujuan dokumen ini tidak mengizinkan implementasi. Setiap work package haru
 | P01-03 | [Platform Admin Shell](P01-03-platform-admin-shell.md) | P01-02 | In Review |
 | P01-04 | [Tenant Provisioning](P01-04-tenant-provisioning.md) | P01-02, P01-03 | In Review |
 | P01-05 | [Tenant Identity](P01-05-tenant-identity.md) | P01-01, P01-04 | In Review |
-| P01-06 | [Tenancy and Outlets](P01-06-tenancy-and-outlets.md) | P01-04, P01-05 | Planned |
+| P01-06 | [Tenancy and Outlets](P01-06-tenancy-and-outlets.md) | P01-04, P01-05 | In Review |
 | P01-07 | [Predefined RBAC](P01-07-predefined-rbac.md) | P01-05, P01-06 | Planned |
 | P01-08 | [Device Registry](P01-08-device-registry.md) | P01-06, P01-07 | Planned |
 | P01-09 | [API Foundation](P01-09-api-foundation.md) | P01-05, P01-06, P01-08 | Planned |

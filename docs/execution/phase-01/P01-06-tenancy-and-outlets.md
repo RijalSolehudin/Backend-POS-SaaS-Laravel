@@ -1,6 +1,6 @@
 # P01-06 — Tenancy and Outlets
 
-Status: **Planned**
+Status: **In Review**
 
 ## Outcome
 
@@ -41,12 +41,12 @@ Tenant Owner dapat mengelola outlet dan user assignment melalui Tenant Admin den
 
 ## Implementation Checklist
 
-- [ ] Buat Tenant Admin route/middleware/layout boundary.
-- [ ] Implementasikan immutable tenant request context.
-- [ ] Implementasikan outlet lifecycle use cases.
-- [ ] Implementasikan user-outlet assignment use cases.
-- [ ] Terapkan scoped binding/query dan authorization.
-- [ ] Tambahkan cross-tenant matrix tests.
+- [x] Buat Tenant Admin route/middleware/layout boundary.
+- [x] Implementasikan immutable tenant request context.
+- [x] Implementasikan outlet lifecycle use cases.
+- [x] Implementasikan user-outlet assignment use cases.
+- [x] Terapkan scoped binding/query dan authorization.
+- [x] Tambahkan cross-tenant matrix tests.
 
 ## Verification and Evidence
 
@@ -55,7 +55,17 @@ Tenant Owner dapat mengelola outlet dan user assignment melalui Tenant Admin den
 - Preference tenant/outlet terakhir tidak dapat meningkatkan privilege.
 - Evidence isolation dan demo Tenant Admin dicatat.
 
+## Implementation Evidence
+
+- ADR-036 mencatat immutable context, owner authority, outlet lifecycle, assignment integrity, dan module boundary.
+- Tenant Admin mempunyai shared Blade shell dan owner-only outlet administration routes.
+- `CreateOutlet`, `UpdateOutlet`, `DisableOutlet`, `AssignUserToOutlet`, dan `RemoveUserFromOutlet` menggunakan context dan actor eksplisit.
+- Composite foreign key mencegah assignment outlet/user lintas tenant pada database layer.
+- Tenant user display data diakses melalui `TenantUserDirectory`; Tenancy tidak mengubah Identity model.
+- `TenantOutletManagementTest` mencakup lifecycle outlet, non-owner denial, cross-tenant child ULID, multi-outlet assignment, dan cross-tenant user rejection.
+- Pint, Larastan level 8, Deptrac, route cache, dan Blade compilation lulus pada 2026-07-26.
+- Database-backed feature execution menunggu MariaDB test service `127.0.0.1:33067` yang belum tersedia.
+
 ## Architecture Check
 
 Berhenti dan tanyakan product owner jika dibutuhkan hierarchy outlet, user transfer, tenant switching, soft-delete policy baru, atau perubahan source of truth request context.
-

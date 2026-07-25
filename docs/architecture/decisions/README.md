@@ -45,6 +45,7 @@
 | [ADR-033](033-platform-admin-shell-composition.md) | Shared Platform Admin shell dengan halaman capability module-local |
 | [ADR-034](034-tenant-provisioning-implementation-policy.md) | Atomic tenant provisioning, idempotency, initial credential, dan audit policy |
 | [ADR-035](035-tenant-identity-implementation-policy.md) | Tenant session isolation, membership resolution, credential lifecycle, dan revocation |
+| [ADR-036](036-tenancy-outlet-management-policy.md) | Immutable tenant context, outlet lifecycle, assignment integrity, dan owner administration |
 
 ## Superseded ADRs
 
