@@ -41,6 +41,7 @@
 | [ADR-029](029-github-actions-ci.md) | GitHub Actions sebagai platform CI |
 | [ADR-030](030-pint-and-larastan-quality-baseline.md) | Pint dan Larastan level 8 sebagai quality baseline |
 | [ADR-031](031-shared-minimal-actor-context.md) | Shared minimal immutable `ActorContext` |
+| [ADR-032](032-platform-identity-implementation-policy.md) | Platform identity credential, MFA, session, audit, dan recovery policy |
 
 ## Superseded ADRs
 
@@ -50,7 +51,6 @@
 
 ## Open Architecture Decisions
 
-- Re-authentication untuk aksi sensitif.
 - Order/payment lifecycle.
 - Recipe module ownership.
 - Offline synchronization strategy.

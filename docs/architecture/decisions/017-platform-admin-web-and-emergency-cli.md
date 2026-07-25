@@ -46,12 +46,11 @@ Controlled provisioning membutuhkan kanal operasional yang dapat digunakan berke
 - Tenant role mutation tidak dapat menciptakan platform privilege.
 - Sensitive platform operation membutuhkan audit trail.
 
-## Open Decisions
+## Follow-up Decisions
 
-- Platform identity separation telah diputuskan melalui ADR-018.
-- Session, recent confirmation, MFA, dan recovery policy telah diputuskan melalui ADR-019.
-- Credential bootstrap dan recovery process untuk platform actor pertama.
-- Detail emergency CLI actor attribution.
+- Platform identity separation diputuskan melalui ADR-018.
+- Session, recent confirmation, MFA, dan recovery policy diputuskan melalui ADR-019.
+- Credential bootstrap, recovery process, dan CLI actor attribution diputuskan melalui ADR-032.
 
 ## Consequences
 

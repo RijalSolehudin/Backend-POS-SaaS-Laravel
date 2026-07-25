@@ -30,3 +30,13 @@ npm run build
 ```
 
 Convention module, action, database test, dan quality tooling dijelaskan pada [Development Conventions](docs/architecture/development-conventions.md).
+
+## Platform Administrator Bootstrap
+
+Setelah migration serta queue/scheduler deployment siap, buat Platform Administrator pertama melalui prompt terkontrol:
+
+```shell
+php artisan platform:bootstrap
+```
+
+Kemudian buka `/platform/login` untuk menyelesaikan enrollment TOTP. Emergency recovery menggunakan `php artisan platform:recover-access` dan wajib mengikuti [runbook](docs/runbooks/platform-bootstrap-and-recovery.md).

@@ -11,7 +11,7 @@ Persetujuan dokumen ini tidak mengizinkan implementasi. Setiap work package haru
 | ID | Work package | Dependency utama | Status |
 |---|---|---|---|
 | P01-01 | [Modular Foundation](P01-01-modular-foundation.md) | Tidak ada | In Review |
-| P01-02 | [Platform Identity](P01-02-platform-identity.md) | P01-01 | Planned |
+| P01-02 | [Platform Identity](P01-02-platform-identity.md) | P01-01 | In Review |
 | P01-03 | [Platform Admin Shell](P01-03-platform-admin-shell.md) | P01-02 | Planned |
 | P01-04 | [Tenant Provisioning](P01-04-tenant-provisioning.md) | P01-02, P01-03 | Planned |
 | P01-05 | [Tenant Identity](P01-05-tenant-identity.md) | P01-01, P01-04 | Planned |

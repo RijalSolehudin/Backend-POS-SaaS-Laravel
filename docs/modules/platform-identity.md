@@ -32,7 +32,8 @@
 - Tenant user, role, dan membership; dimiliki Identity/Tenancy.
 - Tenant provisioning workflow; dimiliki Tenancy dan dipanggil melalui application boundary.
 
-## Open Decisions
+## Implementation Policy
 
-- Detail secure credential input untuk first-account bootstrap CLI.
-- Operational ownership untuk emergency recovery.
+Credential, MFA enrollment, recovery code, session isolation, recent confirmation, audit, alert, bootstrap, dan emergency recovery mengikuti [ADR-032](../architecture/decisions/032-platform-identity-implementation-policy.md).
+
+Tidak ada keputusan arsitektur P01-02 yang masih terbuka.

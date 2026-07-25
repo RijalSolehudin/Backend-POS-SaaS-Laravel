@@ -4,8 +4,8 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 
 ## Status Proyek
 
-- Tahap: perencanaan dan penyelarasan arsitektur
-- Implementasi aplikasi: belum dinilai selesai
+- Tahap: Phase 01 Foundation in progress
+- Implementasi aplikasi: P01-01 dan P01-02 berada dalam review; belum dinilai selesai
 - Target awal: MVP POS vertical slice
 
 ## Cara Membaca
@@ -19,6 +19,7 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 7. [Development Roadmap](roadmap/README.md)
 8. [Execution Plans](execution/README.md)
 9. [Module Map](modules/README.md)
+10. [Operational Runbooks](runbooks/)
 
 ## Struktur Dokumentasi
 
@@ -30,6 +31,7 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 | `modules/` | Batas dan tanggung jawab setiap domain module |
 | `roadmap/` | Urutan delivery, acceptance criteria, dan Definition of Done |
 | `execution/` | Work package implementasi, dependency, verifikasi, dan evidence |
+| `runbooks/` | Prosedur operasional terkontrol untuk bootstrap, recovery, dan deployment |
 | `archive/` | Dokumen versi lama untuk referensi historis |
 
 ## Aturan Perubahan

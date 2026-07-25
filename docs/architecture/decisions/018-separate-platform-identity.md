@@ -51,7 +51,7 @@ Route naming final dapat disesuaikan, tetapi identity boundary tidak boleh digab
 - Bug tenant user management tidak langsung menyentuh identity berkewenangan platform.
 - Orang yang sama mungkin memiliki dua credential, tetapi context dan audit tetap jelas.
 
-## Open Decisions
+## Follow-up Decisions
 
-- Platform MFA/session/recovery policy telah diputuskan melalui ADR-019.
-- Detail secure credential input untuk first-account bootstrap CLI.
+- Platform MFA/session/recovery policy diputuskan melalui ADR-019.
+- Secure first-account bootstrap diputuskan melalui ADR-032.

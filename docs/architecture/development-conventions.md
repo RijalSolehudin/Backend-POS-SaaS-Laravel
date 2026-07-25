@@ -16,6 +16,8 @@ app/Modules/<Module>/Infrastructure/Providers/<Module>ServiceProvider.php
 
 Provider didaftarkan eksplisit pada `bootstrap/providers.php`. `register()` hanya untuk container binding; route, view, translation, migration, command, dan event bootstrapping dilakukan pada `boot()`.
 
+Provider adalah composition root module. Deptrac memodelkan `Infrastructure/Providers` sebagai layer `Bootstrap` terpisah agar provider boleh merangkai Presentation, Infrastructure, Application, dan Domain tanpa memberi Infrastructure umum akses balik ke Presentation.
+
 Resource milik domain ditempatkan di dalam module:
 
 ```text

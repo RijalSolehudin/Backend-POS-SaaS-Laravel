@@ -1,6 +1,6 @@
 # P01-02 — Platform Identity
 
-Status: **Planned**
+Status: **In Review**
 
 ## Outcome
 
@@ -29,6 +29,7 @@ Platform Administrator memiliki identity, authentication, MFA, session, bootstra
 
 - Module: [Platform Identity](../../modules/platform-identity.md)
 - ADR: [017](../../architecture/decisions/017-platform-admin-web-and-emergency-cli.md), [018](../../architecture/decisions/018-separate-platform-identity.md), [019](../../architecture/decisions/019-web-session-and-platform-mfa.md)
+- Detailed policy: [ADR-032](../../architecture/decisions/032-platform-identity-implementation-policy.md)
 - Acceptance criteria: AC-07–AC-11, AC-35–AC-36, AC-38
 
 ## Use Cases and Invariants
@@ -42,22 +43,24 @@ Platform Administrator memiliki identity, authentication, MFA, session, bootstra
 
 ## Implementation Checklist
 
-- [ ] Implementasikan platform identity persistence dan auth provider terpisah.
-- [ ] Implementasikan idempotent first-user bootstrap.
-- [ ] Implementasikan password + TOTP login dan rate limiting.
-- [ ] Tegakkan idle 15 menit, absolute 4 jam, dan maksimal dua session.
-- [ ] Implementasikan recent confirmation maksimal 10 menit.
-- [ ] Implementasikan logout, session revocation, dan emergency recovery.
-- [ ] Tambahkan security audit dan automated tests.
+- [x] Implementasikan platform identity persistence dan auth provider terpisah.
+- [x] Implementasikan controlled first-user bootstrap dengan duplicate rejection.
+- [x] Implementasikan password + TOTP/recovery-code login dan progressive rate limiting.
+- [x] Tegakkan idle 15 menit, absolute 4 jam, dan maksimal dua session.
+- [x] Implementasikan password + second-factor recent confirmation maksimal 10 menit.
+- [x] Implementasikan logout, session revocation, recovery-code regeneration, dan emergency recovery.
+- [x] Tambahkan append-only security audit, queued alert, prune schedule, dan automated tests.
 
 ## Verification and Evidence
 
-- Tenant credential gagal pada Platform Admin dan sebaliknya.
-- Duplicate bootstrap ditolak tanpa membocorkan secret.
-- Timeout, session cap, MFA failure, dan recovery diuji server-side.
-- Evidence pengujian dan security review dicatat saat implementasi.
+- Static quality gate lulus: Pint, Larastan level 8, dan Deptrac tanpa baseline/ignore.
+- Unit suite lulus, termasuk deterministic TOTP, QR SVG, recovery-code format, dan lowercase ULID.
+- Feature tests tersedia untuk identity isolation, password + TOTP, first bootstrap, recovery code, session cap/timeout/suspension, dan emergency recovery.
+- Composer audit tidak menemukan active advisory setelah Guzzle diperbarui ke 7.15.1.
+- Laravel Boost digunakan untuk memverifikasi Laravel 13 guard/provider, password rule, rate limiter, session, prompt, queue, dan notification behavior.
+- MariaDB-backed feature suite belum dapat dijalankan pada host ini karena Docker/Podman/MariaDB test service tidak tersedia. SQLite smoke test sengaja tidak dijadikan evidence dan gagal pada MariaDB-specific `ascii_bin` collation.
+- P01-02 tetap `In Review` sampai feature suite dan fresh migration lulus pada MariaDB 11.4.
 
 ## Architecture Check
 
-Berhenti dan tanyakan product owner jika muncul pilihan baru tentang MFA enrollment/recovery UX, credential policy, recovery authority, atau lifecycle platform account.
-
+Keputusan P01-02 telah dikunci dalam ADR-032. Berhenti dan tanyakan product owner jika implementasi berikutnya perlu mengubah identity lifecycle, credential/MFA policy, session isolation, recovery authority, atau audit retention.

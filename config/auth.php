@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Modules\PlatformIdentity\Domain\Models\PlatformUser;
 
 return [
 
@@ -42,6 +43,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'platform' => [
+            'driver' => 'platform-session',
+            'provider' => 'platform_users',
+        ],
     ],
 
     /*
@@ -65,6 +70,10 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+        'platform_users' => [
+            'driver' => 'eloquent',
+            'model' => PlatformUser::class,
         ],
 
         // 'users' => [

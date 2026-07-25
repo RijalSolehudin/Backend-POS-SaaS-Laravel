@@ -40,13 +40,16 @@ return static function (DeptracConfig $config): void {
             DirectoryConfig::create("app/Modules/{$module}/Application/.*"),
         );
         $infrastructure = Layer::withName("{$module} Infrastructure")->collectors(
-            DirectoryConfig::create("app/Modules/{$module}/Infrastructure/.*"),
+            DirectoryConfig::create("app/Modules/{$module}/Infrastructure/(?!Providers/).*"),
         );
         $presentation = Layer::withName("{$module} Presentation")->collectors(
             DirectoryConfig::create("app/Modules/{$module}/Presentation/.*"),
         );
+        $bootstrap = Layer::withName("{$module} Bootstrap")->collectors(
+            DirectoryConfig::create("app/Modules/{$module}/Infrastructure/Providers/.*"),
+        );
 
-        array_push($layers, $domain, $application, $infrastructure, $presentation);
+        array_push($layers, $domain, $application, $infrastructure, $presentation, $bootstrap);
         array_push(
             $rulesets,
             Ruleset::forLayer($domain)->accesses($sharedDomain),
@@ -65,6 +68,15 @@ return static function (DeptracConfig $config): void {
             Ruleset::forLayer($presentation)->accesses(
                 $application,
                 $domain,
+                $sharedApplication,
+                $sharedDomain,
+            ),
+            Ruleset::forLayer($bootstrap)->accesses(
+                $presentation,
+                $infrastructure,
+                $application,
+                $domain,
+                $sharedInfrastructure,
                 $sharedApplication,
                 $sharedDomain,
             ),
