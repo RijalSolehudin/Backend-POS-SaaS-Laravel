@@ -40,3 +40,13 @@ php artisan platform:bootstrap
 ```
 
 Kemudian buka `/platform/login` untuk menyelesaikan enrollment TOTP. Emergency recovery menggunakan `php artisan platform:recover-access` dan wajib mengikuti [runbook](docs/runbooks/platform-bootstrap-and-recovery.md).
+
+## Tenant Provisioning
+
+Provisioning normal tersedia pada `/platform/tenants`. Controlled interactive CLI tersedia tanpa menerima password melalui command argument:
+
+```shell
+php artisan tenant:provision
+```
+
+Ikuti [Tenant Provisioning Runbook](docs/runbooks/tenant-provisioning.md), khususnya aturan idempotency key, secure credential delivery, dan migration baseline untuk database development lama.

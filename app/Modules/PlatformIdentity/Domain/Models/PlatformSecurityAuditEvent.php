@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\PlatformIdentity\Domain\Models;
 
-use App\Modules\PlatformIdentity\Domain\Concerns\HasLowercaseUlids;
+use App\Shared\Domain\Concerns\HasLowercaseUlids;
 use Illuminate\Database\Eloquent\Model;
 
 final class PlatformSecurityAuditEvent extends Model

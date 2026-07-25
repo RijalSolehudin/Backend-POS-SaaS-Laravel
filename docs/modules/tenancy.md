@@ -36,3 +36,5 @@
 ## Open Decisions
 
 - Configuration inheritance tenant ke outlet.
+
+Provisioning atomicity, idempotency, duplicate boundary, credential handling, dan audit mengikuti [ADR-034](../architecture/decisions/034-tenant-provisioning-implementation-policy.md).

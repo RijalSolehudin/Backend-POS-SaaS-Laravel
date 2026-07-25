@@ -43,6 +43,7 @@
 | [ADR-031](031-shared-minimal-actor-context.md) | Shared minimal immutable `ActorContext` |
 | [ADR-032](032-platform-identity-implementation-policy.md) | Platform identity credential, MFA, session, audit, dan recovery policy |
 | [ADR-033](033-platform-admin-shell-composition.md) | Shared Platform Admin shell dengan halaman capability module-local |
+| [ADR-034](034-tenant-provisioning-implementation-policy.md) | Atomic tenant provisioning, idempotency, initial credential, dan audit policy |
 
 ## Superseded ADRs
 

@@ -20,6 +20,16 @@
 
                 <nav class="ml-6 hidden h-full items-center gap-1 md:flex" aria-label="Platform navigation">
                     <a
+                        href="{{ route('platform.tenants.index') }}"
+                        @class([
+                            'platform-nav-link',
+                            'platform-nav-link-active' => request()->routeIs('platform.tenants.*'),
+                        ])
+                        @if (request()->routeIs('platform.tenants.*')) aria-current="page" @endif
+                    >
+                        Tenants
+                    </a>
+                    <a
                         href="{{ route('platform.security') }}"
                         @class([
                             'platform-nav-link',
@@ -71,7 +81,16 @@
                 class="border-t border-slate-200 bg-white px-4 py-4 md:hidden"
             >
                 <nav class="space-y-1" aria-label="Mobile platform navigation">
-                    <a href="{{ route('platform.security') }}" class="platform-nav-link platform-nav-link-active" aria-current="page">Security</a>
+                    <a
+                        href="{{ route('platform.tenants.index') }}"
+                        @class(['platform-nav-link w-full', 'platform-nav-link-active' => request()->routeIs('platform.tenants.*')])
+                        @if (request()->routeIs('platform.tenants.*')) aria-current="page" @endif
+                    >Tenants</a>
+                    <a
+                        href="{{ route('platform.security') }}"
+                        @class(['platform-nav-link w-full', 'platform-nav-link-active' => request()->routeIs('platform.security', 'platform.sessions.*', 'platform.recovery-codes.*', 'platform.confirm-sensitive*')])
+                        @if (request()->routeIs('platform.security', 'platform.sessions.*', 'platform.recovery-codes.*', 'platform.confirm-sensitive*')) aria-current="page" @endif
+                    >Security</a>
                 </nav>
                 @if (auth('platform')->check())
                     <div class="mt-4 border-t border-slate-200 pt-4">

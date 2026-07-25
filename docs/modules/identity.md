@@ -9,6 +9,7 @@
 
 ## MVP Use Cases
 
+- Membuat initial Tenant Owner dan predefined owner role melalui published application boundary saat provisioning.
 - Authenticate user dan menerbitkan Laravel Sanctum API token.
 - Revoke token aktif atau token perangkat yang dipilih.
 - Resolve authenticated identity.
@@ -31,4 +32,5 @@
 ## Open Decisions
 
 - PIN storage, retry limit, lockout, dan supervisor re-authentication.
-- Custom roles pada MVP.
+
+Initial owner credential, normalized email, dan forced first password change mengikuti [ADR-034](../architecture/decisions/034-tenant-provisioning-implementation-policy.md).

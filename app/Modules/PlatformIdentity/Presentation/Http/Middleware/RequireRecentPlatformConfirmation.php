@@ -17,11 +17,32 @@ final class RequireRecentPlatformConfirmation
         $validFor = (int) config('platform_identity.sensitive_confirmation_seconds', 600);
 
         if ($confirmedAt === 0 || now()->getTimestamp() - $confirmedAt > $validFor) {
-            $request->session()->put('url.intended', $request->fullUrl());
+            $request->session()->put('url.intended', $this->returnUrl($request));
 
             return new RedirectResponse(route('platform.confirm-sensitive'));
         }
 
         return $next($request);
+    }
+
+    private function returnUrl(Request $request): string
+    {
+        if ($request->isMethodSafe()) {
+            return $request->fullUrl();
+        }
+
+        $referer = $request->headers->get('referer');
+
+        if (! is_string($referer) || ! str_starts_with($referer, $request->getSchemeAndHttpHost())) {
+            return route('platform.home');
+        }
+
+        $path = parse_url($referer, PHP_URL_PATH);
+
+        if (! is_string($path) || ($path !== '/platform' && ! str_starts_with($path, '/platform/'))) {
+            return route('platform.home');
+        }
+
+        return $referer;
     }
 }

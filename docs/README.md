@@ -5,7 +5,7 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 ## Status Proyek
 
 - Tahap: Phase 01 Foundation in progress
-- Implementasi aplikasi: P01-01, P01-02, dan P01-03 berada dalam review; belum dinilai selesai
+- Implementasi aplikasi: P01-01 sampai P01-04 berada dalam review; belum dinilai selesai
 - Target awal: MVP POS vertical slice
 
 ## Cara Membaca

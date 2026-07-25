@@ -48,16 +48,21 @@ return static function (DeptracConfig $config): void {
         $bootstrap = Layer::withName("{$module} Bootstrap")->collectors(
             DirectoryConfig::create("app/Modules/{$module}/Infrastructure/Providers/.*"),
         );
+        $applicationDependencies = [
+            $domain,
+            $sharedApplication,
+            $sharedDomain,
+        ];
+
+        if ($module === 'Tenancy') {
+            $applicationDependencies[] = Layer::withName('Identity Application');
+        }
 
         array_push($layers, $domain, $application, $infrastructure, $presentation, $bootstrap);
         array_push(
             $rulesets,
             Ruleset::forLayer($domain)->accesses($sharedDomain),
-            Ruleset::forLayer($application)->accesses(
-                $domain,
-                $sharedApplication,
-                $sharedDomain,
-            ),
+            Ruleset::forLayer($application)->accesses(...$applicationDependencies),
             Ruleset::forLayer($infrastructure)->accesses(
                 $application,
                 $domain,

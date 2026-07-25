@@ -35,8 +35,7 @@ Public self-registration akan menambah tenant abuse/spam controls, verification,
 
 - Delivery channel telah diputuskan melalui ADR-017: Platform Admin Web utama dan CLI emergency.
 - Platform identity menggunakan model/provider terpisah sesuai ADR-018.
-- Credential delivery/reset untuk initial owner.
-- Duplicate tenant detection dan provisioning idempotency key.
+- Credential delivery, duplicate detection, dan provisioning idempotency ditetapkan melalui ADR-034.
 
 ## Consequences
 
