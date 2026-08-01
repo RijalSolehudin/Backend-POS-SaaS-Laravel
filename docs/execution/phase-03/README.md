@@ -16,8 +16,8 @@ Implementasi Phase 03 mengikuti [ADR-038 Operational Safety MVP Policy](../../ar
 | P03-02 | [Sensitive Action Approval](P03-02-sensitive-action-approval.md) | P03-01 | Done |
 | P03-03 | [Refund and Payment Reversal](P03-03-refund-payment-reversal.md) | P03-01, P02-05, P02-08 | Done |
 | P03-04 | [Cash In/Out and Shift Discrepancy](P03-04-cash-in-out-shift-discrepancy.md) | P03-01, P02-07 | Done |
-| P03-05 | [Audit Trail Hardening](P03-05-audit-trail-hardening.md) | P03-01, P02-08 | Ready |
-| P03-06 | Concurrency and Recovery Hardening | P03-01, P02-09 | Planned |
+| P03-05 | [Audit Trail Hardening](P03-05-audit-trail-hardening.md) | P03-01, P02-08 | Done |
+| P03-06 | [Concurrency and Recovery Hardening](P03-06-concurrency-recovery-hardening.md) | P03-01, P02-09 | Ready |
 | P03-07 | Operational Baseline | P03-01 | Planned |
 | P03-08 | Pilot Readiness | P03-02..P03-07 | Planned |
 

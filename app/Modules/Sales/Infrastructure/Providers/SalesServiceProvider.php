@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Sales\Infrastructure\Providers;
 
+use App\Modules\Sales\Presentation\Console\Commands\PruneSalesAuditEventsCommand;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\ServiceProvider;
 
 final class SalesServiceProvider extends ServiceProvider
@@ -21,5 +23,15 @@ final class SalesServiceProvider extends ServiceProvider
         $this->loadViewsFrom($moduleRoot.'/Presentation/Resources/views', 'sales');
         $this->loadRoutesFrom($moduleRoot.'/Presentation/Http/Routes/api.php');
         $this->loadRoutesFrom($moduleRoot.'/Presentation/Http/Routes/web.php');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                PruneSalesAuditEventsCommand::class,
+            ]);
+
+            Schedule::command('sales:prune-audit-events')
+                ->daily()
+                ->withoutOverlapping();
+        }
     }
 }

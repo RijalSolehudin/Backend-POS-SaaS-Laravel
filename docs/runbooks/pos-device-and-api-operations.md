@@ -114,3 +114,5 @@ Cash movement dipakai untuk menjelaskan perubahan uang tunai di drawer selain or
 - `SHIFT_CURRENCY_MISMATCH`: currency cash movement tidak sama dengan currency shift.
 
 Gunakan `X-Request-ID` atau `trace_id` dari error body untuk korelasi log.
+
+Audit event Sales, retention, dan redaction didokumentasikan di [Sales Audit Events](sales-audit-events.md).

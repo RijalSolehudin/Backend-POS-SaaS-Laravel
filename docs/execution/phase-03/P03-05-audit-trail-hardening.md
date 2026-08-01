@@ -1,6 +1,6 @@
 # P03-05 — Audit Trail Hardening
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -41,6 +41,13 @@ Sales operational audit trail memiliki event coverage, redaction, retention boun
 - Feature tests atau readiness test untuk event coverage.
 - Documentation checklist for event names and metadata.
 - `composer quality` lulus.
+
+## Evidence
+
+- `tests/Feature/Sales/SalesAuditHardeningTest.php` verifies recursive metadata redaction and retention pruning behavior.
+- `sales:prune-audit-events` supports `--pretend` and prunes events older than configured pilot retention.
+- SalesServiceProvider schedules `sales:prune-audit-events` daily with overlap protection.
+- [Sales audit events runbook](../../runbooks/sales-audit-events.md) documents event names, required fields, redaction keys, and retention commands.
 
 ## Architecture Stop Rule
 
