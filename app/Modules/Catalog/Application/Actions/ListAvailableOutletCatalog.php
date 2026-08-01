@@ -6,8 +6,12 @@ namespace App\Modules\Catalog\Application\Actions;
 
 use App\Modules\Catalog\Application\Data\AvailableCatalogProduct;
 use App\Modules\Catalog\Application\Data\AvailableCatalogVariant;
+use App\Modules\Catalog\Application\Data\AvailableModifierGroup;
+use App\Modules\Catalog\Application\Data\AvailableModifierOption;
 use App\Modules\Catalog\Domain\Enums\CategoryStatus;
 use App\Modules\Catalog\Domain\Enums\ProductStatus;
+use App\Modules\Catalog\Domain\Models\ModifierGroup;
+use App\Modules\Catalog\Domain\Models\ModifierOption;
 use App\Modules\Catalog\Domain\Models\Product;
 use App\Modules\Catalog\Domain\Models\ProductVariant;
 use App\Modules\Tenancy\Application\Data\PosOutletContext;
@@ -101,6 +105,7 @@ final readonly class ListAvailableOutletCatalog
                     priceMinor: $row->outlet_price_minor ?? $row->base_price_minor,
                     currency: $row->currency,
                     isDefault: true,
+                    modifierGroups: $this->modifierGroups($context, $row->id, null),
                 ),
             ];
         }
@@ -113,8 +118,70 @@ final readonly class ListAvailableOutletCatalog
                 priceMinor: $variant->price_minor,
                 currency: $variant->currency,
                 isDefault: (bool) $variant->is_default,
+                modifierGroups: $this->modifierGroups($context, $row->id, $variant->id),
             ),
             $variants,
+        );
+    }
+
+    /**
+     * @return list<AvailableModifierGroup>
+     */
+    private function modifierGroups(PosOutletContext $context, string $productId, ?string $variantId): array
+    {
+        /** @var list<object{id: string, name: string, required: bool, min_selection: int, max_selection: int}> $groups */
+        $groups = ModifierGroup::query()
+            ->where('tenant_id', $context->tenantId)
+            ->where('product_id', $productId)
+            ->where(function ($query) use ($variantId): void {
+                $query->whereNull('variant_id');
+
+                if ($variantId !== null) {
+                    $query->orWhere('variant_id', $variantId);
+                }
+            })
+            ->where('status', ProductStatus::Active)
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get(['id', 'name', 'required', 'min_selection', 'max_selection'])
+            ->all();
+
+        return array_map(
+            fn (object $group): AvailableModifierGroup => new AvailableModifierGroup(
+                id: $group->id,
+                name: $group->name,
+                required: (bool) $group->required,
+                minSelection: $group->min_selection,
+                maxSelection: $group->max_selection,
+                options: $this->modifierOptions($context, $group->id),
+            ),
+            $groups,
+        );
+    }
+
+    /**
+     * @return list<AvailableModifierOption>
+     */
+    private function modifierOptions(PosOutletContext $context, string $groupId): array
+    {
+        /** @var list<object{id: string, name: string, price_delta_minor: int, currency: string}> $options */
+        $options = ModifierOption::query()
+            ->where('tenant_id', $context->tenantId)
+            ->where('group_id', $groupId)
+            ->where('status', ProductStatus::Active)
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get(['id', 'name', 'price_delta_minor', 'currency'])
+            ->all();
+
+        return array_map(
+            fn (object $option): AvailableModifierOption => new AvailableModifierOption(
+                id: $option->id,
+                name: $option->name,
+                priceDeltaMinor: $option->price_delta_minor,
+                currency: $option->currency,
+            ),
+            $options,
         );
     }
 }

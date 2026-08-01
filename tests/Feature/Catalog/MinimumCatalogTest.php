@@ -7,6 +7,8 @@ namespace Tests\Feature\Catalog;
 use App\Modules\Catalog\Domain\Enums\CategoryStatus;
 use App\Modules\Catalog\Domain\Enums\ProductStatus;
 use App\Modules\Catalog\Domain\Models\Category;
+use App\Modules\Catalog\Domain\Models\ModifierGroup;
+use App\Modules\Catalog\Domain\Models\ModifierOption;
 use App\Modules\Catalog\Domain\Models\Product;
 use App\Modules\Catalog\Domain\Models\ProductOutletAvailability;
 use App\Modules\Catalog\Domain\Models\ProductVariant;
@@ -236,6 +238,42 @@ final class MinimumCatalogTest extends TestCase
             ->assertJsonCount(2, 'data.0.variants');
     }
 
+    public function test_flutter_catalog_reads_modifier_groups_and_active_options_for_variants(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $cashier = $this->user('cashier@example.com', $tenant, MembershipType::Member, PredefinedRole::Cashier);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $this->assignOutlet($tenant, $outlet, $cashier);
+        $this->device($tenant, $outlet, '01k123456789abcdefghjkmnpq', $owner);
+        $category = $this->category($tenant, 'Drinks');
+        $product = $this->product($tenant, $category, 'MATCHA', 'Matcha');
+        $variant = $this->variant($tenant, $product, 'MATCHA-LARGE', 'Large');
+        $this->availability($tenant, $outlet, $product, true);
+
+        $milk = $this->modifierGroup($tenant, $product, 'Milk', true, 1, 1, 10);
+        $this->modifierOption($tenant, $milk, 'Oat Milk', 5000, ProductStatus::Active, 10);
+        $this->modifierOption($tenant, $milk, 'Almond Milk', 6000, ProductStatus::Inactive, 20);
+
+        $topping = $this->modifierGroup($tenant, $product, 'Topping', false, 0, 2, 20, $variant);
+        $this->modifierOption($tenant, $topping, 'Pearl', 4000);
+
+        $response = $this->withToken($this->posToken($outlet))
+            ->getJson(route('api.v1.pos.outlets.catalog', ['outlet' => $outlet->id]));
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.0.variants.0.modifier_groups.0.name', 'Milk')
+            ->assertJsonPath('data.0.variants.0.modifier_groups.0.required', true)
+            ->assertJsonPath('data.0.variants.0.modifier_groups.0.min_selection', 1)
+            ->assertJsonPath('data.0.variants.0.modifier_groups.0.max_selection', 1)
+            ->assertJsonPath('data.0.variants.0.modifier_groups.0.options.0.name', 'Oat Milk')
+            ->assertJsonPath('data.0.variants.0.modifier_groups.0.options.0.price_delta_minor', 5000)
+            ->assertJsonPath('data.0.variants.0.modifier_groups.1.name', 'Topping')
+            ->assertJsonPath('data.0.variants.0.modifier_groups.1.options.0.name', 'Pearl')
+            ->assertJsonCount(1, 'data.0.variants.0.modifier_groups.0.options');
+    }
+
     private function tenant(string $name = 'Tenant One', string $code = 'tenant-one'): Tenant
     {
         return Tenant::query()->create([
@@ -362,6 +400,48 @@ final class MinimumCatalogTest extends TestCase
             'price_minor' => 10000,
             'currency' => 'IDR',
             'is_default' => false,
+            'display_order' => $displayOrder,
+            'status' => $status,
+        ]);
+    }
+
+    private function modifierGroup(
+        Tenant $tenant,
+        Product $product,
+        string $name,
+        bool $required,
+        int $minSelection,
+        int $maxSelection,
+        int $displayOrder = 0,
+        ?ProductVariant $variant = null,
+    ): ModifierGroup {
+        return ModifierGroup::query()->create([
+            'tenant_id' => $tenant->id,
+            'product_id' => $product->id,
+            'variant_id' => $variant?->id,
+            'name' => $name,
+            'required' => $required,
+            'min_selection' => $minSelection,
+            'max_selection' => $maxSelection,
+            'display_order' => $displayOrder,
+            'status' => ProductStatus::Active,
+        ]);
+    }
+
+    private function modifierOption(
+        Tenant $tenant,
+        ModifierGroup $group,
+        string $name,
+        int $priceDeltaMinor,
+        ProductStatus $status = ProductStatus::Active,
+        int $displayOrder = 0,
+    ): ModifierOption {
+        return ModifierOption::query()->create([
+            'tenant_id' => $tenant->id,
+            'group_id' => $group->id,
+            'name' => $name,
+            'price_delta_minor' => $priceDeltaMinor,
+            'currency' => 'IDR',
             'display_order' => $displayOrder,
             'status' => $status,
         ]);

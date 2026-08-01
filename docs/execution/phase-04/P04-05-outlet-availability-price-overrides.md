@@ -1,6 +1,6 @@
 # P04-05 — Outlet Availability and Price Overrides
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

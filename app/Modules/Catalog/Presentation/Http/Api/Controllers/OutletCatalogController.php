@@ -65,6 +65,25 @@ final class OutletCatalogController extends Controller
                             'price_minor' => $variant->priceMinor,
                             'currency' => $variant->currency,
                             'is_default' => $variant->isDefault,
+                            'modifier_groups' => array_map(
+                                fn ($group): array => [
+                                    'id' => $group->id,
+                                    'name' => $group->name,
+                                    'required' => $group->required,
+                                    'min_selection' => $group->minSelection,
+                                    'max_selection' => $group->maxSelection,
+                                    'options' => array_map(
+                                        fn ($option): array => [
+                                            'id' => $option->id,
+                                            'name' => $option->name,
+                                            'price_delta_minor' => $option->priceDeltaMinor,
+                                            'currency' => $option->currency,
+                                        ],
+                                        $group->options,
+                                    ),
+                                ],
+                                $variant->modifierGroups,
+                            ),
                         ],
                         $product->variants,
                     ),

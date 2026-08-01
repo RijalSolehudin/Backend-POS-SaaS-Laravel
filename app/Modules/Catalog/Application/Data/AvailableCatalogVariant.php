@@ -13,5 +13,7 @@ final readonly class AvailableCatalogVariant
         public int $priceMinor,
         public string $currency,
         public bool $isDefault,
+        /** @var list<AvailableModifierGroup> */
+        public array $modifierGroups = [],
     ) {}
 }
