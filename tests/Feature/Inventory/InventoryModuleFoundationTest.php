@@ -7,10 +7,15 @@ namespace Tests\Feature\Inventory;
 use App\Modules\Identity\Domain\Enums\PredefinedRole;
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\Identity\Domain\Models\UserRoleAssignment;
+use App\Modules\Inventory\Application\Actions\RecordStockMovement;
+use App\Modules\Inventory\Application\Data\StockMovementInput;
 use App\Modules\Inventory\Domain\Enums\InventoryStatus;
+use App\Modules\Inventory\Domain\Enums\StockMovementType;
 use App\Modules\Inventory\Domain\Models\InventoryAuditEvent;
+use App\Modules\Inventory\Domain\Models\InventoryBalance;
 use App\Modules\Inventory\Domain\Models\InventoryItem;
 use App\Modules\Inventory\Domain\Models\InventoryItemOutletSetting;
+use App\Modules\Inventory\Domain\Models\InventoryStockMovement;
 use App\Modules\Inventory\Domain\Models\InventoryUnit;
 use App\Modules\Tenancy\Domain\Enums\MembershipType;
 use App\Modules\Tenancy\Domain\Enums\OutletStatus;
@@ -148,6 +153,138 @@ final class InventoryModuleFoundationTest extends TestCase
 
         $this->get(route('tenant.inventory.index', ['tenant' => $tenant->id]))
             ->assertForbidden();
+    }
+
+    public function test_opening_balance_records_movement_and_balance_once(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'BEANS-01', 'Coffee Beans');
+        $this->login($owner);
+
+        $this->withHeader('Idempotency-Key', 'opening-beans-1')
+            ->post(route('tenant.inventory.items.opening-balances.store', [
+                'tenant' => $tenant->id,
+                'item' => $item->id,
+            ]), [
+                'outlet_id' => $outlet->id,
+                'quantity' => '10.500',
+                'total_cost_minor' => 210000,
+                'currency' => 'IDR',
+                'reason' => 'Initial count',
+            ])->assertRedirect();
+
+        $movement = InventoryStockMovement::query()->firstOrFail();
+        $balance = InventoryBalance::query()->firstOrFail();
+
+        self::assertSame(StockMovementType::OpeningBalance, $movement->movement_type);
+        self::assertSame('10.500', $movement->quantity);
+        self::assertSame(20000, $movement->unit_cost_minor);
+        self::assertSame(210000, $movement->total_cost_minor);
+        self::assertSame('10.500', $movement->balance_quantity_after);
+        self::assertSame('10.500', $balance->quantity);
+        self::assertSame(210000, $balance->total_cost_minor);
+
+        self::assertFalse($movement->forceFill(['reason' => 'Edited'])->save());
+        self::assertFalse($movement->delete());
+    }
+
+    public function test_opening_balance_idempotency_replays_and_rejects_payload_conflict(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'MILK-01', 'Milk');
+        $this->login($owner);
+
+        $payload = [
+            'outlet_id' => $outlet->id,
+            'quantity' => '4.000',
+            'total_cost_minor' => 80000,
+            'currency' => 'IDR',
+            'reason' => 'Initial count',
+        ];
+
+        $route = route('tenant.inventory.items.opening-balances.store', [
+            'tenant' => $tenant->id,
+            'item' => $item->id,
+        ]);
+
+        $this->withHeader('Idempotency-Key', 'opening-milk-1')
+            ->post($route, $payload)
+            ->assertRedirect();
+
+        $this->withHeader('Idempotency-Key', 'opening-milk-1')
+            ->post($route, $payload)
+            ->assertRedirect();
+
+        self::assertSame(1, InventoryStockMovement::query()->count());
+        self::assertSame(1, InventoryBalance::query()->count());
+
+        $this->withHeader('Idempotency-Key', 'opening-milk-1')
+            ->from(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->post($route, [...$payload, 'quantity' => '5.000'])
+            ->assertRedirect(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->assertSessionHasErrors('idempotency_key');
+    }
+
+    public function test_second_opening_balance_and_negative_stock_are_rejected(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'SUGAR-01', 'Sugar');
+        $this->login($owner);
+
+        $route = route('tenant.inventory.items.opening-balances.store', [
+            'tenant' => $tenant->id,
+            'item' => $item->id,
+        ]);
+
+        $this->withHeader('Idempotency-Key', 'opening-sugar-1')
+            ->post($route, [
+                'outlet_id' => $outlet->id,
+                'quantity' => '1.000',
+                'total_cost_minor' => 10000,
+                'currency' => 'IDR',
+                'reason' => 'Initial count',
+            ])
+            ->assertRedirect();
+
+        $this->withHeader('Idempotency-Key', 'opening-sugar-2')
+            ->from(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->post($route, [
+                'outlet_id' => $outlet->id,
+                'quantity' => '1.000',
+                'total_cost_minor' => 10000,
+                'currency' => 'IDR',
+                'reason' => 'Second count',
+            ])
+            ->assertRedirect(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->assertSessionHasErrors('idempotency_key');
+
+        $this->expectExceptionMessage('The stock mutation would make the inventory balance negative.');
+
+        $this->app->make(RecordStockMovement::class)->handle(new StockMovementInput(
+            tenantId: $tenant->id,
+            outletId: $outlet->id,
+            itemId: $item->id,
+            unitId: $unit->id,
+            actorUserId: $owner->id,
+            movementType: StockMovementType::AdjustmentDecrease,
+            sourceType: 'test',
+            sourceId: null,
+            quantity: '-2.000',
+            unitCostMinor: null,
+            totalCostMinor: null,
+            currency: 'IDR',
+            reason: 'Negative stock check',
+            idempotencyKey: 'negative-stock-1',
+        ));
     }
 
     private function tenant(string $name = 'Acme POS', string $code = 'acme-pos'): Tenant

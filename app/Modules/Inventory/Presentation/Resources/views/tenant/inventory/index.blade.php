@@ -89,11 +89,12 @@
                             <div class="mt-3 grid gap-3">
                                 @foreach ($outlets as $outlet)
                                     @php($setting = $settings->get($item->id.'|'.$outlet->outletId))
+                                    @php($balance = $balances->get($item->id.'|'.$outlet->outletId))
                                     <form class="grid gap-2 rounded-lg bg-slate-50 p-3 md:grid-cols-[1fr_120px_140px_auto]" method="post" action="{{ route('tenant.inventory.items.outlet-settings', ['tenant' => $tenant->id, 'item' => $item->id]) }}">
                                         @csrf
                                         @method('put')
                                         <input type="hidden" name="outlet_id" value="{{ $outlet->outletId }}">
-                                        <p class="text-sm font-bold">{{ $outlet->name }}</p>
+                                        <p class="text-sm font-bold">{{ $outlet->name }} <span class="font-normal text-slate-500">{{ $balance?->quantity ?? '0.000' }}</span></p>
                                         <select class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="status">
                                             <option value="active" @selected(($setting?->status->value ?? 'active') === 'active')>Active</option>
                                             <option value="inactive" @selected(($setting?->status->value ?? 'active') === 'inactive')>Inactive</option>
@@ -101,6 +102,18 @@
                                         <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="low_stock_threshold_quantity" inputmode="decimal" value="{{ $setting?->low_stock_threshold_quantity ?? '0.000' }}" required>
                                         <button class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">Save</button>
                                     </form>
+                                    @unless ($balance)
+                                        <form class="grid gap-2 rounded-lg border border-slate-200 p-3 md:grid-cols-[1fr_120px_140px_1fr_auto]" method="post" action="{{ route('tenant.inventory.items.opening-balances.store', ['tenant' => $tenant->id, 'item' => $item->id]) }}">
+                                            @csrf
+                                            <input type="hidden" name="outlet_id" value="{{ $outlet->outletId }}">
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="quantity" inputmode="decimal" placeholder="Opening qty" required>
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="total_cost_minor" type="number" min="0" step="1" placeholder="Cost" required>
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase" name="currency" value="{{ $tenant->currency }}" maxlength="3" required>
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="idempotency_key" placeholder="Idempotency key" required maxlength="120">
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="reason" placeholder="Reason" maxlength="255">
+                                            <button class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold md:col-span-5">Record opening balance</button>
+                                        </form>
+                                    @endunless
                                 @endforeach
                             </div>
                         </div>

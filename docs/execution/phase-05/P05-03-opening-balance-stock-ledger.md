@@ -1,6 +1,6 @@
 # P05-03 — Opening Balance and Stock Ledger
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 

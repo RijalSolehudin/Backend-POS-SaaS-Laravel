@@ -1,6 +1,6 @@
 # P05-04 — Stock Adjustment and Waste
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

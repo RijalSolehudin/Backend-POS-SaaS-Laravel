@@ -8,14 +8,17 @@ use App\Modules\Inventory\Application\Actions\ChangeInventoryItemStatus;
 use App\Modules\Inventory\Application\Actions\ChangeInventoryUnitStatus;
 use App\Modules\Inventory\Application\Actions\CreateInventoryItem;
 use App\Modules\Inventory\Application\Actions\CreateInventoryUnit;
+use App\Modules\Inventory\Application\Actions\RecordOpeningBalance;
 use App\Modules\Inventory\Application\Actions\SetInventoryItemOutletSettings;
 use App\Modules\Inventory\Application\Actions\UpdateInventoryItem;
 use App\Modules\Inventory\Application\Actions\UpdateInventoryUnit;
 use App\Modules\Inventory\Application\Data\InventoryItemInput;
 use App\Modules\Inventory\Application\Data\InventoryItemOutletSettingsInput;
 use App\Modules\Inventory\Application\Data\InventoryUnitInput;
+use App\Modules\Inventory\Application\Data\OpeningBalanceInput;
 use App\Modules\Inventory\Application\Exceptions\InventoryException;
 use App\Modules\Inventory\Domain\Enums\InventoryStatus;
+use App\Modules\Inventory\Domain\Models\InventoryBalance;
 use App\Modules\Inventory\Domain\Models\InventoryItem;
 use App\Modules\Inventory\Domain\Models\InventoryItemOutletSetting;
 use App\Modules\Inventory\Domain\Models\InventoryUnit;
@@ -52,6 +55,10 @@ final class TenantInventoryController extends Controller
                 ->where('tenant_id', $context->tenantId)
                 ->get()
                 ->keyBy(fn (InventoryItemOutletSetting $setting): string => $setting->item_id.'|'.$setting->outlet_id),
+            'balances' => InventoryBalance::query()
+                ->where('tenant_id', $context->tenantId)
+                ->get()
+                ->keyBy(fn (InventoryBalance $balance): string => $balance->item_id.'|'.$balance->outlet_id),
             'outlets' => $this->tenancy->activeOutlets($context->tenantId),
         ]);
     }
@@ -179,6 +186,47 @@ final class TenantInventoryController extends Controller
         return back()->with('status', 'Inventory outlet settings updated.');
     }
 
+    public function recordOpeningBalance(
+        Request $request,
+        string $tenant,
+        string $item,
+        RecordOpeningBalance $openingBalance,
+    ): RedirectResponse {
+        $input = $request->validate([
+            'outlet_id' => ['required', 'string', 'size:26'],
+            'quantity' => ['required', 'decimal:0,3', 'min:0'],
+            'total_cost_minor' => ['required', 'integer', 'min:0'],
+            'currency' => ['required', 'string', 'size:3'],
+            'reason' => ['nullable', 'string', 'max:255'],
+            'idempotency_key' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if (! is_string($idempotencyKey) || trim($idempotencyKey) === '') {
+            $idempotencyKey = (string) ($input['idempotency_key'] ?? '');
+        }
+
+        try {
+            $movement = $openingBalance->handle(
+                $this->context($request),
+                new OpeningBalanceInput(
+                    outletId: (string) $input['outlet_id'],
+                    itemId: $item,
+                    quantity: (string) $input['quantity'],
+                    totalCostMinor: (int) $input['total_cost_minor'],
+                    currency: (string) $input['currency'],
+                    reason: ($input['reason'] ?? null) === null || $input['reason'] === '' ? null : (string) $input['reason'],
+                ),
+                $idempotencyKey,
+            );
+        } catch (InventoryException $exception) {
+            throw $this->validation($exception);
+        }
+
+        return back()->with('status', 'Opening balance recorded: '.$movement->id);
+    }
+
     private function context(Request $request): TenantRequestContext
     {
         $context = $request->attributes->get('tenant_context');
@@ -245,6 +293,10 @@ final class TenantInventoryController extends Controller
                 'INVENTORY_SKU_UNAVAILABLE' => 'sku',
                 'INVENTORY_UNIT_SYMBOL_UNAVAILABLE' => 'symbol',
                 'INVENTORY_OUTLET_NOT_FOUND' => 'outlet_id',
+                'INVENTORY_CURRENCY_MISMATCH' => 'currency',
+                'INVENTORY_OPENING_BALANCE_ALREADY_RECORDED',
+                'INVENTORY_IDEMPOTENCY_CONFLICT',
+                'INVENTORY_IDEMPOTENCY_KEY_REQUIRED' => 'idempotency_key',
                 default => 'item',
             } => [$exception->getMessage()],
         ]);

@@ -37,4 +37,8 @@ Route::prefix('admin/tenants/{tenant}/inventory')
             ->where('item', '[0-9a-hjkmnp-tv-z]{26}')
             ->name('items.outlet-settings')
             ->block();
+        Route::post('items/{item}/opening-balances', [TenantInventoryController::class, 'recordOpeningBalance'])
+            ->where('item', '[0-9a-hjkmnp-tv-z]{26}')
+            ->name('items.opening-balances.store')
+            ->block();
     });
