@@ -1,6 +1,6 @@
 # Phase 05: Inventory
 
-Status: **Not Started**
+Status: **Ready**
 
 ## Outcome
 
@@ -16,12 +16,13 @@ Outlet mempunyai ledger stock yang dapat ditelusuri dan direkonsiliasi.
 
 ## Architecture Decisions Required
 
-- Negative stock policy.
-- Unit conversion precision.
-- Batch/expiry scope.
-- Costing method.
-- Concurrency dan locking stock.
-- Adjustment/transfer approval lifecycle.
+- Accepted decision: [ADR-040 Inventory Ledger MVP Policy](../architecture/decisions/040-inventory-ledger-mvp-policy.md).
+- Negative stock ditolak untuk mutation normal.
+- Phase 05 memakai satu base unit per item dan fixed decimal quantity sampai 3 digit desimal.
+- Batch/expiry ditunda.
+- Costing memakai moving average sederhana.
+- Stock mutation memakai transaction, idempotency, dan balance locking.
+- Adjustment decrease, waste, dan transfer di atas threshold membutuhkan approval.
 
 ## Acceptance Criteria
 
@@ -33,4 +34,6 @@ Outlet mempunyai ledger stock yang dapat ditelusuri dan direkonsiliasi.
 ## Out of Scope
 
 - Auto-deduct recipe sampai keputusan dan capability Phase 06 siap.
-
+- Batch/expiry traceability.
+- FIFO, landed cost, multi-currency valuation, dan accounting journal.
+- Unit conversion kompleks dan packaging hierarchy.

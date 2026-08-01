@@ -1,19 +1,19 @@
 # Phase 05 Execution Plan
 
-Status: **Planned**
+Status: **Ready**
 
 Dokumen ini memecah [Phase 05 Inventory](../../roadmap/phase-05-inventory.md) menjadi work package berbasis outcome.
 
 ## Required Decision Gate
 
-Implementasi Phase 05 belum boleh dimulai sebelum inventory policy dicatat sebagai ADR `Accepted`.
+Implementasi Phase 05 mengikuti [ADR-040 Inventory Ledger MVP Policy](../../architecture/decisions/040-inventory-ledger-mvp-policy.md).
 
 ## Urutan yang Direkomendasikan
 
 | ID | Work package | Dependency utama | Status |
 |---|---|---|---|
-| P05-01 | [Inventory Decision Gate](P05-01-inventory-decision-gate.md) | Phase 04 | Ready |
-| P05-02 | [Inventory Module Foundation](P05-02-inventory-module-foundation.md) | P05-01 | Planned |
+| P05-01 | [Inventory Decision Gate](P05-01-inventory-decision-gate.md) | Phase 04 | Done |
+| P05-02 | [Inventory Module Foundation](P05-02-inventory-module-foundation.md) | P05-01 | Ready |
 | P05-03 | [Opening Balance and Stock Ledger](P05-03-opening-balance-stock-ledger.md) | P05-02 | Planned |
 | P05-04 | [Stock Adjustment and Waste](P05-04-stock-adjustment-waste.md) | P05-03 | Planned |
 | P05-05 | [Stock Card, Balance, and Low Stock](P05-05-stock-card-balance-low-stock.md) | P05-03, P05-04 | Planned |

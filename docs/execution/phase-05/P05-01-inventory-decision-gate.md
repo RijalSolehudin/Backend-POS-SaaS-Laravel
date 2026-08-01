@@ -1,6 +1,6 @@
 # P05-01 — Inventory Decision Gate
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -46,6 +46,19 @@ Phase 05 memiliki keputusan arsitektur yang cukup untuk membangun inventory ledg
 - ADR baru ditambahkan ke `docs/architecture/decisions`.
 - Roadmap Phase 05 dapat berubah dari `Not Started` ke `Ready` setelah ADR diterima.
 - Work package P05-02 dapat berubah ke `Ready`.
+
+## Delivered
+
+- [ADR-040 Inventory Ledger MVP Policy](../../architecture/decisions/040-inventory-ledger-mvp-policy.md) accepted.
+- Inventory item/unit boundary, negative stock policy, base unit precision, moving average costing, transfer lifecycle, approval policy, idempotency, locking, dan recovery policy diputuskan.
+- Batch/expiry, recipe auto-deduction, procurement, FIFO/landed cost, unit conversion kompleks, dan accounting journal ditunda.
+- Roadmap Phase 05 berubah ke `Ready`.
+- P05-02 berubah ke `Ready`.
+
+## Evidence
+
+- Laravel Boost ApplicationInfo digunakan untuk memverifikasi stack Laravel aktif.
+- `composer quality`
 
 ## Architecture Stop Rule
 

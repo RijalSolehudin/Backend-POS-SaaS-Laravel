@@ -49,6 +49,7 @@
 | [ADR-037](037-pos-core-mvp-policy.md) | POS Core MVP lifecycle, calculation, idempotency, numbering, payment, dan receipt policy |
 | [ADR-038](038-operational-safety-mvp-policy.md) | Operational Safety MVP approval, refund, audit, recovery, dan pilot baseline policy |
 | [ADR-039](039-catalog-expansion-mvp-policy.md) | Catalog Expansion MVP product, variant, modifier, pricing, dan snapshot policy |
+| [ADR-040](040-inventory-ledger-mvp-policy.md) | Inventory Ledger MVP item, unit, movement, costing, transfer, dan recovery policy |
 
 ## Superseded ADRs
 
@@ -59,5 +60,4 @@
 ## Open Architecture Decisions
 
 - Offline synchronization strategy.
-- Stock deduction timing dan inventory costing.
 - Real-time, queue, cache, dan deployment topology.
