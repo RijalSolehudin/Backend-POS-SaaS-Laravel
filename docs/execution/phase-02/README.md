@@ -1,6 +1,6 @@
 # Phase 02 Execution Plan
 
-Status: **Ready**
+Status: **Done**
 
 Dokumen ini memecah [Phase 02 POS Core Vertical Slice](../../roadmap/phase-02-pos-core.md) menjadi work package berbasis outcome.
 
@@ -20,7 +20,7 @@ Implementasi Phase 02 mengikuti [ADR-037 POS Core MVP Policy](../../architecture
 | P02-06 | [Receipt Snapshot](P02-06-receipt-snapshot.md) | P02-05 | Done |
 | P02-07 | [Close Shift and Summary](P02-07-close-shift-summary.md) | P02-05, P02-06 | Done |
 | P02-08 | [Cancel/Void Minimum Flow](P02-08-cancel-void-flow.md) | P02-04, P02-05 | Done |
-| P02-09 | [POS Core Readiness](P02-09-pos-core-readiness.md) | P02-02..P02-08 | Planned |
+| P02-09 | [POS Core Readiness](P02-09-pos-core-readiness.md) | P02-02..P02-08 | Done |
 
 ## Readiness Gate
 

@@ -1,6 +1,6 @@
 # Phase 02: POS Core Vertical Slice
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -46,6 +46,8 @@ Cashier login
   -> tutup shift
   -> cocokkan ringkasan harian
 ```
+
+Status: verified by `tests/Feature/Sales/PosCoreReadinessTest.php`.
 
 ## Acceptance Criteria
 

@@ -37,11 +37,35 @@ Device record tidak dihapus agar audit lifecycle tetap tersedia.
 - Logout memakai `POST /api/v1/pos/auth/logout` dan hanya mencabut current token.
 - Scheduler menjalankan `sanctum:prune-expired --hours=24` harian untuk membersihkan expired token yang sudah melewati retention window.
 
+## POS Core Demo Path
+
+Gunakan data tenant/outlet/device/catalog yang sudah aktif.
+
+1. Login POS dengan `POST /api/v1/pos/auth/login`.
+2. Ambil catalog outlet dengan `GET /api/v1/pos/outlets/{outlet}/catalog`.
+3. Buka shift dengan `POST /api/v1/pos/outlets/{outlet}/shifts/open`.
+4. Buat draft order dengan `POST /api/v1/pos/outlets/{outlet}/orders` dan header `Idempotency-Key`.
+5. Tambah item dengan `POST /api/v1/pos/outlets/{outlet}/orders/{order}/items`.
+6. Complete order dengan exact payment melalui `POST /api/v1/pos/outlets/{outlet}/orders/{order}/complete` dan header `Idempotency-Key`.
+7. Ambil receipt snapshot dengan `GET /api/v1/pos/outlets/{outlet}/orders/{order}/receipt`.
+8. Tutup shift dengan `POST /api/v1/pos/outlets/{outlet}/shifts/{shift}/close`.
+9. Cocokkan shift summary melalui `GET /api/v1/pos/outlets/{outlet}/shifts/{shift}/summary`.
+10. Cocokkan daily sales pada `GET /admin/tenants/{tenant}/sales/daily?date=YYYY-MM-DD`.
+
+Operational checks:
+
+- Retry create order dan complete payment dengan idempotency key yang sama tidak boleh membuat data ganda.
+- Order total, payment amount, receipt total, shift summary, dan daily sales harus konsisten.
+- Setelah shift closed, order baru harus ditolak dengan `ORDER_ACTIVE_SHIFT_REQUIRED`.
+- Cross-tenant/outlet/device access harus ditolak dengan stable Problem Details response.
+
 ## Troubleshooting
 
 - `DEVICE_NOT_REGISTERED`: installation ID belum terdaftar pada tenant user.
 - `DEVICE_REVOKED`: device pernah direvoke; daftarkan device baru atau investigasi reason.
 - `OUTLET_NOT_FOUND`: route outlet tidak cocok dengan binding device atau outlet tidak aktif.
 - `TENANCY_FORBIDDEN`: user tidak punya role/assignment yang cukup.
+- `ORDER_ACTIVE_SHIFT_REQUIRED`: cashier belum membuka shift aktif atau shift sudah closed.
+- `IDEMPOTENCY_CONFLICT`: idempotency key pernah dipakai untuk request fingerprint berbeda.
 
 Gunakan `X-Request-ID` atau `trace_id` dari error body untuk korelasi log.
