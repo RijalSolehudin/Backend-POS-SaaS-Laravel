@@ -10,7 +10,7 @@ Setiap perubahan stok outlet dicatat sebagai ledger movement yang immutable dan 
 
 - Tambahkan stock movement ledger tenant/outlet scoped.
 - Tambahkan opening balance sebagai movement sumber awal.
-- Tambahkan current balance projection atau query read model sesuai ADR.
+- Tambahkan current balance projection wajib.
 - Tambahkan idempotency key untuk mutation stok.
 - Terapkan database transaction dan locking untuk mutation yang memengaruhi balance.
 - Pastikan movement tidak dapat diedit setelah dicatat.
@@ -34,6 +34,20 @@ Setiap perubahan stok outlet dicatat sebagai ledger movement yang immutable dan 
 - Retry dengan payload berbeda ditolak sebagai conflict.
 - Negative stock mengikuti policy ADR.
 - Stock movement menyimpan actor, source type, source id, quantity, unit, cost, dan occurred_at.
+
+## Implementation Contract
+
+- Ikuti [Phase 05 Implementation Contract](implementation-contract.md).
+- Buat table `inventory_balances`, `inventory_stock_movements`, dan `inventory_idempotency_records`.
+- Buat enum `StockMovementType`.
+- Buat action `RecordOpeningBalance` dan service/action internal `RecordStockMovement`.
+- Opening balance hanya boleh satu kali per tenant/outlet/item.
+- Opening balance menerima `quantity`, `total_cost_minor`, `currency`, `reason`, dan `idempotency_key`.
+- `inventory_balances` wajib unique pada `tenant_id`, `outlet_id`, dan `item_id`.
+- Lock row balance dengan `lockForUpdate()` sebelum menulis movement.
+- Jika balance belum ada, buat balance dalam transaction sebelum mutation dan pastikan unique key menangani race condition.
+- Jangan memakai float untuk quantity.
+- Semua mutation wajib membuat idempotency record module Inventory.
 
 ## Verification
 

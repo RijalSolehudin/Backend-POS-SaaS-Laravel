@@ -23,6 +23,9 @@ Outlet mempunyai ledger stock yang dapat ditelusuri dan direkonsiliasi.
 - Costing memakai moving average sederhana.
 - Stock mutation memakai transaction, idempotency, dan balance locking.
 - Adjustment decrease, waste, dan transfer di atas threshold membutuhkan approval.
+- Current balance projection wajib ada dan direkonsiliasi dari ledger.
+- Transfer dispatched-but-not-received dilaporkan sebagai in-transit.
+- Opening balance hanya boleh satu kali per tenant/outlet/item.
 
 ## Acceptance Criteria
 

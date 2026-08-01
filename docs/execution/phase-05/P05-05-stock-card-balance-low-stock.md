@@ -35,6 +35,17 @@ User dan developer dapat membaca stock card, current balance, minimum valuation,
 - Valuation minimum konsisten dengan costing method ADR.
 - Cross-tenant/outlet data tidak bocor.
 
+## Implementation Contract
+
+- Ikuti [Phase 05 Implementation Contract](implementation-contract.md).
+- Buat action/query `GetStockCard`, `GetInventoryBalance`, dan `ListLowStockItems`.
+- Stock card membaca `inventory_stock_movements`, bukan menghitung dari audit event.
+- Current balance membaca `inventory_balances`.
+- Low-stock memakai `inventory_item_outlet_settings.low_stock_threshold_quantity`.
+- Response stock card wajib menampilkan `balance_quantity_after` dan `balance_total_cost_minor_after` dari movement.
+- Jika P05-06 belum selesai, transfer movement boleh belum muncul di test P05-05; P05-06 wajib menambah coverage transfer pada stock card/regression.
+- `in_transit_quantity` ditampilkan setelah P05-06 tersedia.
+
 ## Verification
 
 - Feature tests stock card.

@@ -41,6 +41,14 @@ Phase 05 siap dinyatakan selesai berdasarkan evidence item/unit, ledger, adjustm
 - Regression Catalog/Sales tidak rusak.
 - Phase 05 roadmap status diperbarui sesuai evidence.
 
+## Implementation Contract
+
+- Ikuti [Phase 05 Implementation Contract](implementation-contract.md).
+- Buat runbook Phase 05 readiness yang mencakup demo opening balance, adjustment increase/decrease, waste, transfer dispatch/receive, stock card, low stock, in transit, dan recovery check.
+- Pastikan roadmap Phase 05 hanya berubah ke `Done` setelah semua P05-02 sampai P05-07 selesai.
+- Pastikan readiness mencatat batasan: tidak ada Sales auto-deduction, recipe, batch/expiry, FIFO, procurement, atau accounting journal.
+- Pastikan evidence berisi Inventory suite, Sales/Catalog regression critical path, `composer quality`, dan `npm run build` bila frontend berubah.
+
 ## Verification
 
 - Inventory suite lulus.

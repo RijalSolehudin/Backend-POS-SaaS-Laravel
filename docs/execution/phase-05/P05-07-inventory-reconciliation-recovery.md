@@ -36,6 +36,19 @@ Developer/operator memiliki alat untuk mendeteksi balance inventory yang tidak k
 - Command tidak membuka data lintas tenant tanpa parameter/policy yang jelas.
 - Runbook menjelaskan langkah investigasi.
 
+## Implementation Contract
+
+- Ikuti [Phase 05 Implementation Contract](implementation-contract.md).
+- Buat command `inventory:recovery-check`.
+- Command default wajib read-only.
+- Command menerima optional `--tenant=`, `--outlet=`, dan `--item=` filter.
+- Check membandingkan `inventory_balances.quantity` dengan sum ledger quantity per tenant/outlet/item.
+- Check membandingkan `inventory_balances.total_cost_minor` dengan replay cost memakai formula moving average dari implementation contract.
+- Check melaporkan transfer `dispatched` yang belum `received` sebagai in transit, bukan discrepancy.
+- Exit code `0` jika tidak ada discrepancy.
+- Exit code `1` jika ada discrepancy yang harus ditindak.
+- Jangan implement auto-repair pada Phase 05.
+
 ## Verification
 
 - Feature/console tests recovery check.

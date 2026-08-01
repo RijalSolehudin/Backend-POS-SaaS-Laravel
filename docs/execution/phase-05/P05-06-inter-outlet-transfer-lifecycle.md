@@ -35,6 +35,20 @@ Outlet dapat memindahkan stok ke outlet lain dengan lifecycle yang konsisten, au
 - Retry tidak membuat movement ganda.
 - Cancel hanya boleh pada state yang aman.
 
+## Implementation Contract
+
+- Ikuti [Phase 05 Implementation Contract](implementation-contract.md).
+- Buat table `inventory_transfers` dan `inventory_transfer_lines`.
+- Buat enum `TransferStatus`.
+- Buat action `CreateInventoryTransfer`, `RequestInventoryTransferApproval`, `ApproveInventoryTransfer`, `DispatchInventoryTransfer`, `ReceiveInventoryTransfer`, dan `CancelInventoryTransfer`.
+- Transfer line memakai item base unit dan quantity decimal string.
+- Transfer default membutuhkan approval untuk quantity positif karena threshold `0.000`.
+- Dispatch membuat movement `transfer_out` pada source outlet dan mengubah status menjadi `dispatched`.
+- Received membuat movement `transfer_in` pada destination outlet dan mengubah status menjadi `received`.
+- Stock yang sudah `dispatched` tetapi belum `received` dilaporkan sebagai `in_transit_quantity`.
+- Partial receive dan variance tidak boleh diimplementasikan pada Phase 05.
+- Cancel hanya valid pada `draft`, `requested`, atau `approved`.
+
 ## Verification
 
 - Feature tests transfer lifecycle.

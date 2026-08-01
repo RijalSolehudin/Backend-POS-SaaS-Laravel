@@ -7,6 +7,7 @@ Dokumen ini memecah [Phase 05 Inventory](../../roadmap/phase-05-inventory.md) me
 ## Required Decision Gate
 
 Implementasi Phase 05 mengikuti [ADR-040 Inventory Ledger MVP Policy](../../architecture/decisions/040-inventory-ledger-mvp-policy.md).
+Detail implementasi wajib mengikuti [Phase 05 Implementation Contract](implementation-contract.md).
 
 ## Urutan yang Direkomendasikan
 
@@ -33,6 +34,15 @@ Sebelum work package implementasi berubah menjadi `Ready`, pastikan:
 - adjustment/waste approval policy jelas;
 - idempotency, locking, dan reconciliation rule jelas;
 - auto-deduct dari Sales/recipe tetap out of scope sampai Phase 06.
+
+## Fixed Implementation Decisions
+
+- Gunakan module `App\Modules\Inventory` dengan physical structure standar.
+- Gunakan table, enum, action naming, idempotency scope, approval default, transfer in-transit policy, opening balance policy, dan business error code dari implementation contract.
+- Gunakan `inventory_balances` sebagai projection wajib dan lock row balance saat mutation.
+- Gunakan `inventory_stock_movements` sebagai ledger immutable.
+- Gunakan moving average berbasis `total_cost_minor`, bukan average cost manual sebagai sumber kebenaran.
+- Jangan implement auto-deduct dari Sales, recipe/BOM, batch/expiry, FIFO, procurement, unit conversion kompleks, atau accounting journal di Phase 05.
 
 ## Architecture Stop Rule
 

@@ -11,7 +11,7 @@ Operator dapat mencatat koreksi stok dan waste dengan alasan yang jelas, approva
 - Tambahkan adjustment increase/decrease.
 - Tambahkan waste movement untuk barang rusak/hilang/expired operasional.
 - Terapkan reason wajib.
-- Terapkan approval lifecycle bila quantity/value melewati threshold ADR.
+- Terapkan approval lifecycle bila quantity melewati threshold ADR.
 - Pastikan adjustment dan waste menghasilkan ledger movement immutable.
 - Tambahkan audit event untuk request, approval, rejection, dan completion.
 
@@ -34,6 +34,19 @@ Operator dapat mencatat koreksi stok dan waste dengan alasan yang jelas, approva
 - Reason wajib untuk semua adjustment/waste.
 - Approval required ketika policy ADR terpenuhi.
 - Approval tidak bisa dipakai ulang atau lintas tenant/outlet.
+
+## Implementation Contract
+
+- Ikuti [Phase 05 Implementation Contract](implementation-contract.md).
+- Buat action `RecordStockAdjustment` dan `RecordWaste`.
+- Adjustment increase memakai movement type `adjustment_increase`.
+- Adjustment decrease memakai movement type `adjustment_decrease`.
+- Waste memakai movement type `waste`.
+- Reason wajib dan disimpan pada movement dan audit event.
+- Adjustment decrease dan waste dengan quantity positif wajib approval secara default karena threshold `0.000`.
+- Approval fingerprint wajib mencakup outlet, item, movement type, quantity, reason, dan idempotency/action target.
+- Adjustment increase tidak membutuhkan approval pada MVP.
+- Outbound mutation wajib menolak balance minus dengan `INVENTORY_INSUFFICIENT_STOCK`.
 
 ## Verification
 

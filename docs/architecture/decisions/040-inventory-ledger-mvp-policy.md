@@ -27,6 +27,7 @@ POS SaaS ini perlu mendukung operasional outlet F&B awal seperti opening balance
 - Unit conversion kompleks seperti box ke pcs, kg ke gram otomatis, yield, dan packaging hierarchy ditunda.
 - Quantity disimpan sebagai decimal fixed precision, bukan float.
 - Precision minimum mengikuti kebutuhan operasional F&B: sampai 3 digit desimal untuk quantity.
+- Request quantity diterima sebagai string decimal dan dinormalisasi ke 3 digit desimal.
 
 ### Negative Stock
 
@@ -38,17 +39,20 @@ POS SaaS ini perlu mendukung operasional outlet F&B awal seperti opening balance
 ### Ledger And Balance
 
 - Stock movement ledger adalah sumber kebenaran audit.
-- Current balance boleh disimpan sebagai read model/projection untuk performa, tetapi harus dapat direkonsiliasi ulang dari ledger.
+- Current balance wajib disimpan sebagai read model/projection untuk performa, locking, dan query operasional, tetapi harus dapat direkonsiliasi ulang dari ledger.
 - Movement bersifat immutable setelah dicatat.
 - Pembatalan kesalahan dilakukan dengan reversal movement, bukan edit/delete movement lama.
 - Setiap movement menyimpan tenant, outlet, item, unit, signed quantity, source type, source id, actor, reason bila relevan, idempotency key, dan occurred_at.
+- Opening balance hanya boleh satu kali per tenant/outlet/item; koreksi berikutnya memakai adjustment.
 
 ### Costing And Valuation
 
-- Phase 05 menggunakan moving average cost sederhana untuk valuation minimum.
+- Phase 05 menggunakan moving average cost sederhana berbasis `total_cost_minor` untuk valuation minimum.
 - Cost disimpan dalam money minor unit dan currency tenant.
 - Opening balance dan inbound movement boleh membawa unit cost.
-- Outbound movement memakai average cost saat movement dicatat.
+- Opening balance dan inbound movement wajib membawa `total_cost_minor`; average cost adalah nilai turunan dari `total_cost_minor / quantity`.
+- Outbound movement mengurangi `total_cost_minor` secara proporsional terhadap quantity keluar dan memakai average cost saat movement dicatat.
+- Jika balance quantity menjadi nol, balance `total_cost_minor` menjadi nol.
 - FIFO, landed cost, multi-currency valuation, dan accounting journal ditunda.
 
 ### Adjustment And Waste
@@ -56,7 +60,8 @@ POS SaaS ini perlu mendukung operasional outlet F&B awal seperti opening balance
 - Adjustment increase/decrease tersedia untuk koreksi stok.
 - Waste tersedia sebagai outbound movement khusus untuk barang rusak, hilang, expired operasional, atau tidak layak pakai.
 - Reason wajib untuk adjustment dan waste.
-- Approval wajib untuk adjustment decrease/waste/transfer di atas threshold operasional yang dikonfigurasi.
+- Approval wajib untuk adjustment decrease/waste/transfer di atas threshold quantity yang dikonfigurasi.
+- Default threshold Phase 05 adalah `0.000`, sehingga semua adjustment decrease, waste, dan transfer dengan quantity positif membutuhkan approval.
 - Approval mengikuti pola Operational Safety Phase 03: approver berbeda dari requester, tenant/outlet scoped, single-use, dan auditable.
 
 ### Transfer Lifecycle
@@ -65,6 +70,7 @@ POS SaaS ini perlu mendukung operasional outlet F&B awal seperti opening balance
 - Lifecycle minimum: `draft`, `requested`, `approved`, `dispatched`, `received`, `cancelled`.
 - Dispatch mengurangi balance source outlet.
 - Receive menambah balance destination outlet.
+- Transfer yang sudah `dispatched` tetapi belum `received` dilaporkan sebagai `in_transit_quantity`.
 - Cancel hanya boleh sebelum dispatch.
 - Partial receive dan receiving variance ditunda kecuali diputuskan ulang.
 - Transfer movement source dan destination harus dapat ditelusuri ke transfer yang sama.
@@ -74,6 +80,7 @@ POS SaaS ini perlu mendukung operasional outlet F&B awal seperti opening balance
 - Semua stock mutation memakai idempotency key.
 - Retry dengan idempotency key dan payload sama mengembalikan hasil yang sama.
 - Retry dengan idempotency key sama tetapi payload berbeda ditolak sebagai conflict.
+- Idempotency scope adalah tenant, outlet, user, action, dan idempotency key.
 - Mutation stock berjalan dalam database transaction.
 - Balance per tenant/outlet/item dikunci saat mutation untuk mencegah race condition.
 - Recovery check harus bisa membandingkan balance projection dengan ledger.
@@ -98,10 +105,12 @@ POS SaaS ini perlu mendukung operasional outlet F&B awal seperti opening balance
 - Negative stock ditolak untuk mutation normal.
 - Unit conversion kompleks ditunda; Phase 05 memakai satu base unit per item.
 - Quantity memakai decimal fixed precision sampai 3 digit desimal.
-- Costing memakai moving average sederhana.
+- Current balance projection wajib ada dan dikunci saat mutation.
+- Costing memakai moving average sederhana berbasis total cost minor.
+- Opening balance hanya boleh satu kali per tenant/outlet/item.
 - Batch/expiry ditunda.
-- Dispatch mengurangi source outlet, receive menambah destination outlet.
-- Approval wajib untuk adjustment decrease, waste, dan transfer di atas threshold.
+- Dispatch mengurangi source outlet, receive menambah destination outlet, dan dispatched stock dilaporkan sebagai in transit.
+- Approval wajib untuk adjustment decrease, waste, dan transfer di atas threshold quantity; default threshold `0.000`.
 - Recipe auto-deduction dari Sales ditunda sampai Phase 06.
 
 ## Approval
