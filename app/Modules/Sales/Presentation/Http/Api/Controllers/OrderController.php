@@ -10,6 +10,7 @@ use App\Modules\Sales\Application\Actions\CompleteOrderWithPayment;
 use App\Modules\Sales\Application\Actions\CreateDraftOrder;
 use App\Modules\Sales\Application\Actions\GetDraftOrder;
 use App\Modules\Sales\Application\Actions\GetOrderReceipt;
+use App\Modules\Sales\Application\Actions\RecordFullRefund;
 use App\Modules\Sales\Application\Actions\RemoveOrderItem;
 use App\Modules\Sales\Application\Actions\UpdateOrderItem;
 use App\Modules\Sales\Application\Actions\VoidCompletedOrder;
@@ -19,6 +20,7 @@ use App\Modules\Sales\Domain\Models\Order;
 use App\Modules\Sales\Domain\Models\OrderItem;
 use App\Modules\Sales\Domain\Models\Payment;
 use App\Modules\Sales\Domain\Models\Receipt;
+use App\Modules\Sales\Domain\Models\Refund;
 use App\Modules\Tenancy\Application\Actions\ResolvePosOutletApiContext;
 use App\Modules\Tenancy\Application\Data\PosOutletContext;
 use Illuminate\Http\JsonResponse;
@@ -210,6 +212,40 @@ final class OrderController extends Controller
         return response()->json(['data' => $this->orderData($updated)]);
     }
 
+    public function refund(
+        string $outlet,
+        string $order,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        RecordFullRefund $refund,
+    ): JsonResponse {
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if (! is_string($idempotencyKey)) {
+            throw OrderException::idempotencyKeyRequired();
+        }
+
+        /** @var array{amount_minor: int, currency: string, reason: string, approval_id: string} $validated */
+        $validated = $request->validate([
+            'amount_minor' => ['required', 'integer', 'min:0'],
+            'currency' => ['required', 'string', 'size:3'],
+            'reason' => ['required', 'string', 'max:500'],
+            'approval_id' => ['required', 'string', 'size:26'],
+        ]);
+
+        $created = $refund->handle(
+            $this->context($outlet, $request, $context),
+            $order,
+            $validated['amount_minor'],
+            $validated['currency'],
+            $validated['reason'],
+            $idempotencyKey,
+            $validated['approval_id'],
+        );
+
+        return response()->json(['data' => $this->refundData($created)], 201);
+    }
+
     public function receipt(
         string $outlet,
         string $order,
@@ -339,6 +375,29 @@ final class OrderController extends Controller
             'receipt_number' => $receipt->receipt_number,
             'issued_at' => $receipt->issued_at->toJSON(),
             'snapshot' => $receipt->snapshot,
+        ];
+    }
+
+    /**
+     * @return array<string, int|string>
+     */
+    private function refundData(Refund $refund): array
+    {
+        return [
+            'id' => $refund->id,
+            'tenant_id' => $refund->tenant_id,
+            'outlet_id' => $refund->outlet_id,
+            'shift_id' => $refund->shift_id,
+            'order_id' => $refund->order_id,
+            'payment_id' => $refund->payment_id,
+            'approval_id' => $refund->approval_id,
+            'refunded_by' => $refund->refunded_by,
+            'method' => $refund->method->value,
+            'status' => $refund->status->value,
+            'amount_minor' => $refund->amount_minor,
+            'currency' => $refund->currency,
+            'reason' => $refund->reason,
+            'recorded_at' => $refund->recorded_at->toJSON(),
         ];
     }
 }

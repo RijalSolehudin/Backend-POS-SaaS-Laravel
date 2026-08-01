@@ -70,6 +70,17 @@ Void completed order sekarang membutuhkan supervisor approval yang valid.
 - Approval yang sudah dipakai berubah menjadi `consumed` dan tidak bisa dipakai untuk mutation baru.
 - Setiap lifecycle approval dicatat pada `sales_audit_events`.
 
+## Full Manual Refund
+
+Refund Phase 03 adalah full manual refund, bukan gateway settlement.
+
+- Cashier meminta approval untuk action `payments.refund` dengan target `sales_order`.
+- Supervisor menyetujui approval sesuai policy P03-02.
+- Cashier menjalankan `POST /api/v1/pos/outlets/{outlet}/orders/{order}/refund` dengan header `Idempotency-Key`, `amount_minor`, `currency`, `reason`, dan `approval_id`.
+- Refund amount harus sama dengan recorded payment amount tersisa.
+- Original order, payment, dan receipt snapshot tetap immutable.
+- Shift summary dan daily sales menampilkan gross sales, refunds, dan net sales.
+
 ## Troubleshooting
 
 - `DEVICE_NOT_REGISTERED`: installation ID belum terdaftar pada tenant user.
@@ -83,5 +94,9 @@ Void completed order sekarang membutuhkan supervisor approval yang valid.
 - `APPROVAL_FORBIDDEN`: approver tidak memenuhi role atau outlet scope.
 - `APPROVAL_TARGET_MISMATCH`: approval tidak cocok dengan performer/action/target/fingerprint request.
 - `APPROVAL_ALREADY_CONSUMED`: approval pernah dipakai untuk mutation sebelumnya.
+- `REFUND_ORDER_NOT_REFUNDABLE`: order/payment tidak memenuhi syarat full refund.
+- `REFUND_AMOUNT_MISMATCH`: amount refund tidak sama dengan refundable amount tersisa.
+- `REFUND_CURRENCY_MISMATCH`: currency refund tidak sama dengan payment original.
+- `REFUND_ALREADY_RECORDED`: payment sudah memiliki refund record.
 
 Gunakan `X-Request-ID` atau `trace_id` dari error body untuk korelasi log.

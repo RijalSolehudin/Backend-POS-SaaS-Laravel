@@ -10,6 +10,7 @@ use App\Modules\Sales\Domain\Enums\PaymentMethod;
 use App\Modules\Sales\Domain\Enums\PaymentStatus;
 use App\Modules\Sales\Domain\Models\Order;
 use App\Modules\Sales\Domain\Models\Payment;
+use App\Modules\Sales\Domain\Models\Refund;
 use App\Modules\Tenancy\Application\Contracts\TenantCatalogReference;
 use Carbon\CarbonImmutable;
 use InvalidArgumentException;
@@ -38,6 +39,12 @@ final readonly class SummarizeDailySales
             ->where('completed_at', '<', $end);
         $completedOrdersCount = (clone $orders)->count();
         $grossSalesMinor = (int) (clone $orders)->sum('total_minor');
+        $refunds = Refund::query()
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'recorded')
+            ->where('recorded_at', '>=', $start)
+            ->where('recorded_at', '<', $end);
+        $refundsMinor = (int) (clone $refunds)->sum('amount_minor');
 
         $payments = Payment::query()
             ->where('tenant_id', $tenantId)
@@ -53,6 +60,8 @@ final readonly class SummarizeDailySales
             businessDate: $businessDate,
             completedOrdersCount: $completedOrdersCount,
             grossSalesMinor: $grossSalesMinor,
+            refundsMinor: $refundsMinor,
+            netSalesMinor: $grossSalesMinor - $refundsMinor,
             recordedPaymentsMinor: $recordedPaymentsMinor,
             cashPaymentsMinor: $cashPaymentsMinor,
             manualNonCashPaymentsMinor: $manualNonCashPaymentsMinor,
@@ -62,7 +71,7 @@ final readonly class SummarizeDailySales
     }
 
     /**
-     * @return list<array{outlet_id: string, outlet_name: string, completed_orders_count: int, gross_sales_minor: int, recorded_payments_minor: int, cash_payments_minor: int, manual_non_cash_payments_minor: int}>
+     * @return list<array{outlet_id: string, outlet_name: string, completed_orders_count: int, gross_sales_minor: int, refunds_minor: int, net_sales_minor: int, recorded_payments_minor: int, cash_payments_minor: int, manual_non_cash_payments_minor: int}>
      */
     private function outletRows(string $tenantId, CarbonImmutable $start, CarbonImmutable $end): array
     {
@@ -81,12 +90,22 @@ final readonly class SummarizeDailySales
                 ->where('status', PaymentStatus::Recorded)
                 ->where('recorded_at', '>=', $start)
                 ->where('recorded_at', '<', $end);
+            $refundsMinor = (int) Refund::query()
+                ->where('tenant_id', $tenantId)
+                ->where('outlet_id', $outlet->outletId)
+                ->where('status', 'recorded')
+                ->where('recorded_at', '>=', $start)
+                ->where('recorded_at', '<', $end)
+                ->sum('amount_minor');
+            $grossSalesMinor = (int) (clone $orders)->sum('total_minor');
 
             return [
                 'outlet_id' => $outlet->outletId,
                 'outlet_name' => $outlet->name,
                 'completed_orders_count' => (clone $orders)->count(),
-                'gross_sales_minor' => (int) (clone $orders)->sum('total_minor'),
+                'gross_sales_minor' => $grossSalesMinor,
+                'refunds_minor' => $refundsMinor,
+                'net_sales_minor' => $grossSalesMinor - $refundsMinor,
                 'recorded_payments_minor' => (int) (clone $payments)->sum('amount_minor'),
                 'cash_payments_minor' => (int) (clone $payments)->where('method', PaymentMethod::Cash)->sum('amount_minor'),
                 'manual_non_cash_payments_minor' => (int) (clone $payments)->where('method', PaymentMethod::ManualNonCash)->sum('amount_minor'),

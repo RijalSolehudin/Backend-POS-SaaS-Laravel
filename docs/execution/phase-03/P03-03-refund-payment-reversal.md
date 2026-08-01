@@ -1,6 +1,6 @@
 # P03-03 — Refund and Payment Reversal
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -46,6 +46,14 @@ Completed order dapat direversal secara finansial melalui full manual refund yan
 - Feature tests untuk missing approval, consumed approval, amount mismatch, already refunded, and idempotency conflict.
 - Summary tests untuk gross/refund/net totals.
 - `composer quality` lulus.
+
+## Evidence
+
+- `tests/Feature/Sales/RefundPaymentReversalTest.php` verifies full manual refund with supervisor approval, idempotent replay, missing approval rejection, amount/currency mismatch, duplicate refund prevention, and idempotency conflict.
+- POS API exposes `POST /api/v1/pos/outlets/{outlet}/orders/{order}/refund`.
+- `sales_refunds` stores full refund records without mutating original payment or receipt snapshots.
+- Shift and daily sales summaries expose gross sales, refunds, and net sales.
+- Sales audit events capture `payment.refunded`.
 
 ## Architecture Stop Rule
 

@@ -18,7 +18,7 @@
             </form>
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div class="rounded-lg border border-slate-200 bg-white p-4">
                 <p class="text-sm text-slate-500">Completed Orders</p>
                 <p class="mt-2 text-2xl font-semibold text-slate-900">{{ $summary->completedOrdersCount }}</p>
@@ -26,6 +26,14 @@
             <div class="rounded-lg border border-slate-200 bg-white p-4">
                 <p class="text-sm text-slate-500">Gross Sales</p>
                 <p class="mt-2 text-2xl font-semibold text-slate-900">{{ number_format($summary->grossSalesMinor, 2) }} {{ $summary->currency }}</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+                <p class="text-sm text-slate-500">Refunds</p>
+                <p class="mt-2 text-2xl font-semibold text-slate-900">{{ number_format($summary->refundsMinor, 2) }} {{ $summary->currency }}</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+                <p class="text-sm text-slate-500">Net Sales</p>
+                <p class="mt-2 text-2xl font-semibold text-slate-900">{{ number_format($summary->netSalesMinor, 2) }} {{ $summary->currency }}</p>
             </div>
             <div class="rounded-lg border border-slate-200 bg-white p-4">
                 <p class="text-sm text-slate-500">Cash Payments</p>
@@ -44,6 +52,8 @@
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">Outlet</th>
                         <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-500">Orders</th>
                         <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-500">Gross</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-500">Refunds</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-500">Net</th>
                         <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-500">Cash</th>
                         <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-500">Manual Non-Cash</th>
                     </tr>
@@ -54,12 +64,14 @@
                             <td class="px-4 py-3 text-sm font-medium text-slate-900">{{ $outlet['outlet_name'] }}</td>
                             <td class="px-4 py-3 text-right text-sm text-slate-700">{{ $outlet['completed_orders_count'] }}</td>
                             <td class="px-4 py-3 text-right text-sm text-slate-700">{{ number_format($outlet['gross_sales_minor'], 2) }}</td>
+                            <td class="px-4 py-3 text-right text-sm text-slate-700">{{ number_format($outlet['refunds_minor'], 2) }}</td>
+                            <td class="px-4 py-3 text-right text-sm text-slate-700">{{ number_format($outlet['net_sales_minor'], 2) }}</td>
                             <td class="px-4 py-3 text-right text-sm text-slate-700">{{ number_format($outlet['cash_payments_minor'], 2) }}</td>
                             <td class="px-4 py-3 text-right text-sm text-slate-700">{{ number_format($outlet['manual_non_cash_payments_minor'], 2) }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-sm text-slate-500">No active outlets found.</td>
+                            <td colspan="7" class="px-4 py-8 text-center text-sm text-slate-500">No active outlets found.</td>
                         </tr>
                     @endforelse
                 </tbody>

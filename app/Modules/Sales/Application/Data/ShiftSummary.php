@@ -22,6 +22,8 @@ final readonly class ShiftSummary
         public int $cashVarianceMinor,
         public int $completedOrdersCount,
         public int $grossSalesMinor,
+        public int $refundsMinor,
+        public int $netSalesMinor,
         public int $recordedPaymentsMinor,
         public int $cashPaymentsMinor,
         public int $manualNonCashPaymentsMinor,

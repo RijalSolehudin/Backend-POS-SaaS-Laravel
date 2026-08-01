@@ -11,6 +11,7 @@ use App\Modules\Sales\Domain\Enums\PaymentMethod;
 use App\Modules\Sales\Domain\Enums\PaymentStatus;
 use App\Modules\Sales\Domain\Models\Order;
 use App\Modules\Sales\Domain\Models\Payment;
+use App\Modules\Sales\Domain\Models\Refund;
 use App\Modules\Sales\Domain\Models\Shift;
 use App\Modules\Tenancy\Application\Data\PosOutletContext;
 
@@ -49,7 +50,9 @@ final readonly class SummarizeShift
         $recordedPaymentsMinor = $this->paymentSum($shift);
         $cashPaymentsMinor = $this->paymentSum($shift, PaymentMethod::Cash);
         $manualNonCashPaymentsMinor = $this->paymentSum($shift, PaymentMethod::ManualNonCash);
-        $expectedCashMinor = $shift->opening_cash_minor + $cashPaymentsMinor;
+        $refundsMinor = $this->refundSum($shift);
+        $cashRefundsMinor = $this->refundSum($shift, PaymentMethod::Cash);
+        $expectedCashMinor = $shift->opening_cash_minor + $cashPaymentsMinor - $cashRefundsMinor;
 
         return new ShiftSummary(
             tenantId: $shift->tenant_id,
@@ -65,6 +68,8 @@ final readonly class SummarizeShift
             cashVarianceMinor: $shift->closing_cash_minor === null ? 0 : $shift->closing_cash_minor - $expectedCashMinor,
             completedOrdersCount: $completedOrdersCount,
             grossSalesMinor: $grossSalesMinor,
+            refundsMinor: $refundsMinor,
+            netSalesMinor: $grossSalesMinor - $refundsMinor,
             recordedPaymentsMinor: $recordedPaymentsMinor,
             cashPaymentsMinor: $cashPaymentsMinor,
             manualNonCashPaymentsMinor: $manualNonCashPaymentsMinor,
@@ -79,6 +84,21 @@ final readonly class SummarizeShift
             ->where('outlet_id', $shift->outlet_id)
             ->where('shift_id', $shift->id)
             ->where('status', PaymentStatus::Recorded);
+
+        if ($method instanceof PaymentMethod) {
+            $query->where('method', $method);
+        }
+
+        return (int) $query->sum('amount_minor');
+    }
+
+    private function refundSum(Shift $shift, ?PaymentMethod $method = null): int
+    {
+        $query = Refund::query()
+            ->where('tenant_id', $shift->tenant_id)
+            ->where('outlet_id', $shift->outlet_id)
+            ->where('shift_id', $shift->id)
+            ->where('status', 'recorded');
 
         if ($method instanceof PaymentMethod) {
             $query->where('method', $method);

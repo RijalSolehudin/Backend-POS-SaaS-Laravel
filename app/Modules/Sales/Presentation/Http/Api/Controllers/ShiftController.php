@@ -169,6 +169,8 @@ final class ShiftController extends Controller
             'cash_variance_minor' => $summary->cashVarianceMinor,
             'completed_orders_count' => $summary->completedOrdersCount,
             'gross_sales_minor' => $summary->grossSalesMinor,
+            'refunds_minor' => $summary->refundsMinor,
+            'net_sales_minor' => $summary->netSalesMinor,
             'recorded_payments_minor' => $summary->recordedPaymentsMinor,
             'cash_payments_minor' => $summary->cashPaymentsMinor,
             'manual_non_cash_payments_minor' => $summary->manualNonCashPaymentsMinor,
