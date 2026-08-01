@@ -1,19 +1,19 @@
 # Phase 04 Execution Plan
 
-Status: **Planned**
+Status: **Ready**
 
 Dokumen ini memecah [Phase 04 Catalog and Pricing Expansion](../../roadmap/phase-04-catalog-expansion.md) menjadi work package berbasis outcome.
 
 ## Required Decision Gate
 
-Implementasi Phase 04 harus dimulai dari [P04-01 Catalog Expansion Decision Gate](P04-01-catalog-expansion-decision-gate.md). Product owner perlu menyetujui ADR untuk model sellable item, variant/modifier pricing, outlet override, dan snapshot sebelum migration/API baru dibuat.
+Implementasi Phase 04 mengikuti [ADR-039 Catalog Expansion MVP Policy](../../architecture/decisions/039-catalog-expansion-mvp-policy.md).
 
 ## Urutan yang Direkomendasikan
 
 | ID | Work package | Dependency utama | Status |
 |---|---|---|---|
-| P04-01 | [Catalog Expansion Decision Gate](P04-01-catalog-expansion-decision-gate.md) | Phase 03 | Ready |
-| P04-02 | [Category Hierarchy and Display Ordering](P04-02-category-hierarchy-display-ordering.md) | P04-01 | Planned |
+| P04-01 | [Catalog Expansion Decision Gate](P04-01-catalog-expansion-decision-gate.md) | Phase 03 | Done |
+| P04-02 | [Category Hierarchy and Display Ordering](P04-02-category-hierarchy-display-ordering.md) | P04-01 | Ready |
 | P04-03 | [Sellable Variants](P04-03-sellable-variants.md) | P04-01 | Planned |
 | P04-04 | [Modifier Groups and Options](P04-04-modifier-groups-options.md) | P04-03 | Planned |
 | P04-05 | [Outlet Availability and Price Overrides](P04-05-outlet-availability-price-overrides.md) | P04-03, P04-04 | Planned |

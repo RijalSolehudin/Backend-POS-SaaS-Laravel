@@ -48,6 +48,7 @@
 | [ADR-036](036-tenancy-outlet-management-policy.md) | Immutable tenant context, outlet lifecycle, assignment integrity, dan owner administration |
 | [ADR-037](037-pos-core-mvp-policy.md) | POS Core MVP lifecycle, calculation, idempotency, numbering, payment, dan receipt policy |
 | [ADR-038](038-operational-safety-mvp-policy.md) | Operational Safety MVP approval, refund, audit, recovery, dan pilot baseline policy |
+| [ADR-039](039-catalog-expansion-mvp-policy.md) | Catalog Expansion MVP product, variant, modifier, pricing, dan snapshot policy |
 
 ## Superseded ADRs
 
@@ -57,7 +58,6 @@
 
 ## Open Architecture Decisions
 
-- Recipe module ownership.
 - Offline synchronization strategy.
 - Stock deduction timing dan inventory costing.
 - Real-time, queue, cache, dan deployment topology.

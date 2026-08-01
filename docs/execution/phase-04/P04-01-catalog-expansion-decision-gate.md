@@ -1,6 +1,6 @@
 # P04-01 — Catalog Expansion Decision Gate
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -42,6 +42,17 @@ Phase 04 memiliki keputusan arsitektur yang cukup untuk memperluas catalog tanpa
 - ADR baru ditambahkan ke `docs/architecture/decisions`.
 - Roadmap Phase 04 dapat berubah dari `Not Started` ke `Ready` setelah ADR diterima.
 - Work package P04-02 dapat berubah ke `Ready`.
+
+## Delivered
+
+- [ADR-039 Catalog Expansion MVP Policy](../../architecture/decisions/039-catalog-expansion-mvp-policy.md) accepted.
+- Product versus sellable variant, category hierarchy, modifier group/option rules, outlet availability/price override, and order item snapshot policy diputuskan.
+- Combo/bundle, inventory deduction, recipe costing, scheduled pricing, promotion engine, tax/service compliance, dan multi-currency ditunda.
+
+## Evidence
+
+- Laravel Boost SearchDocs digunakan untuk Laravel 13 migration, enum cast, dan JSON API testing guidance.
+- `composer quality`
 
 ## Architecture Stop Rule
 

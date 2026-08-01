@@ -1,6 +1,6 @@
 # P04-02 — Category Hierarchy and Display Ordering
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

@@ -1,6 +1,6 @@
 # Phase 04: Catalog and Pricing Expansion
 
-Status: **Not Started**
+Status: **Ready**
 
 ## Outcome
 
@@ -17,11 +17,10 @@ Catalog mendukung kebutuhan menu F&B setelah transaksi sederhana stabil.
 
 ## Architecture Decisions Required
 
-- Variant/modifier pricing and snapshot model.
-- Product versus sellable SKU model.
-- Recipe ownership boundary.
-- Combo pricing dan stock semantics.
-- Price scheduling dan override policy.
+- Accepted decision: [ADR-039 Catalog Expansion MVP Policy](../architecture/decisions/039-catalog-expansion-mvp-policy.md).
+- Combo pricing dan stock semantics ditunda.
+- Recipe ownership boundary ditunda ke phase inventory/recipe.
+- Scheduled pricing ditunda; Phase 04 hanya base price dan outlet override.
 
 ## Acceptance Criteria
 
@@ -29,4 +28,3 @@ Catalog mendukung kebutuhan menu F&B setelah transaksi sederhana stabil.
 - Order snapshot merekam seluruh pilihan yang memengaruhi harga.
 - Perubahan catalog tidak mengubah transaksi historis.
 - Availability dan price tidak bocor lintas outlet/tenant.
-
