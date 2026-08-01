@@ -52,6 +52,12 @@ final class MariaDbCompatibilityTest extends TestCase
                 'catalog_categories',
                 'catalog_products',
                 'catalog_product_outlet_availabilities',
+                'sales_shifts',
+                'sales_orders',
+                'sales_order_items',
+                'sales_payments',
+                'sales_idempotency_records',
+                'sales_order_number_counters',
             ])
             ->where(function ($query): void {
                 $query->where('COLUMN_NAME', 'id')

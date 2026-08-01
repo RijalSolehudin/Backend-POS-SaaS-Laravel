@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Sales\Domain\Models;
+
+use App\Shared\Domain\Concerns\HasLowercaseUlids;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @property string $id
+ * @property string $tenant_id
+ * @property string $order_id
+ * @property string $product_id
+ * @property string $product_sku
+ * @property string $product_name
+ * @property string $quantity
+ * @property int $unit_price_minor
+ * @property int $line_subtotal_minor
+ * @property string $currency
+ */
+final class OrderItem extends Model
+{
+    use HasLowercaseUlids;
+
+    protected $table = 'sales_order_items';
+
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'unit_price_minor' => 'integer',
+            'line_subtotal_minor' => 'integer',
+        ];
+    }
+}

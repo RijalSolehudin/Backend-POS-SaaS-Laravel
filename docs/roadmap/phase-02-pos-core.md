@@ -1,6 +1,6 @@
 # Phase 02: POS Core Vertical Slice
 
-Status: **Not Started**
+Status: **Ready**
 
 ## Outcome
 
@@ -21,13 +21,17 @@ Cashier menyelesaikan transaksi dasar melalui Flutter dan API, sementara konfigu
 
 ## Architecture Decisions Required
 
-- Order lifecycle dan allowed transitions.
-- Currency awal serta tax, service charge, dan discount calculation order.
-- Payment lifecycle serta split/partial payment scope.
-- Order number generation dan concurrency policy.
-- Idempotency contract.
-- Transaction boundary Sales dan Payments.
-- Receipt requirements.
+- Order lifecycle dan allowed transitions: accepted pada [ADR-037](../architecture/decisions/037-pos-core-mvp-policy.md).
+- Currency awal serta tax, service charge, dan discount calculation order: accepted pada [ADR-037](../architecture/decisions/037-pos-core-mvp-policy.md).
+- Payment lifecycle serta split/partial payment scope: accepted pada [ADR-037](../architecture/decisions/037-pos-core-mvp-policy.md).
+- Order number generation dan concurrency policy: accepted pada [ADR-037](../architecture/decisions/037-pos-core-mvp-policy.md).
+- Idempotency contract: accepted pada [ADR-037](../architecture/decisions/037-pos-core-mvp-policy.md).
+- Transaction boundary Sales dan Payments: accepted pada [ADR-037](../architecture/decisions/037-pos-core-mvp-policy.md).
+- Receipt requirements: accepted pada [ADR-037](../architecture/decisions/037-pos-core-mvp-policy.md).
+
+## Execution Plan
+
+Work package Phase 02 berada pada [Phase 02 Execution Plan](../execution/phase-02/README.md).
 
 ## Acceptance Scenario
 

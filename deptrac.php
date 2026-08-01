@@ -32,7 +32,7 @@ return static function (DeptracConfig $config): void {
         ),
     ];
 
-    foreach (['PlatformIdentity', 'Identity', 'Tenancy', 'Catalog'] as $module) {
+    foreach (['PlatformIdentity', 'Identity', 'Tenancy', 'Catalog', 'Sales'] as $module) {
         $domain = Layer::withName("{$module} Domain")->collectors(
             DirectoryConfig::create("app/Modules/{$module}/Domain/.*"),
         );
@@ -58,7 +58,7 @@ return static function (DeptracConfig $config): void {
             $applicationDependencies[] = Layer::withName('Identity Application');
         }
 
-        if ($module === 'Catalog') {
+        if ($module === 'Catalog' || $module === 'Sales') {
             $applicationDependencies[] = Layer::withName('Tenancy Application');
         }
 
@@ -84,7 +84,7 @@ return static function (DeptracConfig $config): void {
             $bootstrapDependencies[] = Layer::withName('Identity Application');
         }
 
-        if ($module === 'Catalog') {
+        if ($module === 'Catalog' || $module === 'Sales') {
             $infrastructureDependencies[] = Layer::withName('Tenancy Application');
             $bootstrapDependencies[] = Layer::withName('Tenancy Application');
         }
@@ -101,7 +101,7 @@ return static function (DeptracConfig $config): void {
             $sharedDomain,
         ];
 
-        if ($module === 'Catalog') {
+        if ($module === 'Catalog' || $module === 'Sales') {
             $presentationDependencies[] = Layer::withName('Tenancy Application');
         }
 

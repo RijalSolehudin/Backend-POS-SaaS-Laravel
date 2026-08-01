@@ -141,7 +141,8 @@ final class ApiProblemDetails
     {
         return match ($exception->errorCode()) {
             'IDENTITY_INVALID_CREDENTIALS' => 401,
-            'OUTLET_NOT_FOUND', 'POS_DEVICE_NOT_FOUND', 'DEVICE_NOT_REGISTERED' => 404,
+            'OUTLET_NOT_FOUND', 'POS_DEVICE_NOT_FOUND', 'DEVICE_NOT_REGISTERED', 'SHIFT_NOT_FOUND' => 404,
+            'SHIFT_ALREADY_OPEN', 'SHIFT_NOT_OPEN' => 409,
             'VALIDATION_FAILED' => 422,
             default => 403,
         };

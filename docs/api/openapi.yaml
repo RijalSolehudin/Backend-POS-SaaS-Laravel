@@ -141,6 +141,133 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/shifts/current:
+    get:
+      operationId: getCurrentShift
+      summary: Get the current open shift for the authenticated POS user and outlet
+      tags:
+        - POS Shifts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Current open shift, or null when no shift is open.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentShiftResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/shifts/open:
+    post:
+      operationId: openShift
+      summary: Open a shift for the authenticated POS user and outlet
+      tags:
+        - POS Shifts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - opening_cash_minor
+              properties:
+                opening_cash_minor:
+                  type: integer
+                  minimum: 0
+      responses:
+        '201':
+          description: Shift opened.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/shifts/{shift}/close:
+    post:
+      operationId: closeShift
+      summary: Close an open shift
+      tags:
+        - POS Shifts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: shift
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - closing_cash_minor
+              properties:
+                closing_cash_minor:
+                  type: integer
+                  minimum: 0
+      responses:
+        '200':
+          description: Shift closed.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
 components:
   securitySchemes:
     bearerAuth:
@@ -260,6 +387,72 @@ components:
                 type: string
                 minLength: 3
                 maxLength: 3
+    CurrentShiftResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/Shift'
+            - type: 'null'
+    ShiftResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Shift'
+    Shift:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - outlet_id
+        - user_id
+        - status
+        - opened_at
+        - opening_cash_minor
+        - expected_cash_minor
+        - gross_sales_minor
+        - currency
+      properties:
+        id:
+          $ref: '#/components/schemas/Ulid'
+        tenant_id:
+          $ref: '#/components/schemas/Ulid'
+        outlet_id:
+          $ref: '#/components/schemas/Ulid'
+        user_id:
+          $ref: '#/components/schemas/Ulid'
+        status:
+          type: string
+          enum:
+            - open
+            - closed
+            - voided
+        opened_at:
+          type: string
+          format: date-time
+        closed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        opening_cash_minor:
+          type: integer
+        closing_cash_minor:
+          type:
+            - integer
+            - 'null'
+        expected_cash_minor:
+          type: integer
+        gross_sales_minor:
+          type: integer
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
     Problem:
       type: object
       required:

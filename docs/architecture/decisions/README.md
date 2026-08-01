@@ -46,6 +46,7 @@
 | [ADR-034](034-tenant-provisioning-implementation-policy.md) | Atomic tenant provisioning, idempotency, initial credential, dan audit policy |
 | [ADR-035](035-tenant-identity-implementation-policy.md) | Tenant session isolation, membership resolution, credential lifecycle, dan revocation |
 | [ADR-036](036-tenancy-outlet-management-policy.md) | Immutable tenant context, outlet lifecycle, assignment integrity, dan owner administration |
+| [ADR-037](037-pos-core-mvp-policy.md) | POS Core MVP lifecycle, calculation, idempotency, numbering, payment, dan receipt policy |
 
 ## Superseded ADRs
 
@@ -55,7 +56,6 @@
 
 ## Open Architecture Decisions
 
-- Order/payment lifecycle.
 - Recipe module ownership.
 - Offline synchronization strategy.
 - Stock deduction timing dan inventory costing.

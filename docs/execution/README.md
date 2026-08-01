@@ -28,4 +28,4 @@ Planned -> Ready -> In Progress -> In Review -> Done
 ## Daftar Phase
 
 - [Phase 01 — Foundation](phase-01/README.md)
-
+- [Phase 02 — POS Core Vertical Slice](phase-02/README.md)
