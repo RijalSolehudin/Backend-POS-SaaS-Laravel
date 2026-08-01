@@ -1,6 +1,6 @@
 # P04-08 — Catalog Expansion Readiness
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

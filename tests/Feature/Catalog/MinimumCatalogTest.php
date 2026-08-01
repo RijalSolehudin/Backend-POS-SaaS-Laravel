@@ -27,6 +27,7 @@ use App\Modules\Tenancy\Domain\Models\PosDevice;
 use App\Modules\Tenancy\Domain\Models\Tenant;
 use App\Modules\Tenancy\Domain\Models\TenantMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 final class MinimumCatalogTest extends TestCase
@@ -311,6 +312,45 @@ final class MinimumCatalogTest extends TestCase
             ->assertJsonCount(1, 'data.0.variants.0.modifier_groups.0.options')
             ->assertJsonPath('data.0.variants.0.modifier_groups.0.options.0.name', 'Oat Milk')
             ->assertJsonPath('data.0.variants.0.modifier_groups.0.options.0.price_delta_minor', 7000);
+    }
+
+    public function test_catalog_export_and_import_dry_run_console_baseline(): void
+    {
+        $tenant = $this->tenant();
+        $category = $this->category($tenant, 'Drinks');
+        $product = $this->product($tenant, $category, 'TEA', 'Tea');
+        $this->variant($tenant, $product, 'TEA-REG', 'Regular');
+
+        self::assertSame(0, Artisan::call('catalog:export', [
+            'tenant' => $tenant->id,
+            '--pretty' => true,
+        ]));
+
+        $export = json_decode(Artisan::output(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertIsArray($export);
+        self::assertSame($tenant->id, $export['tenant_id']);
+        self::assertCount(1, $export['categories']);
+        self::assertCount(1, $export['products']);
+        self::assertCount(1, $export['variants']);
+
+        $path = sys_get_temp_dir().'/catalog-import-dry-run-valid.json';
+        file_put_contents($path, json_encode([
+            'categories' => [],
+            'products' => [],
+            'variants' => [],
+            'modifier_groups' => [],
+            'modifier_options' => [],
+        ], JSON_THROW_ON_ERROR));
+
+        self::assertSame(0, Artisan::call('catalog:import-dry-run', ['path' => $path]));
+        self::assertStringContainsString('No database changes were written', Artisan::output());
+
+        $invalidPath = sys_get_temp_dir().'/catalog-import-dry-run-invalid.json';
+        file_put_contents($invalidPath, json_encode(['categories' => 'invalid'], JSON_THROW_ON_ERROR));
+
+        self::assertSame(1, Artisan::call('catalog:import-dry-run', ['path' => $invalidPath]));
+        self::assertStringContainsString('Section "categories" is required and must be an array.', Artisan::output());
     }
 
     private function tenant(string $name = 'Tenant One', string $code = 'tenant-one'): Tenant

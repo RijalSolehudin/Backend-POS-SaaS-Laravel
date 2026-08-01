@@ -1,6 +1,6 @@
 # P04-07 — Catalog Admin Operations and Import Baseline
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -42,6 +42,20 @@ Tenant admin memiliki workflow operasional minimum untuk mengelola catalog expan
 - Feature/console tests untuk export/import bila dibuat.
 - `composer quality` lulus.
 - `npm run build` lulus bila ada perubahan frontend.
+
+## Delivered
+
+- Command `catalog:export {tenant} --pretty` untuk export read-only JSON tenant catalog.
+- Command `catalog:import-dry-run {path}` untuk validasi file import tanpa database write.
+- Runbook [Catalog Import Export](../../runbooks/catalog-import-export.md) mendokumentasikan format dan write policy.
+- CatalogServiceProvider mendaftarkan command Catalog saat console.
+
+## Evidence
+
+- Laravel Boost ApplicationInfo digunakan untuk memverifikasi stack Laravel aktif.
+- `php artisan test tests/Feature/Catalog/MinimumCatalogTest.php`
+- `composer quality`
+- `npm run build`
 
 ## Architecture Stop Rule
 

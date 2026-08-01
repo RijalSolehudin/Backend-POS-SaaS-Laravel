@@ -6,4 +6,5 @@
 - [Sales Retry and Recovery](sales-retry-and-recovery.md)
 - [Operational Baseline](operational-baseline.md)
 - [Phase 03 Pilot Readiness](phase-03-pilot-readiness.md)
+- [Catalog Import Export](catalog-import-export.md)
 - [Deployment Readiness](deployment-readiness.md)
