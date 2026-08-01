@@ -55,12 +55,14 @@ final class ShiftLifecycleTest extends TestCase
             ->assertJsonPath('data.id', $shiftId)
             ->assertJsonPath('data.status', 'open');
 
-        $this->withToken($token)->postJson(route('api.v1.pos.outlets.shifts.close', [
-            'outlet' => $outlet->id,
-            'shift' => $shiftId,
-        ]), [
-            'closing_cash_minor' => 50000,
-        ])
+        $this->withHeader('Idempotency-Key', 'close-main-shift')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.shifts.close', [
+                'outlet' => $outlet->id,
+                'shift' => $shiftId,
+            ]), [
+                'closing_cash_minor' => 50000,
+            ])
             ->assertOk()
             ->assertJsonPath('data.id', $shiftId)
             ->assertJsonPath('data.status', 'closed')
@@ -112,21 +114,71 @@ final class ShiftLifecycleTest extends TestCase
             'opening_cash_minor' => 10000,
         ])->json('data.id');
 
-        $this->withToken($token)->postJson(route('api.v1.pos.outlets.shifts.close', [
-            'outlet' => $outlet->id,
-            'shift' => $shiftId,
-        ]), [
-            'closing_cash_minor' => 10000,
-        ])->assertOk();
+        $this->withHeader('Idempotency-Key', 'close-once')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.shifts.close', [
+                'outlet' => $outlet->id,
+                'shift' => $shiftId,
+            ]), [
+                'closing_cash_minor' => 10000,
+            ])->assertOk();
 
-        $this->withToken($token)->postJson(route('api.v1.pos.outlets.shifts.close', [
-            'outlet' => $outlet->id,
-            'shift' => $shiftId,
-        ]), [
-            'closing_cash_minor' => 10000,
-        ])
+        $this->withHeader('Idempotency-Key', 'close-twice')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.shifts.close', [
+                'outlet' => $outlet->id,
+                'shift' => $shiftId,
+            ]), [
+                'closing_cash_minor' => 10000,
+            ])
             ->assertConflict()
             ->assertJsonPath('code', 'SHIFT_NOT_OPEN');
+    }
+
+    public function test_close_shift_is_idempotent_for_same_request(): void
+    {
+        [, , $outlet] = $this->cashierWithDevice();
+        $token = $this->posToken($outlet);
+        $shiftId = (string) $this->withToken($token)->postJson(route('api.v1.pos.outlets.shifts.open', [
+            'outlet' => $outlet->id,
+        ]), [
+            'opening_cash_minor' => 10000,
+        ])->json('data.id');
+
+        $this->withHeader('Idempotency-Key', 'close-idempotent')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.shifts.close', [
+                'outlet' => $outlet->id,
+                'shift' => $shiftId,
+            ]), [
+                'closing_cash_minor' => 10000,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.id', $shiftId)
+            ->assertJsonPath('data.status', 'closed');
+
+        $this->withHeader('Idempotency-Key', 'close-idempotent')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.shifts.close', [
+                'outlet' => $outlet->id,
+                'shift' => $shiftId,
+            ]), [
+                'closing_cash_minor' => 10000,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.id', $shiftId)
+            ->assertJsonPath('data.status', 'closed');
+
+        $this->withHeader('Idempotency-Key', 'close-idempotent')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.shifts.close', [
+                'outlet' => $outlet->id,
+                'shift' => $shiftId,
+            ]), [
+                'closing_cash_minor' => 9000,
+            ])
+            ->assertConflict()
+            ->assertJsonPath('code', 'IDEMPOTENCY_CONFLICT');
     }
 
     public function test_shift_routes_reject_outlet_that_does_not_match_device_binding(): void

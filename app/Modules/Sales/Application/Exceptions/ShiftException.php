@@ -35,6 +35,16 @@ final class ShiftException extends BusinessException
         return new self('Cash movement currency must match the shift currency.', 'SHIFT_CURRENCY_MISMATCH');
     }
 
+    public static function idempotencyKeyRequired(): self
+    {
+        return new self('An Idempotency-Key header is required for this shift request.', 'IDEMPOTENCY_KEY_REQUIRED');
+    }
+
+    public static function idempotencyConflict(): self
+    {
+        return new self('The Idempotency-Key was already used with a different shift request.', 'IDEMPOTENCY_CONFLICT');
+    }
+
     public function errorCode(): string
     {
         return $this->businessErrorCode;

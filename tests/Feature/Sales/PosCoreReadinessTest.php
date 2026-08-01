@@ -111,12 +111,14 @@ final class PosCoreReadinessTest extends TestCase
             ->assertJsonPath('data.snapshot.order.total_minor', 26000)
             ->assertJsonPath('data.snapshot.payment.amount_minor', 26000);
 
-        $this->withToken($token)->postJson(route('api.v1.pos.outlets.shifts.close', [
-            'outlet' => $outlet->id,
-            'shift' => $shiftId,
-        ]), [
-            'closing_cash_minor' => 76000,
-        ])
+        $this->withHeader('Idempotency-Key', 'close-pos-core-readiness')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.shifts.close', [
+                'outlet' => $outlet->id,
+                'shift' => $shiftId,
+            ]), [
+                'closing_cash_minor' => 76000,
+            ])
             ->assertOk()
             ->assertJsonPath('data.status', 'closed')
             ->assertJsonPath('data.expected_cash_minor', 76000)

@@ -50,12 +50,14 @@ final class ShiftSummaryTest extends TestCase
             ->assertJsonPath('data.expected_cash_minor', 76000)
             ->assertJsonPath('data.cash_variance_minor', 0);
 
-        $this->withToken($token)->postJson(route('api.v1.pos.outlets.shifts.close', [
-            'outlet' => $outlet->id,
-            'shift' => $shiftId,
-        ]), [
-            'closing_cash_minor' => 75000,
-        ])
+        $this->withHeader('Idempotency-Key', 'close-summary-shift')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.shifts.close', [
+                'outlet' => $outlet->id,
+                'shift' => $shiftId,
+            ]), [
+                'closing_cash_minor' => 75000,
+            ])
             ->assertOk()
             ->assertJsonPath('data.status', 'closed')
             ->assertJsonPath('data.expected_cash_minor', 76000)

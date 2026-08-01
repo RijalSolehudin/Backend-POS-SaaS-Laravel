@@ -6,6 +6,7 @@ namespace App\Modules\Sales\Application\Actions;
 
 use App\Modules\Sales\Application\Exceptions\CashMovementException;
 use App\Modules\Sales\Application\Exceptions\ShiftException;
+use App\Modules\Sales\Application\Services\IdempotencyStore;
 use App\Modules\Sales\Domain\Enums\CashMovementType;
 use App\Modules\Sales\Domain\Enums\ShiftStatus;
 use App\Modules\Sales\Domain\Models\CashMovement;
@@ -19,6 +20,7 @@ final readonly class RecordCashMovement
     public function __construct(
         private ConsumeSensitiveActionApproval $approvals,
         private RecordSalesAuditEvent $audit,
+        private IdempotencyStore $idempotency,
     ) {}
 
     public static function approvalFingerprint(string $shiftId, CashMovementType $type, int $amountMinor, string $currency, string $reason): string
@@ -56,14 +58,7 @@ final readonly class RecordCashMovement
         $requestHash = self::approvalFingerprint($shiftId, $type, $amountMinor, $currency, $reason);
 
         return DB::transaction(function () use ($context, $shiftId, $type, $amountMinor, $currency, $reason, $idempotencyKey, $approvalId, $requestHash): CashMovement {
-            $record = IdempotencyRecord::query()
-                ->where('tenant_id', $context->tenantId)
-                ->where('outlet_id', $context->outletId)
-                ->where('user_id', $context->userId)
-                ->where('action', 'cash_movements.record')
-                ->where('idempotency_key', $idempotencyKey)
-                ->lockForUpdate()
-                ->first();
+            $record = $this->idempotency->findForContext($context, 'cash_movements.record', $idempotencyKey);
 
             if ($record instanceof IdempotencyRecord) {
                 if ($record->request_hash !== $requestHash || $record->resource_id === null) {
@@ -128,19 +123,16 @@ final readonly class RecordCashMovement
                 'recorded_at' => now(),
             ]);
 
-            IdempotencyRecord::query()->create([
-                'tenant_id' => $context->tenantId,
-                'outlet_id' => $context->outletId,
-                'user_id' => $context->userId,
-                'action' => 'cash_movements.record',
-                'idempotency_key' => $idempotencyKey,
-                'request_hash' => $requestHash,
-                'resource_type' => 'sales_cash_movement',
-                'resource_id' => $movement->id,
-                'response_status' => 201,
-                'response_body' => ['cash_movement_id' => $movement->id],
-                'expires_at' => now()->addDay(),
-            ]);
+            $this->idempotency->createForContext(
+                context: $context,
+                action: 'cash_movements.record',
+                idempotencyKey: $idempotencyKey,
+                requestHash: $requestHash,
+                resourceType: 'sales_cash_movement',
+                resourceId: $movement->id,
+                responseStatus: 201,
+                responseBody: ['cash_movement_id' => $movement->id],
+            );
 
             $this->audit->handle(
                 tenantId: $context->tenantId,

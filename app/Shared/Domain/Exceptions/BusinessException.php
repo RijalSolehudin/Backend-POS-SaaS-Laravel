@@ -9,4 +9,9 @@ use RuntimeException;
 abstract class BusinessException extends RuntimeException
 {
     abstract public function errorCode(): string;
+
+    public function httpStatus(): ?int
+    {
+        return null;
+    }
 }

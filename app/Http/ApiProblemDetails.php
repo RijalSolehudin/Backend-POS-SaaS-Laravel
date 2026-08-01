@@ -139,6 +139,10 @@ final class ApiProblemDetails
 
     private function businessStatus(BusinessException $exception): int
     {
+        if ($exception->httpStatus() !== null) {
+            return $exception->httpStatus();
+        }
+
         return match ($exception->errorCode()) {
             'IDENTITY_INVALID_CREDENTIALS' => 401,
             'OUTLET_NOT_FOUND', 'POS_DEVICE_NOT_FOUND', 'DEVICE_NOT_REGISTERED', 'SHIFT_NOT_FOUND', 'ORDER_NOT_FOUND', 'ORDER_ITEM_NOT_FOUND', 'ORDER_PRODUCT_UNAVAILABLE', 'ORDER_VARIANT_UNAVAILABLE', 'RECEIPT_NOT_FOUND', 'APPROVAL_NOT_FOUND' => 404,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Application\Actions;
 
 use App\Modules\Sales\Application\Exceptions\OrderException;
+use App\Modules\Sales\Application\Services\IdempotencyStore;
 use App\Modules\Sales\Domain\Enums\OrderStatus;
 use App\Modules\Sales\Domain\Models\IdempotencyRecord;
 use App\Modules\Sales\Domain\Models\Order;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class CancelDraftOrder
 {
+    public function __construct(private IdempotencyStore $idempotency) {}
+
     public function handle(PosOutletContext $context, string $orderId, string $reason, string $idempotencyKey): Order
     {
         $reason = trim($reason);
@@ -31,14 +34,7 @@ final readonly class CancelDraftOrder
         ], JSON_THROW_ON_ERROR));
 
         return DB::transaction(function () use ($context, $orderId, $reason, $idempotencyKey, $requestHash): Order {
-            $record = IdempotencyRecord::query()
-                ->where('tenant_id', $context->tenantId)
-                ->where('outlet_id', $context->outletId)
-                ->where('user_id', $context->userId)
-                ->where('action', 'orders.cancel')
-                ->where('idempotency_key', $idempotencyKey)
-                ->lockForUpdate()
-                ->first();
+            $record = $this->idempotency->findForContext($context, 'orders.cancel', $idempotencyKey);
 
             if ($record instanceof IdempotencyRecord) {
                 if ($record->request_hash !== $requestHash || $record->resource_id === null) {
@@ -71,19 +67,16 @@ final readonly class CancelDraftOrder
                 'cancel_reason' => $reason,
             ])->save();
 
-            IdempotencyRecord::query()->create([
-                'tenant_id' => $context->tenantId,
-                'outlet_id' => $context->outletId,
-                'user_id' => $context->userId,
-                'action' => 'orders.cancel',
-                'idempotency_key' => $idempotencyKey,
-                'request_hash' => $requestHash,
-                'resource_type' => 'sales_order',
-                'resource_id' => $order->id,
-                'response_status' => 200,
-                'response_body' => ['order_id' => $order->id],
-                'expires_at' => now()->addDay(),
-            ]);
+            $this->idempotency->createForContext(
+                context: $context,
+                action: 'orders.cancel',
+                idempotencyKey: $idempotencyKey,
+                requestHash: $requestHash,
+                resourceType: 'sales_order',
+                resourceId: $order->id,
+                responseStatus: 200,
+                responseBody: ['order_id' => $order->id],
+            );
 
             return $order->refresh();
         });

@@ -185,12 +185,14 @@ final class CashMovementShiftDiscrepancyTest extends TestCase
             ])
             ->assertCreated();
 
-        $this->withToken($token)->postJson(route('api.v1.pos.outlets.shifts.close', [
-            'outlet' => $outlet->id,
-            'shift' => $shiftId,
-        ]), [
-            'closing_cash_minor' => 56000,
-        ])->assertOk();
+        $this->withHeader('Idempotency-Key', 'close-cash-discrepancy')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.shifts.close', [
+                'outlet' => $outlet->id,
+                'shift' => $shiftId,
+            ]), [
+                'closing_cash_minor' => 56000,
+            ])->assertOk();
 
         $this->assertDatabaseHas('sales_shifts', [
             'id' => $shiftId,

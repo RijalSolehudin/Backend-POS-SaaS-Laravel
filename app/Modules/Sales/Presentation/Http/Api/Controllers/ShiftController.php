@@ -11,6 +11,7 @@ use App\Modules\Sales\Application\Actions\RecordCashMovement;
 use App\Modules\Sales\Application\Actions\SummarizeShift;
 use App\Modules\Sales\Application\Data\ShiftSummary;
 use App\Modules\Sales\Application\Exceptions\CashMovementException;
+use App\Modules\Sales\Application\Exceptions\ShiftException;
 use App\Modules\Sales\Domain\Enums\CashMovementType;
 use App\Modules\Sales\Domain\Models\CashMovement;
 use App\Modules\Sales\Domain\Models\Shift;
@@ -68,11 +69,17 @@ final class ShiftController extends Controller
         $validated = $request->validate([
             'closing_cash_minor' => ['required', 'integer', 'min:0'],
         ]);
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if (! is_string($idempotencyKey)) {
+            throw ShiftException::idempotencyKeyRequired();
+        }
 
         $closed = $closeShift->handle(
             $this->context($outlet, $request, $context),
             $shift,
             (int) $validated['closing_cash_minor'],
+            $idempotencyKey,
         );
 
         return response()->json(['data' => $this->shiftData($closed)]);

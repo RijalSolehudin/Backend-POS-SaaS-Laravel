@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Application\Actions;
 
 use App\Modules\Sales\Application\Exceptions\OrderException;
+use App\Modules\Sales\Application\Services\IdempotencyStore;
 use App\Modules\Sales\Application\Services\ReceiptSnapshotFactory;
 use App\Modules\Sales\Domain\Enums\OrderStatus;
 use App\Modules\Sales\Domain\Enums\PaymentMethod;
@@ -21,7 +22,10 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class CompleteOrderWithPayment
 {
-    public function __construct(private ReceiptSnapshotFactory $receipts) {}
+    public function __construct(
+        private ReceiptSnapshotFactory $receipts,
+        private IdempotencyStore $idempotency,
+    ) {}
 
     public function handle(
         PosOutletContext $context,
@@ -43,14 +47,7 @@ final readonly class CompleteOrderWithPayment
         ], JSON_THROW_ON_ERROR));
 
         return DB::transaction(function () use ($context, $orderId, $method, $amountMinor, $currency, $idempotencyKey, $requestHash): Order {
-            $record = IdempotencyRecord::query()
-                ->where('tenant_id', $context->tenantId)
-                ->where('outlet_id', $context->outletId)
-                ->where('user_id', $context->userId)
-                ->where('action', 'orders.complete')
-                ->where('idempotency_key', $idempotencyKey)
-                ->lockForUpdate()
-                ->first();
+            $record = $this->idempotency->findForContext($context, 'orders.complete', $idempotencyKey);
 
             if ($record instanceof IdempotencyRecord) {
                 if ($record->request_hash !== $requestHash || $record->resource_id === null) {
@@ -122,19 +119,16 @@ final readonly class CompleteOrderWithPayment
                 'expected_cash_minor' => $shift->expected_cash_minor + ($method === PaymentMethod::Cash ? $amountMinor : 0),
             ])->save();
 
-            IdempotencyRecord::query()->create([
-                'tenant_id' => $context->tenantId,
-                'outlet_id' => $context->outletId,
-                'user_id' => $context->userId,
-                'action' => 'orders.complete',
-                'idempotency_key' => $idempotencyKey,
-                'request_hash' => $requestHash,
-                'resource_type' => 'sales_order',
-                'resource_id' => $order->id,
-                'response_status' => 200,
-                'response_body' => ['order_id' => $order->id],
-                'expires_at' => now()->addDay(),
-            ]);
+            $this->idempotency->createForContext(
+                context: $context,
+                action: 'orders.complete',
+                idempotencyKey: $idempotencyKey,
+                requestHash: $requestHash,
+                resourceType: 'sales_order',
+                resourceId: $order->id,
+                responseStatus: 200,
+                responseBody: ['order_id' => $order->id],
+            );
 
             return $order->refresh();
         });

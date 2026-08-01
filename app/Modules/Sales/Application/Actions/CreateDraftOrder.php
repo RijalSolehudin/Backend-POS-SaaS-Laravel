@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Application\Actions;
 
 use App\Modules\Sales\Application\Exceptions\OrderException;
+use App\Modules\Sales\Application\Services\IdempotencyStore;
 use App\Modules\Sales\Domain\Enums\OrderStatus;
 use App\Modules\Sales\Domain\Enums\ShiftStatus;
 use App\Modules\Sales\Domain\Models\IdempotencyRecord;
@@ -18,7 +19,10 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class CreateDraftOrder
 {
-    public function __construct(private TenantCatalogReference $tenancy) {}
+    public function __construct(
+        private TenantCatalogReference $tenancy,
+        private IdempotencyStore $idempotency,
+    ) {}
 
     public function handle(PosOutletContext $context, string $idempotencyKey): Order
     {
@@ -29,14 +33,7 @@ final readonly class CreateDraftOrder
         $requestHash = hash('sha256', 'create_draft_order');
 
         return DB::transaction(function () use ($context, $idempotencyKey, $requestHash): Order {
-            $record = IdempotencyRecord::query()
-                ->where('tenant_id', $context->tenantId)
-                ->where('outlet_id', $context->outletId)
-                ->where('user_id', $context->userId)
-                ->where('action', 'orders.create')
-                ->where('idempotency_key', $idempotencyKey)
-                ->lockForUpdate()
-                ->first();
+            $record = $this->idempotency->findForContext($context, 'orders.create', $idempotencyKey);
 
             if ($record instanceof IdempotencyRecord) {
                 if ($record->request_hash !== $requestHash || $record->resource_id === null) {
@@ -75,19 +72,16 @@ final readonly class CreateDraftOrder
                 'currency' => $tenant->currency,
             ]);
 
-            IdempotencyRecord::query()->create([
-                'tenant_id' => $context->tenantId,
-                'outlet_id' => $context->outletId,
-                'user_id' => $context->userId,
-                'action' => 'orders.create',
-                'idempotency_key' => $idempotencyKey,
-                'request_hash' => $requestHash,
-                'resource_type' => 'sales_order',
-                'resource_id' => $order->id,
-                'response_status' => 201,
-                'response_body' => ['order_id' => $order->id],
-                'expires_at' => now()->addDay(),
-            ]);
+            $this->idempotency->createForContext(
+                context: $context,
+                action: 'orders.create',
+                idempotencyKey: $idempotencyKey,
+                requestHash: $requestHash,
+                resourceType: 'sales_order',
+                resourceId: $order->id,
+                responseStatus: 201,
+                responseBody: ['order_id' => $order->id],
+            );
 
             return $order;
         });

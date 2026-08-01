@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Application\Actions;
 
 use App\Modules\Sales\Application\Exceptions\ApprovalException;
+use App\Modules\Sales\Application\Services\IdempotencyStore;
 use App\Modules\Sales\Domain\Enums\SensitiveActionApprovalStatus;
 use App\Modules\Sales\Domain\Models\IdempotencyRecord;
 use App\Modules\Sales\Domain\Models\SensitiveActionApproval;
@@ -12,7 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class RequestSensitiveActionApproval
 {
-    public function __construct(private RecordSalesAuditEvent $audit) {}
+    public function __construct(
+        private RecordSalesAuditEvent $audit,
+        private IdempotencyStore $idempotency,
+    ) {}
 
     public function handle(
         string $tenantId,
@@ -46,14 +50,13 @@ final readonly class RequestSensitiveActionApproval
         ], JSON_THROW_ON_ERROR));
 
         return DB::transaction(function () use ($tenantId, $outletId, $performerUserId, $action, $targetType, $targetId, $requestFingerprint, $reason, $idempotencyKey, $requestHash): SensitiveActionApproval {
-            $record = IdempotencyRecord::query()
-                ->where('tenant_id', $tenantId)
-                ->where('outlet_id', $outletId)
-                ->where('user_id', $performerUserId)
-                ->where('action', 'approvals.request')
-                ->where('idempotency_key', $idempotencyKey)
-                ->lockForUpdate()
-                ->first();
+            $record = $this->idempotency->findForUpdate(
+                tenantId: $tenantId,
+                outletId: $outletId,
+                userId: $performerUserId,
+                action: 'approvals.request',
+                idempotencyKey: $idempotencyKey,
+            );
 
             if ($record instanceof IdempotencyRecord) {
                 if ($record->request_hash !== $requestHash || $record->resource_id === null) {
@@ -86,19 +89,18 @@ final readonly class RequestSensitiveActionApproval
                 'expires_at' => now()->addMinutes(15),
             ]);
 
-            IdempotencyRecord::query()->create([
-                'tenant_id' => $tenantId,
-                'outlet_id' => $outletId,
-                'user_id' => $performerUserId,
-                'action' => 'approvals.request',
-                'idempotency_key' => $idempotencyKey,
-                'request_hash' => $requestHash,
-                'resource_type' => 'sales_sensitive_action_approval',
-                'resource_id' => $approval->id,
-                'response_status' => 201,
-                'response_body' => ['approval_id' => $approval->id],
-                'expires_at' => now()->addDay(),
-            ]);
+            $this->idempotency->create(
+                tenantId: $tenantId,
+                outletId: $outletId,
+                userId: $performerUserId,
+                action: 'approvals.request',
+                idempotencyKey: $idempotencyKey,
+                requestHash: $requestHash,
+                resourceType: 'sales_sensitive_action_approval',
+                resourceId: $approval->id,
+                responseStatus: 201,
+                responseBody: ['approval_id' => $approval->id],
+            );
 
             $this->audit->handle(
                 tenantId: $tenantId,

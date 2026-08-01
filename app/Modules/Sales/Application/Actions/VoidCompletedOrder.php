@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Application\Actions;
 
 use App\Modules\Sales\Application\Exceptions\OrderException;
+use App\Modules\Sales\Application\Services\IdempotencyStore;
 use App\Modules\Sales\Domain\Enums\OrderStatus;
 use App\Modules\Sales\Domain\Enums\PaymentStatus;
 use App\Modules\Sales\Domain\Models\IdempotencyRecord;
@@ -19,6 +20,7 @@ final readonly class VoidCompletedOrder
         private SummarizeShift $summaries,
         private ConsumeSensitiveActionApproval $approvals,
         private RecordSalesAuditEvent $audit,
+        private IdempotencyStore $idempotency,
     ) {}
 
     public static function approvalFingerprint(string $orderId, string $reason): string
@@ -61,14 +63,13 @@ final readonly class VoidCompletedOrder
                 throw OrderException::notFound();
             }
 
-            $record = IdempotencyRecord::query()
-                ->where('tenant_id', $tenantId)
-                ->where('outlet_id', $order->outlet_id)
-                ->where('user_id', $actorUserId)
-                ->where('action', 'orders.void')
-                ->where('idempotency_key', $idempotencyKey)
-                ->lockForUpdate()
-                ->first();
+            $record = $this->idempotency->findForUpdate(
+                tenantId: $tenantId,
+                outletId: $order->outlet_id,
+                userId: $actorUserId,
+                action: 'orders.void',
+                idempotencyKey: $idempotencyKey,
+            );
 
             if ($record instanceof IdempotencyRecord) {
                 if ($record->request_hash !== $requestHash || $record->resource_id === null) {
@@ -129,19 +130,18 @@ final readonly class VoidCompletedOrder
                 ])->save();
             }
 
-            IdempotencyRecord::query()->create([
-                'tenant_id' => $tenantId,
-                'outlet_id' => $order->outlet_id,
-                'user_id' => $actorUserId,
-                'action' => 'orders.void',
-                'idempotency_key' => $idempotencyKey,
-                'request_hash' => $requestHash,
-                'resource_type' => 'sales_order',
-                'resource_id' => $order->id,
-                'response_status' => 200,
-                'response_body' => ['order_id' => $order->id],
-                'expires_at' => now()->addDay(),
-            ]);
+            $this->idempotency->create(
+                tenantId: $tenantId,
+                outletId: $order->outlet_id,
+                userId: $actorUserId,
+                action: 'orders.void',
+                idempotencyKey: $idempotencyKey,
+                requestHash: $requestHash,
+                resourceType: 'sales_order',
+                resourceId: $order->id,
+                responseStatus: 200,
+                responseBody: ['order_id' => $order->id],
+            );
 
             $this->audit->handle(
                 tenantId: $tenantId,

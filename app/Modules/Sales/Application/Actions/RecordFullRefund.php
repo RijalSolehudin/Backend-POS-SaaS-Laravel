@@ -6,6 +6,7 @@ namespace App\Modules\Sales\Application\Actions;
 
 use App\Modules\Sales\Application\Exceptions\OrderException;
 use App\Modules\Sales\Application\Exceptions\RefundException;
+use App\Modules\Sales\Application\Services\IdempotencyStore;
 use App\Modules\Sales\Domain\Enums\OrderStatus;
 use App\Modules\Sales\Domain\Enums\PaymentStatus;
 use App\Modules\Sales\Domain\Enums\RefundStatus;
@@ -21,6 +22,7 @@ final readonly class RecordFullRefund
     public function __construct(
         private ConsumeSensitiveActionApproval $approvals,
         private RecordSalesAuditEvent $audit,
+        private IdempotencyStore $idempotency,
     ) {}
 
     public static function approvalFingerprint(string $orderId, int $amountMinor, string $currency, string $reason): string
@@ -56,14 +58,7 @@ final readonly class RecordFullRefund
         $requestHash = self::approvalFingerprint($orderId, $amountMinor, $currency, $reason);
 
         return DB::transaction(function () use ($context, $orderId, $amountMinor, $currency, $reason, $idempotencyKey, $approvalId, $requestHash): Refund {
-            $record = IdempotencyRecord::query()
-                ->where('tenant_id', $context->tenantId)
-                ->where('outlet_id', $context->outletId)
-                ->where('user_id', $context->userId)
-                ->where('action', 'payments.refund')
-                ->where('idempotency_key', $idempotencyKey)
-                ->lockForUpdate()
-                ->first();
+            $record = $this->idempotency->findForContext($context, 'payments.refund', $idempotencyKey);
 
             if ($record instanceof IdempotencyRecord) {
                 if ($record->request_hash !== $requestHash || $record->resource_id === null) {
@@ -148,19 +143,16 @@ final readonly class RecordFullRefund
                 'recorded_at' => now(),
             ]);
 
-            IdempotencyRecord::query()->create([
-                'tenant_id' => $context->tenantId,
-                'outlet_id' => $context->outletId,
-                'user_id' => $context->userId,
-                'action' => 'payments.refund',
-                'idempotency_key' => $idempotencyKey,
-                'request_hash' => $requestHash,
-                'resource_type' => 'sales_refund',
-                'resource_id' => $refund->id,
-                'response_status' => 201,
-                'response_body' => ['refund_id' => $refund->id],
-                'expires_at' => now()->addDay(),
-            ]);
+            $this->idempotency->createForContext(
+                context: $context,
+                action: 'payments.refund',
+                idempotencyKey: $idempotencyKey,
+                requestHash: $requestHash,
+                resourceType: 'sales_refund',
+                resourceId: $refund->id,
+                responseStatus: 201,
+                responseBody: ['refund_id' => $refund->id],
+            );
 
             $this->audit->handle(
                 tenantId: $context->tenantId,
