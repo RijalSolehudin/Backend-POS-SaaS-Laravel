@@ -8,6 +8,8 @@ use App\Modules\Tenancy\Application\Data\TenantUserSummary;
 
 interface TenantUserDirectory
 {
+    public function findForTenant(string $tenantId, string $userId): ?TenantUserSummary;
+
     /**
      * @return list<TenantUserSummary>
      */

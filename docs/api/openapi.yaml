@@ -555,6 +555,41 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/orders/{order}/receipt:
+    get:
+      operationId: getOrderReceipt
+      summary: Get the immutable receipt snapshot for a completed POS order
+      tags:
+        - POS Receipts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: order
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Receipt snapshot generated at order completion.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
 components:
   securitySchemes:
     bearerAuth:
@@ -886,6 +921,177 @@ components:
         recorded_at:
           type: string
           format: date-time
+    ReceiptResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Receipt'
+    Receipt:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - outlet_id
+        - order_id
+        - payment_id
+        - receipt_number
+        - issued_at
+        - snapshot
+      properties:
+        id:
+          $ref: '#/components/schemas/Ulid'
+        tenant_id:
+          $ref: '#/components/schemas/Ulid'
+        outlet_id:
+          $ref: '#/components/schemas/Ulid'
+        order_id:
+          $ref: '#/components/schemas/Ulid'
+        payment_id:
+          $ref: '#/components/schemas/Ulid'
+        receipt_number:
+          type: string
+        issued_at:
+          type: string
+          format: date-time
+        snapshot:
+          type: object
+          required:
+            - tenant
+            - outlet
+            - order
+            - payment
+          properties:
+            tenant:
+              type: object
+              required:
+                - id
+                - name
+              properties:
+                id:
+                  $ref: '#/components/schemas/Ulid'
+                name:
+                  type: string
+            outlet:
+              type: object
+              required:
+                - id
+                - name
+                - code
+              properties:
+                id:
+                  $ref: '#/components/schemas/Ulid'
+                name:
+                  type: string
+                code:
+                  type: string
+            order:
+              type: object
+              required:
+                - id
+                - order_number
+                - completed_at
+                - cashier
+                - items
+                - subtotal_minor
+                - discount_minor
+                - service_charge_minor
+                - tax_minor
+                - total_minor
+                - currency
+              properties:
+                id:
+                  $ref: '#/components/schemas/Ulid'
+                order_number:
+                  type: string
+                completed_at:
+                  type: string
+                  format: date-time
+                cashier:
+                  type: object
+                  required:
+                    - id
+                    - name
+                  properties:
+                    id:
+                      $ref: '#/components/schemas/Ulid'
+                    name:
+                      type: string
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - product_id
+                      - sku
+                      - name
+                      - category_id
+                      - category_name
+                      - quantity
+                      - unit_price_minor
+                      - line_subtotal_minor
+                      - currency
+                    properties:
+                      product_id:
+                        $ref: '#/components/schemas/Ulid'
+                      sku:
+                        type: string
+                      name:
+                        type: string
+                      category_id:
+                        $ref: '#/components/schemas/Ulid'
+                      category_name:
+                        type: string
+                      quantity:
+                        type: string
+                      unit_price_minor:
+                        type: integer
+                      line_subtotal_minor:
+                        type: integer
+                      currency:
+                        type: string
+                        minLength: 3
+                        maxLength: 3
+                subtotal_minor:
+                  type: integer
+                discount_minor:
+                  type: integer
+                service_charge_minor:
+                  type: integer
+                tax_minor:
+                  type: integer
+                total_minor:
+                  type: integer
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+            payment:
+              type: object
+              required:
+                - id
+                - method
+                - amount_minor
+                - currency
+                - recorded_at
+              properties:
+                id:
+                  $ref: '#/components/schemas/Ulid'
+                method:
+                  type: string
+                  enum:
+                    - cash
+                    - manual_non_cash
+                amount_minor:
+                  type: integer
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+                recorded_at:
+                  type: string
+                  format: date-time
     Problem:
       type: object
       required:

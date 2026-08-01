@@ -9,6 +9,7 @@ use App\Shared\Domain\Concerns\HasLowercaseUlids;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property string $id
@@ -65,5 +66,13 @@ final class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'order_id');
+    }
+
+    /**
+     * @return HasOne<Receipt, $this>
+     */
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(Receipt::class, 'order_id');
     }
 }

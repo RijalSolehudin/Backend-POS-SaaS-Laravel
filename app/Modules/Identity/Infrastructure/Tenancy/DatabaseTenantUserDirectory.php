@@ -12,6 +12,27 @@ use App\Modules\Tenancy\Application\Data\TenantUserSummary;
 
 final class DatabaseTenantUserDirectory implements TenantUserDirectory
 {
+    public function findForTenant(string $tenantId, string $userId): ?TenantUserSummary
+    {
+        $user = User::query()
+            ->join('tenant_memberships', 'tenant_memberships.user_id', '=', 'users.id')
+            ->where('tenant_memberships.tenant_id', $tenantId)
+            ->where('users.id', $userId)
+            ->first(['users.*']);
+
+        if (! $user instanceof User) {
+            return null;
+        }
+
+        return new TenantUserSummary(
+            id: $user->id,
+            name: $user->name,
+            email: $user->email,
+            active: $user->status === UserStatus::Active,
+            roles: $this->rolesForUser($user->id),
+        );
+    }
+
     public function listForTenant(string $tenantId): array
     {
         $users = User::query()

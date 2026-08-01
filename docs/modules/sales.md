@@ -28,6 +28,7 @@
 - `PUT /api/v1/pos/outlets/{outlet}/orders/{order}/items/{item}`
 - `DELETE /api/v1/pos/outlets/{outlet}/orders/{order}/items/{item}`
 - `POST /api/v1/pos/outlets/{outlet}/orders/{order}/complete`
+- `GET /api/v1/pos/outlets/{outlet}/orders/{order}/receipt`
 
 ## Invariants
 
@@ -37,6 +38,7 @@
 - Order item menyimpan snapshot SKU, nama, category, harga, dan currency dari catalog outlet aktif.
 - Complete order dengan payment bersifat idempotent dan exact-payment-only.
 - Completed order immutable untuk perubahan item.
+- Completion menghasilkan receipt snapshot immutable.
 - Lifecycle transition hanya melalui use case yang sah.
 - Critical create/mutation operation memiliki idempotency policy.
 - Finalized financial history tidak di-hard-delete.

@@ -8,6 +8,7 @@ use App\Modules\Sales\Application\Actions\AddOrderItem;
 use App\Modules\Sales\Application\Actions\CompleteOrderWithPayment;
 use App\Modules\Sales\Application\Actions\CreateDraftOrder;
 use App\Modules\Sales\Application\Actions\GetDraftOrder;
+use App\Modules\Sales\Application\Actions\GetOrderReceipt;
 use App\Modules\Sales\Application\Actions\RemoveOrderItem;
 use App\Modules\Sales\Application\Actions\UpdateOrderItem;
 use App\Modules\Sales\Application\Exceptions\OrderException;
@@ -15,6 +16,7 @@ use App\Modules\Sales\Domain\Enums\PaymentMethod;
 use App\Modules\Sales\Domain\Models\Order;
 use App\Modules\Sales\Domain\Models\OrderItem;
 use App\Modules\Sales\Domain\Models\Payment;
+use App\Modules\Sales\Domain\Models\Receipt;
 use App\Modules\Tenancy\Application\Actions\ResolvePosOutletApiContext;
 use App\Modules\Tenancy\Application\Data\PosOutletContext;
 use Illuminate\Http\JsonResponse;
@@ -146,6 +148,18 @@ final class OrderController extends Controller
         return response()->json(['data' => $this->orderData($updated)]);
     }
 
+    public function receipt(
+        string $outlet,
+        string $order,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        GetOrderReceipt $receipt,
+    ): JsonResponse {
+        return response()->json([
+            'data' => $this->receiptData($receipt->handle($this->context($outlet, $request, $context), $order)),
+        ]);
+    }
+
     private function context(
         string $outlet,
         Request $request,
@@ -236,6 +250,23 @@ final class OrderController extends Controller
                 ])
                 ->values()
                 ->all(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function receiptData(Receipt $receipt): array
+    {
+        return [
+            'id' => $receipt->id,
+            'tenant_id' => $receipt->tenant_id,
+            'outlet_id' => $receipt->outlet_id,
+            'order_id' => $receipt->order_id,
+            'payment_id' => $receipt->payment_id,
+            'receipt_number' => $receipt->receipt_number,
+            'issued_at' => $receipt->issued_at->toJSON(),
+            'snapshot' => $receipt->snapshot,
         ];
     }
 }

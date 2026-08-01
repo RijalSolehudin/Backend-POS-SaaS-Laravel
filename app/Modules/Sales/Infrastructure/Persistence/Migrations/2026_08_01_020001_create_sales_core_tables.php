@@ -137,6 +137,26 @@ return new class extends Migration
             $table->index(['tenant_id', 'order_id']);
         });
 
+        Schema::create('sales_receipts', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->ulid('id')->primary()->charset('ascii')->collation('ascii_bin');
+            $table->char('tenant_id', 26)->charset('ascii')->collation('ascii_bin');
+            $table->char('outlet_id', 26)->charset('ascii')->collation('ascii_bin');
+            $table->char('order_id', 26)->charset('ascii')->collation('ascii_bin');
+            $table->char('payment_id', 26)->charset('ascii')->collation('ascii_bin');
+            $table->string('receipt_number', 48)->charset('ascii')->collation('ascii_bin');
+            $table->timestamp('issued_at');
+            $table->json('snapshot');
+            $table->timestamps();
+
+            $table->foreign('tenant_id')->references('id')->on('tenants')->restrictOnDelete();
+            $table->foreign('outlet_id')->references('id')->on('outlets')->restrictOnDelete();
+            $table->foreign('order_id')->references('id')->on('sales_orders')->restrictOnDelete();
+            $table->foreign('payment_id')->references('id')->on('sales_payments')->restrictOnDelete();
+            $table->unique(['tenant_id', 'order_id'], 'sales_receipt_order_unique');
+            $table->unique(['tenant_id', 'outlet_id', 'receipt_number'], 'sales_receipt_number_scope_unique');
+        });
+
         Schema::create('sales_idempotency_records', function (Blueprint $table): void {
             $table->engine = 'InnoDB';
             $table->ulid('id')->primary()->charset('ascii')->collation('ascii_bin');
@@ -163,6 +183,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('sales_idempotency_records');
+        Schema::dropIfExists('sales_receipts');
         Schema::dropIfExists('sales_payments');
         Schema::dropIfExists('sales_order_items');
         Schema::dropIfExists('sales_orders');

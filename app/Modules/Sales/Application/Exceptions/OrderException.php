@@ -30,6 +30,11 @@ final class OrderException extends BusinessException
         return new self('The requested order item was not found.', 'ORDER_ITEM_NOT_FOUND');
     }
 
+    public static function receiptNotFound(): self
+    {
+        return new self('The requested receipt was not found.', 'RECEIPT_NOT_FOUND');
+    }
+
     public static function notDraft(): self
     {
         return new self('Only draft orders can be changed.', 'ORDER_NOT_DRAFT');

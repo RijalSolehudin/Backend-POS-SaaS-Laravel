@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Application\Actions;
 
 use App\Modules\Sales\Application\Exceptions\OrderException;
+use App\Modules\Sales\Application\Services\ReceiptSnapshotFactory;
 use App\Modules\Sales\Domain\Enums\OrderStatus;
 use App\Modules\Sales\Domain\Enums\PaymentMethod;
 use App\Modules\Sales\Domain\Enums\PaymentStatus;
@@ -13,12 +14,15 @@ use App\Modules\Sales\Domain\Models\IdempotencyRecord;
 use App\Modules\Sales\Domain\Models\Order;
 use App\Modules\Sales\Domain\Models\OrderItem;
 use App\Modules\Sales\Domain\Models\Payment;
+use App\Modules\Sales\Domain\Models\Receipt;
 use App\Modules\Sales\Domain\Models\Shift;
 use App\Modules\Tenancy\Application\Data\PosOutletContext;
 use Illuminate\Support\Facades\DB;
 
 final readonly class CompleteOrderWithPayment
 {
+    public function __construct(private ReceiptSnapshotFactory $receipts) {}
+
     public function handle(
         PosOutletContext $context,
         string $orderId,
@@ -86,7 +90,7 @@ final readonly class CompleteOrderWithPayment
                 throw OrderException::paymentCurrencyMismatch();
             }
 
-            Payment::query()->create([
+            $payment = Payment::query()->create([
                 'tenant_id' => $context->tenantId,
                 'outlet_id' => $context->outletId,
                 'shift_id' => $shift->id,
@@ -102,6 +106,16 @@ final readonly class CompleteOrderWithPayment
                 'status' => OrderStatus::Completed,
                 'completed_at' => now(),
             ])->save();
+
+            Receipt::query()->create([
+                'tenant_id' => $context->tenantId,
+                'outlet_id' => $context->outletId,
+                'order_id' => $order->id,
+                'payment_id' => $payment->id,
+                'receipt_number' => $order->order_number,
+                'issued_at' => now(),
+                'snapshot' => $this->receipts->make($order->refresh(), $payment),
+            ]);
 
             $shift->forceFill([
                 'gross_sales_minor' => $shift->gross_sales_minor + $order->total_minor,
@@ -129,7 +143,7 @@ final readonly class CompleteOrderWithPayment
     private function scopedOrder(PosOutletContext $context, string $orderId): ?Order
     {
         return Order::query()
-            ->with(['items', 'payments'])
+            ->with(['items', 'payments', 'receipt'])
             ->where('tenant_id', $context->tenantId)
             ->where('outlet_id', $context->outletId)
             ->where('user_id', $context->userId)
