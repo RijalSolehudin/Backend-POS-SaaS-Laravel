@@ -1,6 +1,6 @@
 # ADR-038: Operational Safety MVP Policy
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-01
 
 ## Context
@@ -9,7 +9,7 @@ Phase 02 menghasilkan alur POS end-to-end: cashier membuka shift, membuat order,
 
 Roadmap Phase 03 membutuhkan keputusan tentang sensitive action approval, refund/reversal, audit retention, locking/isolation transaksi kritis, serta deployment, backup, monitoring, queue, dan cache baseline.
 
-## Proposed Decision
+## Decision
 
 ### Sensitive Action Approval
 
@@ -73,10 +73,14 @@ Roadmap Phase 03 membutuhkan keputusan tentang sensitive action approval, refund
 - Manual refund/reversal menjaga MVP tetap sederhana, namun contract harus dibuat additive agar gateway settlement dapat ditambahkan nanti.
 - Cash movement memperkaya shift summary dan reconciliation, sehingga perlu test financial totals tambahan.
 
-## Open Questions
+## Resolved Questions
 
-- Apakah partial refund masuk Phase 03 atau ditunda?
-- Berapa nilai default cash discrepancy tolerance?
-- Role mana yang boleh menjadi supervisor approver pada pilot?
-- Apakah backup/restore rehearsal cukup lewat runbook manual atau perlu command otomatis sejak Phase 03?
-- Queue driver pilot memakai database, Redis, atau sync dengan batasan tertentu?
+- Partial refund ditunda; Phase 03 hanya full refund manual.
+- Default cash discrepancy tolerance adalah `0` minor unit. Semua discrepancy wajib reason, dan approval threshold dapat dikonfigurasi per tenant/outlet pada work package berikutnya.
+- Supervisor approver minimum adalah Tenant Owner atau Outlet Manager yang aktif pada tenant/outlet terkait.
+- Backup/restore rehearsal Phase 03 cukup lewat runbook manual dengan evidence command dan hasil restore.
+- Queue driver pilot default adalah database queue; Redis dapat ditambahkan pada phase deployment scale tanpa mengubah domain contract.
+
+## Approval
+
+Product owner menyetujui keputusan ini pada 2026-08-01 saat Phase 03 dimulai.

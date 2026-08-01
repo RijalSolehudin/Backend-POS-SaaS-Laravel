@@ -1,19 +1,19 @@
 # Phase 03 Execution Plan
 
-Status: **Planned**
+Status: **Ready**
 
 Dokumen ini memecah [Phase 03 Operational Safety](../../roadmap/phase-03-operational-safety.md) menjadi work package berbasis outcome.
 
 ## Required Decision Gate
 
-Implementasi Phase 03 menunggu approval [ADR-038 Operational Safety MVP Policy](../../architecture/decisions/038-operational-safety-mvp-policy.md).
+Implementasi Phase 03 mengikuti [ADR-038 Operational Safety MVP Policy](../../architecture/decisions/038-operational-safety-mvp-policy.md).
 
 ## Urutan yang Direkomendasikan
 
 | ID | Work package | Dependency utama | Status |
 |---|---|---|---|
-| P03-01 | [Operational Safety Decision Gate](P03-01-operational-safety-decision-gate.md) | Phase 02 | Planned |
-| P03-02 | Sensitive Action Approval | P03-01 | Planned |
+| P03-01 | [Operational Safety Decision Gate](P03-01-operational-safety-decision-gate.md) | Phase 02 | Done |
+| P03-02 | [Sensitive Action Approval](P03-02-sensitive-action-approval.md) | P03-01 | Ready |
 | P03-03 | Refund and Payment Reversal | P03-01, P02-05, P02-08 | Planned |
 | P03-04 | Cash In/Out and Shift Discrepancy | P03-01, P02-07 | Planned |
 | P03-05 | Audit Trail Hardening | P03-01, P02-08 | Planned |

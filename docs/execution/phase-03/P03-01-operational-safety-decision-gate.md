@@ -1,6 +1,6 @@
 # P03-01 — Operational Safety Decision Gate
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 
@@ -30,11 +30,11 @@ Keputusan arsitektur wajib Phase 03 disetujui, dicatat, dan diterjemahkan menjad
 
 ## Implementation Checklist
 
-- [ ] Review ADR-038 dengan product owner.
-- [ ] Ubah ADR-038 menjadi `Accepted` atau revisi sesuai keputusan.
-- [ ] Update Phase 03 roadmap status menjadi `Ready`.
-- [ ] Update work package P03-02 sampai P03-08 bila keputusan berubah.
-- [ ] Catat acceptance scenario dan failure path minimum.
+- [x] Review ADR-038 dengan product owner.
+- [x] Ubah ADR-038 menjadi `Accepted` atau revisi sesuai keputusan.
+- [x] Update Phase 03 roadmap status menjadi `Ready`.
+- [x] Update work package P03-02 sampai P03-08 bila keputusan berubah.
+- [x] Catat acceptance scenario dan failure path minimum.
 
 ## Verification and Evidence
 
@@ -42,10 +42,20 @@ Keputusan arsitektur wajib Phase 03 disetujui, dicatat, dan diterjemahkan menjad
 - Phase 03 execution plan disetujui.
 - Tidak ada open decision yang menghalangi P03-02.
 
+## Decision Results
+
+- Sensitive action memakai supervisor approval; cashier re-authentication hanya confirmation ringan.
+- Refund Phase 03 hanya full refund manual dan selalu mereferensikan original order/payment.
+- Cash in/out masuk shift summary sejak Phase 03.
+- Audit financial event disimpan minimal 2 tahun; operational security event minimal 1 tahun.
+- Idempotency record minimal 24 jam.
+- Queue pilot memakai database queue.
+- Backup/restore rehearsal Phase 03 memakai runbook manual dengan evidence.
+
 ## Decision Questions
 
-- Apakah sensitive actions memakai supervisor approval, re-authentication oleh cashier, atau kombinasi keduanya?
-- Apakah refund Phase 03 cukup sebagai manual reversal internal, atau harus menyiapkan contract untuk gateway settlement?
-- Apakah cash in/out menjadi bagian shift summary sejak Phase 03?
-- Berapa lama retention audit dan idempotency untuk data operasional pilot?
-- Apa recovery procedure minimum untuk double-submit, timeout setelah payment recorded, dan close shift conflict?
+- Partial refund ditunda setelah MVP pilot.
+- Default cash discrepancy tolerance adalah `0` minor unit.
+- Supervisor approver minimum adalah Tenant Owner atau Outlet Manager.
+- Backup/restore rehearsal cukup lewat runbook manual pada Phase 03.
+- Queue driver pilot memakai database queue.

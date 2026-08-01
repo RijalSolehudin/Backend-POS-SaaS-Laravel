@@ -47,6 +47,7 @@
 | [ADR-035](035-tenant-identity-implementation-policy.md) | Tenant session isolation, membership resolution, credential lifecycle, dan revocation |
 | [ADR-036](036-tenancy-outlet-management-policy.md) | Immutable tenant context, outlet lifecycle, assignment integrity, dan owner administration |
 | [ADR-037](037-pos-core-mvp-policy.md) | POS Core MVP lifecycle, calculation, idempotency, numbering, payment, dan receipt policy |
+| [ADR-038](038-operational-safety-mvp-policy.md) | Operational Safety MVP approval, refund, audit, recovery, dan pilot baseline policy |
 
 ## Superseded ADRs
 
@@ -56,7 +57,6 @@
 
 ## Open Architecture Decisions
 
-- [ADR-038](038-operational-safety-mvp-policy.md) Operational Safety MVP policy.
 - Recipe module ownership.
 - Offline synchronization strategy.
 - Stock deduction timing dan inventory costing.
