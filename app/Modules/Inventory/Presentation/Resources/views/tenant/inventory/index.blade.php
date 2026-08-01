@@ -114,6 +114,33 @@
                                             <button class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold md:col-span-5">Record opening balance</button>
                                         </form>
                                     @endunless
+                                    @if ($balance)
+                                        <form class="grid gap-2 rounded-lg border border-slate-200 p-3 md:grid-cols-[120px_1fr_120px_140px_1fr_auto]" method="post" action="{{ route('tenant.inventory.items.adjustments.store', ['tenant' => $tenant->id, 'item' => $item->id]) }}">
+                                            @csrf
+                                            <input type="hidden" name="outlet_id" value="{{ $outlet->outletId }}">
+                                            <select class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="type">
+                                                <option value="increase">Increase</option>
+                                                <option value="decrease">Decrease</option>
+                                            </select>
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="quantity" inputmode="decimal" placeholder="Qty" required>
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="total_cost_minor" type="number" min="0" step="1" placeholder="Cost">
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase" name="currency" value="{{ $tenant->currency }}" maxlength="3" required>
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="idempotency_key" placeholder="Idempotency key" required maxlength="120">
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="approval_id" placeholder="Approval ID" maxlength="26">
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:col-span-5" name="reason" placeholder="Reason" required maxlength="255">
+                                            <button class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">Record adjustment</button>
+                                        </form>
+                                        <form class="grid gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 md:grid-cols-[1fr_120px_140px_1fr_auto]" method="post" action="{{ route('tenant.inventory.items.waste.store', ['tenant' => $tenant->id, 'item' => $item->id]) }}">
+                                            @csrf
+                                            <input type="hidden" name="outlet_id" value="{{ $outlet->outletId }}">
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="quantity" inputmode="decimal" placeholder="Waste qty" required>
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase" name="currency" value="{{ $tenant->currency }}" maxlength="3" required>
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="idempotency_key" placeholder="Idempotency key" required maxlength="120">
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="approval_id" placeholder="Approval ID" maxlength="26">
+                                            <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:col-span-4" name="reason" placeholder="Reason" required maxlength="255">
+                                            <button class="rounded-lg border border-rose-300 px-3 py-2 text-sm font-bold">Record waste</button>
+                                        </form>
+                                    @endif
                                 @endforeach
                             </div>
                         </div>

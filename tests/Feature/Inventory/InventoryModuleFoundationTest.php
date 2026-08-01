@@ -7,7 +7,9 @@ namespace Tests\Feature\Inventory;
 use App\Modules\Identity\Domain\Enums\PredefinedRole;
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\Identity\Domain\Models\UserRoleAssignment;
+use App\Modules\Inventory\Application\Actions\RecordStockAdjustment;
 use App\Modules\Inventory\Application\Actions\RecordStockMovement;
+use App\Modules\Inventory\Application\Actions\RecordWaste;
 use App\Modules\Inventory\Application\Data\StockMovementInput;
 use App\Modules\Inventory\Domain\Enums\InventoryStatus;
 use App\Modules\Inventory\Domain\Enums\StockMovementType;
@@ -17,6 +19,10 @@ use App\Modules\Inventory\Domain\Models\InventoryItem;
 use App\Modules\Inventory\Domain\Models\InventoryItemOutletSetting;
 use App\Modules\Inventory\Domain\Models\InventoryStockMovement;
 use App\Modules\Inventory\Domain\Models\InventoryUnit;
+use App\Modules\Sales\Application\Actions\ApproveSensitiveActionApproval;
+use App\Modules\Sales\Application\Actions\RequestSensitiveActionApproval;
+use App\Modules\Sales\Domain\Enums\SensitiveActionApprovalStatus;
+use App\Modules\Sales\Domain\Models\SensitiveActionApproval;
 use App\Modules\Tenancy\Domain\Enums\MembershipType;
 use App\Modules\Tenancy\Domain\Enums\OutletStatus;
 use App\Modules\Tenancy\Domain\Enums\TenantStatus;
@@ -287,6 +293,192 @@ final class InventoryModuleFoundationTest extends TestCase
         ));
     }
 
+    public function test_adjustment_increase_records_ledger_without_approval(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'BEANS-01', 'Coffee Beans');
+        $this->login($owner);
+        $this->recordOpeningBalance($tenant, $outlet, $item, '5.000', 100000, 'opening-beans');
+
+        $this->withHeader('Idempotency-Key', 'adjust-beans-increase-1')
+            ->post(route('tenant.inventory.items.adjustments.store', [
+                'tenant' => $tenant->id,
+                'item' => $item->id,
+            ]), [
+                'outlet_id' => $outlet->id,
+                'type' => 'increase',
+                'quantity' => '2.000',
+                'total_cost_minor' => 50000,
+                'currency' => 'IDR',
+                'reason' => 'Supplier bonus pack',
+            ])->assertRedirect();
+
+        $movement = InventoryStockMovement::query()
+            ->where('movement_type', StockMovementType::AdjustmentIncrease)
+            ->firstOrFail();
+        $balance = InventoryBalance::query()->firstOrFail();
+
+        self::assertSame('2.000', $movement->quantity);
+        self::assertSame(50000, $movement->total_cost_minor);
+        self::assertSame('7.000', $balance->quantity);
+        self::assertSame(150000, $balance->total_cost_minor);
+        self::assertDatabaseHas('inventory_audit_events', ['event_type' => 'inventory_adjustment.recorded']);
+    }
+
+    public function test_adjustment_decrease_requires_approval_and_consumes_it_once(): void
+    {
+        $tenant = $this->tenant();
+        $performer = $this->user('performer@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $approver = $this->user('approver@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'MILK-01', 'Milk');
+        $this->login($performer);
+        $this->recordOpeningBalance($tenant, $outlet, $item, '5.000', 100000, 'opening-milk');
+
+        $route = route('tenant.inventory.items.adjustments.store', [
+            'tenant' => $tenant->id,
+            'item' => $item->id,
+        ]);
+
+        $this->withHeader('Idempotency-Key', 'adjust-milk-decrease-1')
+            ->from(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->post($route, [
+                'outlet_id' => $outlet->id,
+                'type' => 'decrease',
+                'quantity' => '1.000',
+                'currency' => 'IDR',
+                'reason' => 'Manual correction',
+            ])
+            ->assertRedirect(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->assertSessionHasErrors('approval_id');
+
+        $approval = $this->approvedInventoryApproval(
+            tenant: $tenant,
+            outlet: $outlet,
+            performer: $performer,
+            approver: $approver,
+            action: 'inventory.adjustments.record',
+            item: $item,
+            fingerprint: RecordStockAdjustment::approvalFingerprint(
+                outletId: $outlet->id,
+                itemId: $item->id,
+                movementType: StockMovementType::AdjustmentDecrease,
+                quantity: '1.000',
+                reason: 'Manual correction',
+                idempotencyKey: 'adjust-milk-decrease-2',
+            ),
+            idempotencyKey: 'approval-adjust-milk-1',
+        );
+
+        $this->withHeader('Idempotency-Key', 'adjust-milk-decrease-2')
+            ->post($route, [
+                'outlet_id' => $outlet->id,
+                'type' => 'decrease',
+                'quantity' => '1.000',
+                'currency' => 'IDR',
+                'reason' => 'Manual correction',
+                'approval_id' => $approval->id,
+            ])->assertRedirect();
+
+        self::assertSame(SensitiveActionApprovalStatus::Consumed, $approval->refresh()->status);
+        self::assertSame('4.000', InventoryBalance::query()->firstOrFail()->quantity);
+
+        $this->withHeader('Idempotency-Key', 'adjust-milk-decrease-3')
+            ->from(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->post($route, [
+                'outlet_id' => $outlet->id,
+                'type' => 'decrease',
+                'quantity' => '1.000',
+                'currency' => 'IDR',
+                'reason' => 'Manual correction',
+                'approval_id' => $approval->id,
+            ])
+            ->assertRedirect(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->assertSessionHasErrors('approval_id');
+    }
+
+    public function test_waste_requires_matching_approval_and_rejects_negative_stock(): void
+    {
+        $tenant = $this->tenant();
+        $performer = $this->user('performer@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $approver = $this->user('approver@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'SUGAR-01', 'Sugar');
+        $this->login($performer);
+        $this->recordOpeningBalance($tenant, $outlet, $item, '2.000', 40000, 'opening-sugar');
+
+        $route = route('tenant.inventory.items.waste.store', [
+            'tenant' => $tenant->id,
+            'item' => $item->id,
+        ]);
+        $approval = $this->approvedInventoryApproval(
+            tenant: $tenant,
+            outlet: $outlet,
+            performer: $performer,
+            approver: $approver,
+            action: 'inventory.waste.record',
+            item: $item,
+            fingerprint: RecordWaste::approvalFingerprint(
+                outletId: $outlet->id,
+                itemId: $item->id,
+                quantity: '1.500',
+                reason: 'Expired after service',
+                idempotencyKey: 'waste-sugar-1',
+            ),
+            idempotencyKey: 'approval-waste-sugar-1',
+        );
+
+        $this->withHeader('Idempotency-Key', 'waste-sugar-1')
+            ->post($route, [
+                'outlet_id' => $outlet->id,
+                'quantity' => '1.500',
+                'currency' => 'IDR',
+                'reason' => 'Expired after service',
+                'approval_id' => $approval->id,
+            ])->assertRedirect();
+
+        $movement = InventoryStockMovement::query()
+            ->where('movement_type', StockMovementType::Waste)
+            ->firstOrFail();
+
+        self::assertSame('-1.500', $movement->quantity);
+        self::assertSame('0.500', InventoryBalance::query()->firstOrFail()->quantity);
+
+        $secondApproval = $this->approvedInventoryApproval(
+            tenant: $tenant,
+            outlet: $outlet,
+            performer: $performer,
+            approver: $approver,
+            action: 'inventory.waste.record',
+            item: $item,
+            fingerprint: RecordWaste::approvalFingerprint(
+                outletId: $outlet->id,
+                itemId: $item->id,
+                quantity: '1.000',
+                reason: 'Expired after service',
+                idempotencyKey: 'waste-sugar-2',
+            ),
+            idempotencyKey: 'approval-waste-sugar-2',
+        );
+
+        $this->withHeader('Idempotency-Key', 'waste-sugar-2')
+            ->from(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->post($route, [
+                'outlet_id' => $outlet->id,
+                'quantity' => '1.000',
+                'currency' => 'IDR',
+                'reason' => 'Expired after service',
+                'approval_id' => $secondApproval->id,
+            ])
+            ->assertRedirect(route('tenant.inventory.index', ['tenant' => $tenant->id]))
+            ->assertSessionHasErrors('item');
+    }
+
     private function tenant(string $name = 'Acme POS', string $code = 'acme-pos'): Tenant
     {
         return Tenant::query()->create([
@@ -348,6 +540,59 @@ final class InventoryModuleFoundationTest extends TestCase
             'sku' => $sku,
             'status' => InventoryStatus::Active,
         ]);
+    }
+
+    private function recordOpeningBalance(
+        Tenant $tenant,
+        Outlet $outlet,
+        InventoryItem $item,
+        string $quantity,
+        int $totalCostMinor,
+        string $idempotencyKey,
+    ): void {
+        $this->withHeader('Idempotency-Key', $idempotencyKey)
+            ->post(route('tenant.inventory.items.opening-balances.store', [
+                'tenant' => $tenant->id,
+                'item' => $item->id,
+            ]), [
+                'outlet_id' => $outlet->id,
+                'quantity' => $quantity,
+                'total_cost_minor' => $totalCostMinor,
+                'currency' => 'IDR',
+                'reason' => 'Initial count',
+            ])->assertRedirect();
+    }
+
+    private function approvedInventoryApproval(
+        Tenant $tenant,
+        Outlet $outlet,
+        User $performer,
+        User $approver,
+        string $action,
+        InventoryItem $item,
+        string $fingerprint,
+        string $idempotencyKey,
+    ): SensitiveActionApproval {
+        $approval = $this->app->make(RequestSensitiveActionApproval::class)->handle(
+            tenantId: $tenant->id,
+            outletId: $outlet->id,
+            performerUserId: $performer->id,
+            action: $action,
+            targetType: 'inventory_item',
+            targetId: $item->id,
+            requestFingerprint: $fingerprint,
+            reason: 'Inventory supervisor approval',
+            idempotencyKey: $idempotencyKey,
+        );
+
+        $this->app->make(ApproveSensitiveActionApproval::class)->approve(
+            tenantId: $tenant->id,
+            approvalId: $approval->id,
+            approverUserId: $approver->id,
+            reason: 'Approved for inventory correction',
+        );
+
+        return $approval->refresh();
     }
 
     private function login(User $user): void

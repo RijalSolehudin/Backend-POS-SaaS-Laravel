@@ -9,6 +9,8 @@ use App\Modules\Inventory\Application\Actions\ChangeInventoryUnitStatus;
 use App\Modules\Inventory\Application\Actions\CreateInventoryItem;
 use App\Modules\Inventory\Application\Actions\CreateInventoryUnit;
 use App\Modules\Inventory\Application\Actions\RecordOpeningBalance;
+use App\Modules\Inventory\Application\Actions\RecordStockAdjustment;
+use App\Modules\Inventory\Application\Actions\RecordWaste;
 use App\Modules\Inventory\Application\Actions\SetInventoryItemOutletSettings;
 use App\Modules\Inventory\Application\Actions\UpdateInventoryItem;
 use App\Modules\Inventory\Application\Actions\UpdateInventoryUnit;
@@ -16,12 +18,16 @@ use App\Modules\Inventory\Application\Data\InventoryItemInput;
 use App\Modules\Inventory\Application\Data\InventoryItemOutletSettingsInput;
 use App\Modules\Inventory\Application\Data\InventoryUnitInput;
 use App\Modules\Inventory\Application\Data\OpeningBalanceInput;
+use App\Modules\Inventory\Application\Data\StockAdjustmentInput;
+use App\Modules\Inventory\Application\Data\WasteInput;
 use App\Modules\Inventory\Application\Exceptions\InventoryException;
 use App\Modules\Inventory\Domain\Enums\InventoryStatus;
+use App\Modules\Inventory\Domain\Enums\StockMovementType;
 use App\Modules\Inventory\Domain\Models\InventoryBalance;
 use App\Modules\Inventory\Domain\Models\InventoryItem;
 use App\Modules\Inventory\Domain\Models\InventoryItemOutletSetting;
 use App\Modules\Inventory\Domain\Models\InventoryUnit;
+use App\Modules\Sales\Application\Exceptions\ApprovalException;
 use App\Modules\Tenancy\Application\Contracts\TenantCatalogReference;
 use App\Modules\Tenancy\Application\Data\TenantCatalogSummary;
 use App\Modules\Tenancy\Application\Data\TenantRequestContext;
@@ -201,11 +207,7 @@ final class TenantInventoryController extends Controller
             'idempotency_key' => ['nullable', 'string', 'max:120'],
         ]);
 
-        $idempotencyKey = $request->header('Idempotency-Key');
-
-        if (! is_string($idempotencyKey) || trim($idempotencyKey) === '') {
-            $idempotencyKey = (string) ($input['idempotency_key'] ?? '');
-        }
+        $idempotencyKey = $this->idempotencyKey($request, $input);
 
         try {
             $movement = $openingBalance->handle(
@@ -225,6 +227,87 @@ final class TenantInventoryController extends Controller
         }
 
         return back()->with('status', 'Opening balance recorded: '.$movement->id);
+    }
+
+    public function recordAdjustment(
+        Request $request,
+        string $tenant,
+        string $item,
+        RecordStockAdjustment $adjustment,
+    ): RedirectResponse {
+        $input = $request->validate([
+            'outlet_id' => ['required', 'string', 'size:26'],
+            'type' => ['required', 'in:increase,decrease'],
+            'quantity' => ['required', 'decimal:0,3', 'min:0.001'],
+            'total_cost_minor' => ['nullable', 'integer', 'min:0'],
+            'currency' => ['required', 'string', 'size:3'],
+            'reason' => ['required', 'string', 'max:255'],
+            'approval_id' => ['nullable', 'string', 'size:26'],
+            'idempotency_key' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $idempotencyKey = $this->idempotencyKey($request, $input);
+        $movementType = $input['type'] === 'decrease'
+            ? StockMovementType::AdjustmentDecrease
+            : StockMovementType::AdjustmentIncrease;
+
+        try {
+            $movement = $adjustment->handle(
+                $this->context($request),
+                new StockAdjustmentInput(
+                    outletId: (string) $input['outlet_id'],
+                    itemId: $item,
+                    movementType: $movementType,
+                    quantity: (string) $input['quantity'],
+                    totalCostMinor: array_key_exists('total_cost_minor', $input) ? (int) $input['total_cost_minor'] : null,
+                    currency: (string) $input['currency'],
+                    reason: (string) $input['reason'],
+                    approvalId: ($input['approval_id'] ?? null) === null || $input['approval_id'] === '' ? null : (string) $input['approval_id'],
+                ),
+                $idempotencyKey,
+            );
+        } catch (ApprovalException|InventoryException $exception) {
+            throw $this->validation($exception);
+        }
+
+        return back()->with('status', 'Stock adjustment recorded: '.$movement->id);
+    }
+
+    public function recordWaste(
+        Request $request,
+        string $tenant,
+        string $item,
+        RecordWaste $waste,
+    ): RedirectResponse {
+        $input = $request->validate([
+            'outlet_id' => ['required', 'string', 'size:26'],
+            'quantity' => ['required', 'decimal:0,3', 'min:0.001'],
+            'currency' => ['required', 'string', 'size:3'],
+            'reason' => ['required', 'string', 'max:255'],
+            'approval_id' => ['nullable', 'string', 'size:26'],
+            'idempotency_key' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $idempotencyKey = $this->idempotencyKey($request, $input);
+
+        try {
+            $movement = $waste->handle(
+                $this->context($request),
+                new WasteInput(
+                    outletId: (string) $input['outlet_id'],
+                    itemId: $item,
+                    quantity: (string) $input['quantity'],
+                    currency: (string) $input['currency'],
+                    reason: (string) $input['reason'],
+                    approvalId: ($input['approval_id'] ?? null) === null || $input['approval_id'] === '' ? null : (string) $input['approval_id'],
+                ),
+                $idempotencyKey,
+            );
+        } catch (ApprovalException|InventoryException $exception) {
+            throw $this->validation($exception);
+        }
+
+        return back()->with('status', 'Waste recorded: '.$movement->id);
     }
 
     private function context(Request $request): TenantRequestContext
@@ -284,7 +367,21 @@ final class TenantInventoryController extends Controller
         );
     }
 
-    private function validation(InventoryException $exception): ValidationException
+    /**
+     * @param  array<string, mixed>  $input
+     */
+    private function idempotencyKey(Request $request, array $input): string
+    {
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if (! is_string($idempotencyKey) || trim($idempotencyKey) === '') {
+            $idempotencyKey = (string) ($input['idempotency_key'] ?? '');
+        }
+
+        return $idempotencyKey;
+    }
+
+    private function validation(InventoryException|ApprovalException $exception): ValidationException
     {
         return ValidationException::withMessages([
             match ($exception->errorCode()) {
@@ -296,7 +393,18 @@ final class TenantInventoryController extends Controller
                 'INVENTORY_CURRENCY_MISMATCH' => 'currency',
                 'INVENTORY_OPENING_BALANCE_ALREADY_RECORDED',
                 'INVENTORY_IDEMPOTENCY_CONFLICT',
-                'INVENTORY_IDEMPOTENCY_KEY_REQUIRED' => 'idempotency_key',
+                'INVENTORY_IDEMPOTENCY_KEY_REQUIRED',
+                'IDEMPOTENCY_CONFLICT',
+                'IDEMPOTENCY_KEY_REQUIRED' => 'idempotency_key',
+                'INVENTORY_REASON_REQUIRED',
+                'APPROVAL_REASON_REQUIRED' => 'reason',
+                'INVENTORY_APPROVAL_REQUIRED',
+                'APPROVAL_REQUIRED',
+                'APPROVAL_NOT_FOUND',
+                'APPROVAL_ALREADY_CONSUMED',
+                'APPROVAL_EXPIRED',
+                'APPROVAL_INVALID_STATE',
+                'APPROVAL_TARGET_MISMATCH' => 'approval_id',
                 default => 'item',
             } => [$exception->getMessage()],
         ]);

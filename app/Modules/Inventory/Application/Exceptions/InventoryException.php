@@ -80,6 +80,21 @@ final class InventoryException extends BusinessException
         return new self('The Idempotency-Key was already used with a different inventory request.', 'INVENTORY_IDEMPOTENCY_CONFLICT');
     }
 
+    public static function approvalRequired(): self
+    {
+        return new self('A valid supervisor approval is required for this inventory mutation.', 'INVENTORY_APPROVAL_REQUIRED');
+    }
+
+    public static function reasonRequired(): self
+    {
+        return new self('A reason is required for this inventory mutation.', 'INVENTORY_REASON_REQUIRED');
+    }
+
+    public static function invalidAdjustmentType(): self
+    {
+        return new self('The stock adjustment type is not valid.', 'INVENTORY_ADJUSTMENT_TYPE_INVALID');
+    }
+
     public function errorCode(): string
     {
         return $this->businessErrorCode;
@@ -89,8 +104,8 @@ final class InventoryException extends BusinessException
     {
         return match ($this->businessErrorCode) {
             'INVENTORY_UNIT_NOT_FOUND', 'INVENTORY_ITEM_NOT_FOUND', 'INVENTORY_OUTLET_NOT_FOUND' => 404,
-            'INVENTORY_ITEM_INACTIVE', 'INVENTORY_INSUFFICIENT_STOCK', 'INVENTORY_OPENING_BALANCE_ALREADY_RECORDED', 'INVENTORY_IDEMPOTENCY_CONFLICT' => 409,
-            'INVENTORY_UNIT_MISMATCH', 'INVENTORY_CURRENCY_MISMATCH', 'INVENTORY_IDEMPOTENCY_KEY_REQUIRED' => 422,
+            'INVENTORY_ITEM_INACTIVE', 'INVENTORY_INSUFFICIENT_STOCK', 'INVENTORY_OPENING_BALANCE_ALREADY_RECORDED', 'INVENTORY_IDEMPOTENCY_CONFLICT', 'INVENTORY_APPROVAL_REQUIRED' => 409,
+            'INVENTORY_UNIT_MISMATCH', 'INVENTORY_CURRENCY_MISMATCH', 'INVENTORY_IDEMPOTENCY_KEY_REQUIRED', 'INVENTORY_REASON_REQUIRED', 'INVENTORY_ADJUSTMENT_TYPE_INVALID' => 422,
             default => 403,
         };
     }
