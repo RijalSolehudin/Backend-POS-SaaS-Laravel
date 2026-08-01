@@ -94,7 +94,10 @@
                                         @csrf
                                         @method('put')
                                         <input type="hidden" name="outlet_id" value="{{ $outlet->outletId }}">
-                                        <p class="text-sm font-bold">{{ $outlet->name }} <span class="font-normal text-slate-500">{{ $balance?->quantity ?? '0.000' }}</span></p>
+                                        <p class="text-sm font-bold">
+                                            {{ $outlet->name }}
+                                            <a class="font-normal text-slate-500 underline" href="{{ route('tenant.inventory.items.stock-card', ['tenant' => $tenant->id, 'item' => $item->id, 'outlet_id' => $outlet->outletId]) }}">{{ $balance?->quantity ?? '0.000' }}</a>
+                                        </p>
                                         <select class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="status">
                                             <option value="active" @selected(($setting?->status->value ?? 'active') === 'active')>Active</option>
                                             <option value="inactive" @selected(($setting?->status->value ?? 'active') === 'inactive')>Inactive</option>
@@ -151,4 +154,15 @@
             </div>
         </section>
     </div>
+
+    @if (count($outlets) > 0)
+        <section class="mt-8 rounded-lg border border-slate-200 bg-white p-5">
+            <h2 class="text-lg font-black">Low stock</h2>
+            <div class="mt-3 flex flex-wrap gap-2">
+                @foreach ($outlets as $outlet)
+                    <a class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold" href="{{ route('tenant.inventory.outlets.low-stock', ['tenant' => $tenant->id, 'outlet' => $outlet->outletId]) }}">{{ $outlet->name }}</a>
+                @endforeach
+            </div>
+        </section>
+    @endif
 </x-tenant.app-layout>

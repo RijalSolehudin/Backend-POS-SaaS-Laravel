@@ -11,6 +11,12 @@ Route::prefix('admin/tenants/{tenant}/inventory')
     ->middleware(['web', 'tenant.authenticated', 'tenant.context', 'tenant.password-current', 'tenant.owner'])
     ->group(function (): void {
         Route::get('/', [TenantInventoryController::class, 'index'])->name('index');
+        Route::get('items/{item}/stock-card', [TenantInventoryController::class, 'stockCard'])
+            ->where('item', '[0-9a-hjkmnp-tv-z]{26}')
+            ->name('items.stock-card');
+        Route::get('outlets/{outlet}/low-stock', [TenantInventoryController::class, 'lowStock'])
+            ->where('outlet', '[0-9a-hjkmnp-tv-z]{26}')
+            ->name('outlets.low-stock');
         Route::post('units', [TenantInventoryController::class, 'storeUnit'])
             ->name('units.store')
             ->block();

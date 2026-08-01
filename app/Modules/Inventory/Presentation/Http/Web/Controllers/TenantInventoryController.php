@@ -8,6 +8,9 @@ use App\Modules\Inventory\Application\Actions\ChangeInventoryItemStatus;
 use App\Modules\Inventory\Application\Actions\ChangeInventoryUnitStatus;
 use App\Modules\Inventory\Application\Actions\CreateInventoryItem;
 use App\Modules\Inventory\Application\Actions\CreateInventoryUnit;
+use App\Modules\Inventory\Application\Actions\GetInventoryBalance;
+use App\Modules\Inventory\Application\Actions\GetStockCard;
+use App\Modules\Inventory\Application\Actions\ListLowStockItems;
 use App\Modules\Inventory\Application\Actions\RecordOpeningBalance;
 use App\Modules\Inventory\Application\Actions\RecordStockAdjustment;
 use App\Modules\Inventory\Application\Actions\RecordWaste;
@@ -31,6 +34,7 @@ use App\Modules\Sales\Application\Exceptions\ApprovalException;
 use App\Modules\Tenancy\Application\Contracts\TenantCatalogReference;
 use App\Modules\Tenancy\Application\Data\TenantCatalogSummary;
 use App\Modules\Tenancy\Application\Data\TenantRequestContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -66,6 +70,60 @@ final class TenantInventoryController extends Controller
                 ->get()
                 ->keyBy(fn (InventoryBalance $balance): string => $balance->item_id.'|'.$balance->outlet_id),
             'outlets' => $this->tenancy->activeOutlets($context->tenantId),
+        ]);
+    }
+
+    public function stockCard(
+        Request $request,
+        string $tenant,
+        string $item,
+        GetStockCard $stockCard,
+        GetInventoryBalance $balance,
+    ): View {
+        $input = $request->validate([
+            'outlet_id' => ['required', 'string', 'size:26'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date'],
+            'source_type' => ['nullable', 'string', 'max:80'],
+        ]);
+        $context = $this->context($request);
+        $tenantView = $this->tenantView($this->tenant($context));
+        $outletId = (string) $input['outlet_id'];
+        $itemModel = InventoryItem::query()
+            ->where('tenant_id', $context->tenantId)
+            ->whereKey($item)
+            ->firstOrFail();
+
+        return view('inventory::tenant.inventory.stock-card', [
+            'tenant' => $tenantView,
+            'context' => $context,
+            'item' => $itemModel,
+            'outletId' => $outletId,
+            'balance' => $balance->handle($context, $outletId, $item),
+            'entries' => $stockCard->handle(
+                context: $context,
+                outletId: $outletId,
+                itemId: $item,
+                from: isset($input['from']) ? CarbonImmutable::parse((string) $input['from'])->startOfDay() : null,
+                to: isset($input['to']) ? CarbonImmutable::parse((string) $input['to'])->endOfDay() : null,
+                sourceType: isset($input['source_type']) ? (string) $input['source_type'] : null,
+            ),
+        ]);
+    }
+
+    public function lowStock(
+        Request $request,
+        string $tenant,
+        string $outlet,
+        ListLowStockItems $lowStock,
+    ): View {
+        $context = $this->context($request);
+
+        return view('inventory::tenant.inventory.low-stock', [
+            'tenant' => $this->tenantView($this->tenant($context)),
+            'context' => $context,
+            'outletId' => $outlet,
+            'items' => $lowStock->handle($context, $outlet),
         ]);
     }
 

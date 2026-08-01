@@ -1,6 +1,6 @@
 # P05-05 — Stock Card, Balance, and Low Stock
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 

@@ -1,6 +1,6 @@
 # P05-06 — Inter-Outlet Transfer Lifecycle
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

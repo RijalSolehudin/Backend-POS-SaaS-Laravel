@@ -7,6 +7,9 @@ namespace Tests\Feature\Inventory;
 use App\Modules\Identity\Domain\Enums\PredefinedRole;
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\Identity\Domain\Models\UserRoleAssignment;
+use App\Modules\Inventory\Application\Actions\GetInventoryBalance;
+use App\Modules\Inventory\Application\Actions\GetStockCard;
+use App\Modules\Inventory\Application\Actions\ListLowStockItems;
 use App\Modules\Inventory\Application\Actions\RecordStockAdjustment;
 use App\Modules\Inventory\Application\Actions\RecordStockMovement;
 use App\Modules\Inventory\Application\Actions\RecordWaste;
@@ -23,6 +26,7 @@ use App\Modules\Sales\Application\Actions\ApproveSensitiveActionApproval;
 use App\Modules\Sales\Application\Actions\RequestSensitiveActionApproval;
 use App\Modules\Sales\Domain\Enums\SensitiveActionApprovalStatus;
 use App\Modules\Sales\Domain\Models\SensitiveActionApproval;
+use App\Modules\Tenancy\Application\Data\TenantRequestContext;
 use App\Modules\Tenancy\Domain\Enums\MembershipType;
 use App\Modules\Tenancy\Domain\Enums\OutletStatus;
 use App\Modules\Tenancy\Domain\Enums\TenantStatus;
@@ -477,6 +481,100 @@ final class InventoryModuleFoundationTest extends TestCase
             ])
             ->assertRedirect(route('tenant.inventory.index', ['tenant' => $tenant->id]))
             ->assertSessionHasErrors('item');
+    }
+
+    public function test_stock_card_and_balance_read_from_ledger_projection(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'TEA-01', 'Tea Leaves');
+        $this->login($owner);
+        $this->recordOpeningBalance($tenant, $outlet, $item, '10.000', 100000, 'opening-tea');
+
+        $this->withHeader('Idempotency-Key', 'adjust-tea-increase-1')
+            ->post(route('tenant.inventory.items.adjustments.store', [
+                'tenant' => $tenant->id,
+                'item' => $item->id,
+            ]), [
+                'outlet_id' => $outlet->id,
+                'type' => 'increase',
+                'quantity' => '5.000',
+                'total_cost_minor' => 75000,
+                'currency' => 'IDR',
+                'reason' => 'Found sealed bag',
+            ])->assertRedirect();
+
+        $context = new TenantRequestContext($tenant->id, $owner->id, MembershipType::Owner);
+        $balance = $this->app->make(GetInventoryBalance::class)->handle($context, $outlet->id, $item->id);
+        $entries = $this->app->make(GetStockCard::class)->handle($context, $outlet->id, $item->id, sourceType: 'stock_adjustment');
+
+        self::assertSame('15.000', $balance->quantity);
+        self::assertSame(175000, $balance->totalCostMinor);
+        self::assertSame(11667, $balance->averageCostMinor);
+        self::assertCount(1, $entries);
+        self::assertSame('adjustment_increase', $entries[0]->movementType);
+        self::assertSame('15.000', $entries[0]->balanceQuantityAfter);
+        self::assertSame(175000, $entries[0]->balanceTotalCostMinorAfter);
+
+        $this->get(route('tenant.inventory.items.stock-card', [
+            'tenant' => $tenant->id,
+            'item' => $item->id,
+            'outlet_id' => $outlet->id,
+        ]))
+            ->assertOk()
+            ->assertSee('opening_balance')
+            ->assertSee('adjustment_increase')
+            ->assertSee('15.000');
+    }
+
+    public function test_low_stock_uses_outlet_threshold_and_tenant_scope(): void
+    {
+        $tenant = $this->tenant();
+        $otherTenant = $this->tenant('Other Tenant', 'other');
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $otherOutlet = $this->outlet($otherTenant, 'OTHER');
+        $unit = $this->unit($tenant);
+        $otherUnit = $this->unit($otherTenant);
+        $item = $this->item($tenant, $unit, 'CUP-01', 'Cup 12 oz');
+        $otherItem = $this->item($otherTenant, $otherUnit, 'OTHER-CUP', 'Other Cup');
+        $this->login($owner);
+        $this->recordOpeningBalance($tenant, $outlet, $item, '3.000', 30000, 'opening-cup');
+
+        $this->put(route('tenant.inventory.items.outlet-settings', [
+            'tenant' => $tenant->id,
+            'item' => $item->id,
+        ]), [
+            'outlet_id' => $outlet->id,
+            'status' => 'active',
+            'low_stock_threshold_quantity' => '5.000',
+        ])->assertRedirect();
+
+        InventoryItemOutletSetting::query()->create([
+            'tenant_id' => $otherTenant->id,
+            'outlet_id' => $otherOutlet->id,
+            'item_id' => $otherItem->id,
+            'status' => InventoryStatus::Active,
+            'low_stock_threshold_quantity' => '999.000',
+        ]);
+
+        $context = new TenantRequestContext($tenant->id, $owner->id, MembershipType::Owner);
+        $items = $this->app->make(ListLowStockItems::class)->handle($context, $outlet->id);
+
+        self::assertCount(1, $items);
+        self::assertSame($item->id, $items[0]->itemId);
+        self::assertSame('3.000', $items[0]->quantity);
+        self::assertSame('5.000', $items[0]->thresholdQuantity);
+
+        $this->get(route('tenant.inventory.outlets.low-stock', [
+            'tenant' => $tenant->id,
+            'outlet' => $outlet->id,
+        ]))
+            ->assertOk()
+            ->assertSee('Cup 12 oz')
+            ->assertDontSee('Other Cup');
     }
 
     private function tenant(string $name = 'Acme POS', string $code = 'acme-pos'): Tenant
