@@ -9,5 +9,6 @@ final readonly class OutletCatalogSummary
     public function __construct(
         public string $outletId,
         public string $name,
+        public string $code,
     ) {}
 }

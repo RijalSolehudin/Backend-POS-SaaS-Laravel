@@ -268,6 +268,293 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/orders:
+    post:
+      operationId: createDraftOrder
+      summary: Create an idempotent draft POS order
+      tags:
+        - POS Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      responses:
+        '201':
+          description: Draft order created or replayed for the same idempotency key.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/orders/{order}:
+    get:
+      operationId: getDraftOrder
+      summary: Get a draft POS order
+      tags:
+        - POS Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: order
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Draft order with item snapshots and current totals.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/orders/{order}/items:
+    post:
+      operationId: addDraftOrderItem
+      summary: Add an item snapshot to a draft POS order
+      tags:
+        - POS Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: order
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderItemInput'
+      responses:
+        '200':
+          description: Draft order after item addition and total recalculation.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/orders/{order}/items/{item}:
+    put:
+      operationId: updateDraftOrderItem
+      summary: Update an item quantity on a draft POS order
+      tags:
+        - POS Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: order
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: item
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                quantity:
+                  type: string
+                  pattern: '^\d+(\.\d{1,3})?$'
+      responses:
+        '200':
+          description: Draft order after item update and total recalculation.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+    delete:
+      operationId: removeDraftOrderItem
+      summary: Remove an item from a draft POS order
+      tags:
+        - POS Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: order
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: item
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Draft order after item removal and total recalculation.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/orders/{order}/complete:
+    post:
+      operationId: completeOrderWithPayment
+      summary: Complete a draft POS order with exact payment
+      tags:
+        - POS Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: order
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - method
+                - amount_minor
+                - currency
+              properties:
+                method:
+                  type: string
+                  enum:
+                    - cash
+                    - manual_non_cash
+                amount_minor:
+                  type: integer
+                  minimum: 0
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+      responses:
+        '200':
+          description: Order completed with one recorded full payment, or replayed for the same idempotency key.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
 components:
   securitySchemes:
     bearerAuth:
@@ -453,6 +740,152 @@ components:
           type: string
           minLength: 3
           maxLength: 3
+    OrderItemInput:
+      type: object
+      required:
+        - product_id
+        - quantity
+      properties:
+        product_id:
+          $ref: '#/components/schemas/Ulid'
+        quantity:
+          type: string
+          pattern: '^\d+(\.\d{1,3})?$'
+    OrderResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Order'
+    Order:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - outlet_id
+        - shift_id
+        - user_id
+        - order_number
+        - status
+        - subtotal_minor
+        - discount_minor
+        - service_charge_minor
+        - tax_minor
+        - total_minor
+        - currency
+        - items
+        - payments
+      properties:
+        id:
+          $ref: '#/components/schemas/Ulid'
+        tenant_id:
+          $ref: '#/components/schemas/Ulid'
+        outlet_id:
+          $ref: '#/components/schemas/Ulid'
+        shift_id:
+          $ref: '#/components/schemas/Ulid'
+        user_id:
+          $ref: '#/components/schemas/Ulid'
+        order_number:
+          type: string
+        status:
+          type: string
+          enum:
+            - draft
+            - completed
+            - cancelled
+            - voided
+        subtotal_minor:
+          type: integer
+        discount_minor:
+          type: integer
+        service_charge_minor:
+          type: integer
+        tax_minor:
+          type: integer
+        total_minor:
+          type: integer
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+    OrderItem:
+      type: object
+      required:
+        - id
+        - product_id
+        - product_sku
+        - product_name
+        - product_category_id
+        - product_category_name
+        - quantity
+        - unit_price_minor
+        - line_subtotal_minor
+        - currency
+      properties:
+        id:
+          $ref: '#/components/schemas/Ulid'
+        product_id:
+          $ref: '#/components/schemas/Ulid'
+        product_sku:
+          type: string
+        product_name:
+          type: string
+        product_category_id:
+          $ref: '#/components/schemas/Ulid'
+        product_category_name:
+          type: string
+        quantity:
+          type: string
+          pattern: '^\d+(\.\d{3})$'
+        unit_price_minor:
+          type: integer
+        line_subtotal_minor:
+          type: integer
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+    Payment:
+      type: object
+      required:
+        - id
+        - method
+        - status
+        - amount_minor
+        - currency
+        - recorded_at
+      properties:
+        id:
+          $ref: '#/components/schemas/Ulid'
+        method:
+          type: string
+          enum:
+            - cash
+            - manual_non_cash
+        status:
+          type: string
+          enum:
+            - recorded
+            - voided
+        amount_minor:
+          type: integer
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        recorded_at:
+          type: string
+          format: date-time
     Problem:
       type: object
       required:

@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $product_id
  * @property string $product_sku
  * @property string $product_name
+ * @property string $product_category_id
+ * @property string $product_category_name
  * @property string $quantity
  * @property int $unit_price_minor
  * @property int $line_subtotal_minor

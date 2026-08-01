@@ -26,6 +26,7 @@ final class DatabaseTenantCatalogReference implements TenantCatalogReference
             tenantId: (string) $tenant->getKey(),
             name: $tenant->name,
             currency: $tenant->currency,
+            timezone: $tenant->timezone,
         );
     }
 
@@ -38,6 +39,25 @@ final class DatabaseTenantCatalogReference implements TenantCatalogReference
             ->exists();
     }
 
+    public function activeOutlet(string $tenantId, string $outletId): ?OutletCatalogSummary
+    {
+        $outlet = Outlet::query()
+            ->where('tenant_id', $tenantId)
+            ->whereKey($outletId)
+            ->where('status', OutletStatus::Active)
+            ->first();
+
+        if (! $outlet instanceof Outlet) {
+            return null;
+        }
+
+        return new OutletCatalogSummary(
+            outletId: (string) $outlet->getKey(),
+            name: $outlet->name,
+            code: $outlet->code,
+        );
+    }
+
     public function activeOutlets(string $tenantId): array
     {
         return array_values(Outlet::query()
@@ -48,6 +68,7 @@ final class DatabaseTenantCatalogReference implements TenantCatalogReference
             ->map(fn (Outlet $outlet): OutletCatalogSummary => new OutletCatalogSummary(
                 outletId: (string) $outlet->getKey(),
                 name: $outlet->name,
+                code: $outlet->code,
             ))
             ->all());
     }

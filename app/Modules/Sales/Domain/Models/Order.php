@@ -8,6 +8,7 @@ use App\Modules\Sales\Domain\Enums\OrderStatus;
 use App\Shared\Domain\Concerns\HasLowercaseUlids;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property string $id
@@ -48,5 +49,21 @@ final class Order extends Model
             'cancelled_at' => 'immutable_datetime',
             'voided_at' => 'immutable_datetime',
         ];
+    }
+
+    /**
+     * @return HasMany<OrderItem, $this>
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class, 'order_id');
+    }
+
+    /**
+     * @return HasMany<Payment, $this>
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'order_id');
     }
 }

@@ -15,8 +15,8 @@ Implementasi Phase 02 mengikuti [ADR-037 POS Core MVP Policy](../../architecture
 | P02-01 | [POS Core Decision Gate](P02-01-pos-core-decision-gate.md) | Phase 01 | Done |
 | P02-02 | [Sales Module Foundation](P02-02-sales-module-foundation.md) | P02-01, Catalog API | Done |
 | P02-03 | [Shift Lifecycle](P02-03-shift-lifecycle.md) | P02-02 | Done |
-| P02-04 | [Draft Order and Item Management](P02-04-draft-order-items.md) | P02-02, P02-03, Catalog | Planned |
-| P02-05 | [Idempotent Payment and Completion](P02-05-payment-completion.md) | P02-04 | Planned |
+| P02-04 | [Draft Order and Item Management](P02-04-draft-order-items.md) | P02-02, P02-03, Catalog | Done |
+| P02-05 | [Idempotent Payment and Completion](P02-05-payment-completion.md) | P02-04 | Done |
 | P02-06 | [Receipt Snapshot](P02-06-receipt-snapshot.md) | P02-05 | Planned |
 | P02-07 | [Close Shift and Summary](P02-07-close-shift-summary.md) | P02-05, P02-06 | Planned |
 | P02-08 | [Cancel/Void Minimum Flow](P02-08-cancel-void-flow.md) | P02-04, P02-05 | Planned |

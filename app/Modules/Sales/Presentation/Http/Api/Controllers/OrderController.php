@@ -1,0 +1,241 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Sales\Presentation\Http\Api\Controllers;
+
+use App\Modules\Sales\Application\Actions\AddOrderItem;
+use App\Modules\Sales\Application\Actions\CompleteOrderWithPayment;
+use App\Modules\Sales\Application\Actions\CreateDraftOrder;
+use App\Modules\Sales\Application\Actions\GetDraftOrder;
+use App\Modules\Sales\Application\Actions\RemoveOrderItem;
+use App\Modules\Sales\Application\Actions\UpdateOrderItem;
+use App\Modules\Sales\Application\Exceptions\OrderException;
+use App\Modules\Sales\Domain\Enums\PaymentMethod;
+use App\Modules\Sales\Domain\Models\Order;
+use App\Modules\Sales\Domain\Models\OrderItem;
+use App\Modules\Sales\Domain\Models\Payment;
+use App\Modules\Tenancy\Application\Actions\ResolvePosOutletApiContext;
+use App\Modules\Tenancy\Application\Data\PosOutletContext;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Laravel\Sanctum\Contracts\HasApiTokens;
+use Laravel\Sanctum\PersonalAccessToken;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
+
+final class OrderController extends Controller
+{
+    public function store(
+        string $outlet,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        CreateDraftOrder $create,
+    ): JsonResponse {
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if (! is_string($idempotencyKey)) {
+            throw OrderException::idempotencyKeyRequired();
+        }
+
+        $order = $create->handle($this->context($outlet, $request, $context), $idempotencyKey);
+
+        return response()->json(['data' => $this->orderData($order)], 201);
+    }
+
+    public function show(
+        string $outlet,
+        string $order,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        GetDraftOrder $get,
+    ): JsonResponse {
+        return response()->json([
+            'data' => $this->orderData($get->handle($this->context($outlet, $request, $context), $order)),
+        ]);
+    }
+
+    public function addItem(
+        string $outlet,
+        string $order,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        AddOrderItem $add,
+    ): JsonResponse {
+        /** @var array{product_id: string, quantity: string} $validated */
+        $validated = $request->validate([
+            'product_id' => ['required', 'string', 'size:26'],
+            'quantity' => ['required', 'numeric', 'gt:0', 'regex:/^\d+(\.\d{1,3})?$/'],
+        ]);
+
+        $updated = $add->handle(
+            $this->context($outlet, $request, $context),
+            $order,
+            $validated['product_id'],
+            $validated['quantity'],
+        );
+
+        return response()->json(['data' => $this->orderData($updated)]);
+    }
+
+    public function updateItem(
+        string $outlet,
+        string $order,
+        string $item,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        UpdateOrderItem $update,
+    ): JsonResponse {
+        /** @var array{quantity: string} $validated */
+        $validated = $request->validate([
+            'quantity' => ['required', 'numeric', 'gt:0', 'regex:/^\d+(\.\d{1,3})?$/'],
+        ]);
+
+        $updated = $update->handle(
+            $this->context($outlet, $request, $context),
+            $order,
+            $item,
+            $validated['quantity'],
+        );
+
+        return response()->json(['data' => $this->orderData($updated)]);
+    }
+
+    public function removeItem(
+        string $outlet,
+        string $order,
+        string $item,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        RemoveOrderItem $remove,
+    ): JsonResponse {
+        $updated = $remove->handle($this->context($outlet, $request, $context), $order, $item);
+
+        return response()->json(['data' => $this->orderData($updated)]);
+    }
+
+    public function complete(
+        string $outlet,
+        string $order,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        CompleteOrderWithPayment $complete,
+    ): JsonResponse {
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if (! is_string($idempotencyKey)) {
+            throw OrderException::idempotencyKeyRequired();
+        }
+
+        /** @var array{method: string, amount_minor: int, currency: string} $validated */
+        $validated = $request->validate([
+            'method' => ['required', 'string', 'in:cash,manual_non_cash'],
+            'amount_minor' => ['required', 'integer', 'min:0'],
+            'currency' => ['required', 'string', 'size:3'],
+        ]);
+
+        $updated = $complete->handle(
+            $this->context($outlet, $request, $context),
+            $order,
+            PaymentMethod::from($validated['method']),
+            $validated['amount_minor'],
+            $validated['currency'],
+            $idempotencyKey,
+        );
+
+        return response()->json(['data' => $this->orderData($updated)]);
+    }
+
+    private function context(
+        string $outlet,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+    ): PosOutletContext {
+        $user = $request->user();
+
+        if (! $user instanceof HasApiTokens) {
+            throw new UnauthorizedHttpException('Bearer', 'A valid POS access token is required.');
+        }
+
+        $token = $this->bearerToken($request, (string) $user->getAuthIdentifier());
+
+        if (! $token instanceof PersonalAccessToken) {
+            throw new UnauthorizedHttpException('Bearer', 'A valid POS device token is required.');
+        }
+
+        $deviceId = $token->getAttribute('pos_device_id');
+
+        if (! is_string($deviceId) || $deviceId === '') {
+            throw new UnauthorizedHttpException('Bearer', 'A valid POS device token is required.');
+        }
+
+        return $context->handle((string) $user->getAuthIdentifier(), $deviceId, $outlet);
+    }
+
+    private function bearerToken(Request $request, string $userId): ?PersonalAccessToken
+    {
+        $plainToken = $request->bearerToken();
+
+        if (! is_string($plainToken) || $plainToken === '') {
+            return null;
+        }
+
+        $token = PersonalAccessToken::findToken($plainToken);
+
+        if (! $token instanceof PersonalAccessToken || $token->getAttribute('tokenable_id') !== $userId) {
+            return null;
+        }
+
+        return $token;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function orderData(Order $order): array
+    {
+        $order->loadMissing(['items', 'payments']);
+
+        return [
+            'id' => $order->id,
+            'tenant_id' => $order->tenant_id,
+            'outlet_id' => $order->outlet_id,
+            'shift_id' => $order->shift_id,
+            'user_id' => $order->user_id,
+            'order_number' => $order->order_number,
+            'status' => $order->status->value,
+            'subtotal_minor' => $order->subtotal_minor,
+            'discount_minor' => $order->discount_minor,
+            'service_charge_minor' => $order->service_charge_minor,
+            'tax_minor' => $order->tax_minor,
+            'total_minor' => $order->total_minor,
+            'currency' => $order->currency,
+            'items' => $order->items
+                ->map(fn (OrderItem $item): array => [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_sku' => $item->product_sku,
+                    'product_name' => $item->product_name,
+                    'product_category_id' => $item->product_category_id,
+                    'product_category_name' => $item->product_category_name,
+                    'quantity' => $item->quantity,
+                    'unit_price_minor' => $item->unit_price_minor,
+                    'line_subtotal_minor' => $item->line_subtotal_minor,
+                    'currency' => $item->currency,
+                ])
+                ->values()
+                ->all(),
+            'payments' => $order->payments
+                ->map(fn (Payment $payment): array => [
+                    'id' => $payment->id,
+                    'method' => $payment->method->value,
+                    'status' => $payment->status->value,
+                    'amount_minor' => $payment->amount_minor,
+                    'currency' => $payment->currency,
+                    'recorded_at' => $payment->recorded_at->toJSON(),
+                ])
+                ->values()
+                ->all(),
+        ];
+    }
+}

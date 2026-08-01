@@ -62,6 +62,10 @@ return static function (DeptracConfig $config): void {
             $applicationDependencies[] = Layer::withName('Tenancy Application');
         }
 
+        if ($module === 'Sales') {
+            $applicationDependencies[] = Layer::withName('Catalog Application');
+        }
+
         $infrastructureDependencies = [
             $application,
             $domain,

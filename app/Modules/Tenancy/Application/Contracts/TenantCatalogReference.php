@@ -13,6 +13,8 @@ interface TenantCatalogReference
 
     public function activeOutletExists(string $tenantId, string $outletId): bool;
 
+    public function activeOutlet(string $tenantId, string $outletId): ?OutletCatalogSummary;
+
     /**
      * @return list<OutletCatalogSummary>
      */

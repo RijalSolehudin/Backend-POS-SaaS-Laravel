@@ -10,5 +10,6 @@ final readonly class TenantCatalogSummary
         public string $tenantId,
         public string $name,
         public string $currency,
+        public string $timezone,
     ) {}
 }

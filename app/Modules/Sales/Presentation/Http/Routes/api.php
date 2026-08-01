@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Sales\Presentation\Http\Api\Controllers\OrderController;
 use App\Modules\Sales\Presentation\Http\Api\Controllers\ShiftController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,5 +23,40 @@ Route::prefix('api/v1')
                     'shift' => '[0-9a-hjkmnp-tv-z]{26}',
                 ])
                 ->name('pos.outlets.shifts.close');
+            Route::post('pos/outlets/{outlet}/orders', [OrderController::class, 'store'])
+                ->where('outlet', '[0-9a-hjkmnp-tv-z]{26}')
+                ->name('pos.outlets.orders.store');
+            Route::get('pos/outlets/{outlet}/orders/{order}', [OrderController::class, 'show'])
+                ->where([
+                    'outlet' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'order' => '[0-9a-hjkmnp-tv-z]{26}',
+                ])
+                ->name('pos.outlets.orders.show');
+            Route::post('pos/outlets/{outlet}/orders/{order}/items', [OrderController::class, 'addItem'])
+                ->where([
+                    'outlet' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'order' => '[0-9a-hjkmnp-tv-z]{26}',
+                ])
+                ->name('pos.outlets.orders.items.store');
+            Route::put('pos/outlets/{outlet}/orders/{order}/items/{item}', [OrderController::class, 'updateItem'])
+                ->where([
+                    'outlet' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'order' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'item' => '[0-9a-hjkmnp-tv-z]{26}',
+                ])
+                ->name('pos.outlets.orders.items.update');
+            Route::delete('pos/outlets/{outlet}/orders/{order}/items/{item}', [OrderController::class, 'removeItem'])
+                ->where([
+                    'outlet' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'order' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'item' => '[0-9a-hjkmnp-tv-z]{26}',
+                ])
+                ->name('pos.outlets.orders.items.destroy');
+            Route::post('pos/outlets/{outlet}/orders/{order}/complete', [OrderController::class, 'complete'])
+                ->where([
+                    'outlet' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'order' => '[0-9a-hjkmnp-tv-z]{26}',
+                ])
+                ->name('pos.outlets.orders.complete');
         });
     });

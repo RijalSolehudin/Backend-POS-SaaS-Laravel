@@ -96,6 +96,8 @@ return new class extends Migration
             $table->char('product_id', 26)->charset('ascii')->collation('ascii_bin');
             $table->string('product_sku', 64);
             $table->string('product_name', 160);
+            $table->char('product_category_id', 26)->charset('ascii')->collation('ascii_bin');
+            $table->string('product_category_name', 120);
             $table->decimal('quantity', 12, 3);
             $table->bigInteger('unit_price_minor');
             $table->bigInteger('line_subtotal_minor');
@@ -105,6 +107,7 @@ return new class extends Migration
             $table->foreign('tenant_id')->references('id')->on('tenants')->restrictOnDelete();
             $table->foreign('order_id')->references('id')->on('sales_orders')->restrictOnDelete();
             $table->foreign('product_id')->references('id')->on('catalog_products')->restrictOnDelete();
+            $table->foreign('product_category_id')->references('id')->on('catalog_categories')->restrictOnDelete();
             $table->index(['tenant_id', 'order_id']);
         });
 
