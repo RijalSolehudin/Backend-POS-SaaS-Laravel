@@ -1,6 +1,6 @@
 # Phase 04: Catalog and Pricing Expansion
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -28,3 +28,22 @@ Catalog mendukung kebutuhan menu F&B setelah transaksi sederhana stabil.
 - Order snapshot merekam seluruh pilihan yang memengaruhi harga.
 - Perubahan catalog tidak mengubah transaksi historis.
 - Availability dan price tidak bocor lintas outlet/tenant.
+
+## Delivered
+
+- Category hierarchy dan display ordering.
+- Product variants untuk pilihan jual POS.
+- Modifier groups/options dengan required, optional, min, dan max selection.
+- Outlet-specific availability dan price override untuk product, variant, dan modifier option.
+- Order item snapshot untuk variant/modifier selection dan receipt historis.
+- Catalog export read-only dan import dry-run baseline.
+- Readiness checklist: [Phase 04 Catalog Readiness](../runbooks/phase-04-catalog-readiness.md).
+
+## Deferred Scope
+
+- Combo/bundle.
+- Recipe ownership dan inventory deduction.
+- Scheduled pricing.
+- Promotion engine.
+- Tax/service calculation.
+- Catalog image/media management.

@@ -1,6 +1,6 @@
 # P04-08 — Catalog Expansion Readiness
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -46,6 +46,21 @@ Phase 04 siap dinyatakan selesai berdasarkan evidence POS catalog, order snapsho
 - `composer quality` lulus.
 - `npm run build` lulus.
 - Manual/demo checklist documented untuk product owner acceptance.
+
+## Delivered
+
+- Runbook [Phase 04 Catalog Readiness](../../runbooks/phase-04-catalog-readiness.md) untuk demo path, reconciliation, historical immutability, dan developer checklist.
+- Roadmap Phase 04 diperbarui menjadi `Done`.
+- Execution plan Phase 04 ditutup dengan semua work package `Done`.
+- Known limitations Phase 04 ditegaskan sebelum masuk Phase 05 inventory.
+
+## Evidence
+
+- Laravel Boost ApplicationInfo digunakan untuk memverifikasi stack Laravel aktif.
+- Laravel Boost DatabaseSchema digunakan sebagai context schema read-only.
+- `php artisan test tests/Feature/Catalog/MinimumCatalogTest.php tests/Feature/Sales/SalesModuleFoundationTest.php tests/Feature/Sales/ShiftLifecycleTest.php tests/Feature/Sales/DraftOrderItemManagementTest.php tests/Feature/Sales/PaymentCompletionTest.php tests/Feature/Sales/ReceiptSnapshotTest.php tests/Feature/Sales/ShiftSummaryTest.php tests/Feature/Sales/CancelVoidFlowTest.php tests/Feature/Sales/PosCoreReadinessTest.php tests/Feature/Sales/SensitiveActionApprovalTest.php tests/Feature/Sales/RefundPaymentReversalTest.php tests/Feature/Sales/CashMovementShiftDiscrepancyTest.php tests/Feature/Sales/SalesAuditHardeningTest.php tests/Feature/Sales/SalesRecoveryCheckTest.php`
+- `composer quality`
+- `npm run build`
 
 ## Architecture Stop Rule
 

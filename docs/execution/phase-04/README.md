@@ -1,6 +1,6 @@
 # Phase 04 Execution Plan
 
-Status: **Ready**
+Status: **Done**
 
 Dokumen ini memecah [Phase 04 Catalog and Pricing Expansion](../../roadmap/phase-04-catalog-expansion.md) menjadi work package berbasis outcome.
 
@@ -19,7 +19,7 @@ Implementasi Phase 04 mengikuti [ADR-039 Catalog Expansion MVP Policy](../../arc
 | P04-05 | [Outlet Availability and Price Overrides](P04-05-outlet-availability-price-overrides.md) | P04-03, P04-04 | Done |
 | P04-06 | [Order Item Snapshot Integration](P04-06-order-item-snapshot-integration.md) | P04-03, P04-04, P04-05 | Done |
 | P04-07 | [Catalog Admin Operations and Import Baseline](P04-07-catalog-admin-operations-import-baseline.md) | P04-02..P04-05 | Done |
-| P04-08 | [Catalog Expansion Readiness](P04-08-catalog-expansion-readiness.md) | P04-02..P04-07 | Ready |
+| P04-08 | [Catalog Expansion Readiness](P04-08-catalog-expansion-readiness.md) | P04-02..P04-07 | Done |
 
 ## Readiness Gate
 
