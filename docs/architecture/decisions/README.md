@@ -50,6 +50,10 @@
 | [ADR-038](038-operational-safety-mvp-policy.md) | Operational Safety MVP approval, refund, audit, recovery, dan pilot baseline policy |
 | [ADR-039](039-catalog-expansion-mvp-policy.md) | Catalog Expansion MVP product, variant, modifier, pricing, dan snapshot policy |
 | [ADR-040](040-inventory-ledger-mvp-policy.md) | Inventory Ledger MVP item, unit, movement, costing, transfer, dan recovery policy |
+| [ADR-041](041-recipe-procurement-mvp-policy.md) | Recipe and Procurement MVP versioning, deduction, purchase order, dan receipt policy |
+| [ADR-042](042-dining-kitchen-mvp-policy.md) | Dining and Kitchen MVP table, routing, ticket, real-time, dan printer policy |
+| [ADR-043](043-growth-channels-mvp-policy.md) | Growth Channels MVP QR order, waiter, payment gateway, promotion, dan privacy policy |
+| [ADR-044](044-offline-scale-mvp-policy.md) | Offline and Scale MVP sync, conflict, device trust, performance, dan recovery policy |
 
 ## Superseded ADRs
 
@@ -59,5 +63,4 @@
 
 ## Open Architecture Decisions
 
-- Offline synchronization strategy.
-- Real-time, queue, cache, dan deployment topology.
+- Deployment provider dan production infrastructure topology.

@@ -19,13 +19,14 @@ Setiap candidate dapat dipecah menjadi phase tersendiri setelah prioritas bisnis
 
 ## Architecture Decisions Required
 
-- Public QR session security dan expiry.
-- Customer order confirmation/approval policy.
-- Payment provider dan webhook security/idempotency.
-- Customer identity dan privacy scope.
-- Prioritas serta urutan candidate features.
+- Accepted decision: [ADR-043 Growth Channels MVP Policy](../architecture/decisions/043-growth-channels-mvp-policy.md).
+- Priority order: QR self-order, waiter workflow, payment gateway, reservation, promotion, analytics/export.
+- QR customer cart menjadi pending order request dan wajib staff confirmation.
+- Payment gateway memakai provider abstraction dan webhook signature/idempotency.
+- Customer identity optional dan privacy scope minimum.
 
 ## Acceptance Criteria
 
 Acceptance criteria ditetapkan per candidate setelah scope dan keputusan arsitekturnya disetujui. Tidak ada candidate yang dianggap otomatis termasuk hanya karena tercantum di daftar ini.
 
+Phase 08 execution plan memecah candidate menjadi work package dengan acceptance criteria masing-masing.

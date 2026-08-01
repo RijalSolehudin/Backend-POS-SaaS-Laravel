@@ -17,11 +17,12 @@ Penjualan dapat dihubungkan ke pemakaian bahan dan proses pembelian dapat ditelu
 
 ## Architecture Decisions Required
 
-- Recipe module ownership.
-- Stock deduction timing.
-- Recipe version/snapshot behavior.
-- Costing and yield precision.
-- PO approval, partial receipt, over-receipt, dan return policy.
+- Accepted decision: [ADR-041 Recipe and Procurement MVP Policy](../architecture/decisions/041-recipe-procurement-mvp-policy.md).
+- Recipe dan Procurement menjadi module terpisah.
+- Stock deduction terjadi saat order completed dan idempotent per order item.
+- Recipe version/snapshot wajib untuk historical cost.
+- Partial goods receipt diizinkan dan over-receipt ditolak.
+- Refund/void tidak otomatis mengembalikan stock.
 
 ## Acceptance Criteria
 
@@ -29,4 +30,3 @@ Penjualan dapat dihubungkan ke pemakaian bahan dan proses pembelian dapat ditelu
 - Sales deduction menghasilkan movement tepat satu kali.
 - Recipe berubah tidak mengubah historical cost tanpa kebijakan eksplisit.
 - Goods receipt dan inventory movement dapat direkonsiliasi.
-

@@ -32,3 +32,7 @@ Planned -> Ready -> In Progress -> In Review -> Done
 - [Phase 03 — Operational Safety](phase-03/README.md)
 - [Phase 04 — Catalog and Pricing Expansion](phase-04/README.md)
 - [Phase 05 — Inventory](phase-05/README.md)
+- [Phase 06 — Recipe and Procurement](phase-06/README.md)
+- [Phase 07 — Dining and Kitchen](phase-07/README.md)
+- [Phase 08 — Growth Features](phase-08/README.md)
+- [Phase 09 — Offline and Scale](phase-09/README.md)

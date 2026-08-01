@@ -18,13 +18,13 @@ Flutter dapat melanjutkan operasi yang disetujui saat koneksi bermasalah dan sis
 
 ## Architecture Decisions Required
 
-- Operasi yang diizinkan offline.
-- Client-generated record authority.
-- Sync cursor/change tracking model.
-- Conflict resolution per aggregate.
-- Duplicate payment prevention saat offline.
-- Device trust, encryption, dan data retention.
-- Availability, recovery, dan performance targets.
+- Accepted decision: [ADR-044 Offline and Scale MVP Policy](../architecture/decisions/044-offline-scale-mvp-policy.md).
+- Offline operation dibatasi ke cached catalog, local draft order, local item changes, dan queued completion.
+- Server tetap authority untuk final order number, receipt, payment status, inventory deduction, dan audit.
+- Sync memakai inbox/outbox, device sequence, idempotency key, dan payload hash.
+- Conflict financial tidak boleh silent overwrite.
+- Device revoked tidak boleh sync mutation baru.
+- Performance, RPO, RTO, dan recovery targets wajib diuji.
 
 ## Acceptance Criteria
 
@@ -33,4 +33,3 @@ Flutter dapat melanjutkan operasi yang disetujui saat koneksi bermasalah dan sis
 - Device yang dicabut tidak dapat menyinkronkan data baru.
 - Offline dan online totals menghasilkan hasil deterministik.
 - Recovery objectives dan load targets yang disetujui berhasil diuji.
-
