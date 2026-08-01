@@ -30,9 +30,19 @@ final class CatalogException extends BusinessException
         return new self('The requested product was not found.', 'CATALOG_PRODUCT_NOT_FOUND');
     }
 
+    public static function variantNotFound(): self
+    {
+        return new self('The requested product variant was not found.', 'CATALOG_VARIANT_NOT_FOUND');
+    }
+
     public static function skuUnavailable(): self
     {
         return new self('The product SKU is already in use for this tenant.', 'CATALOG_SKU_UNAVAILABLE');
+    }
+
+    public static function currencyMismatch(): self
+    {
+        return new self('The catalog currency must match the parent product currency.', 'CATALOG_CURRENCY_MISMATCH');
     }
 
     public static function outletNotFound(): self

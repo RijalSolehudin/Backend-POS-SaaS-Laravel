@@ -1,6 +1,6 @@
 # P04-03 — Sellable Variants
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -41,6 +41,20 @@ Catalog dapat mendefinisikan product dengan varian yang menghasilkan pilihan sel
 - Feature tests untuk POS catalog variant visibility.
 - Architecture tests tetap lulus.
 - `composer quality` lulus.
+
+## Delivered
+
+- `catalog_product_variants` ditambahkan sebagai sellable unit Phase 04.
+- ProductVariant model, input DTO, dan action create/update/status ditambahkan.
+- Tenant admin dapat membuat, mengubah, dan mengaktif/nonaktifkan variant dari halaman catalog.
+- POS catalog mengembalikan `variants` aktif yang terurut, dengan compatibility variant untuk product lama.
+- SKU variant divalidasi unik terhadap product dan variant dalam tenant yang sama.
+
+## Evidence
+
+- Laravel Boost SearchDocs digunakan untuk migration index, enum cast, dan JSON API test guidance.
+- `php artisan test tests/Feature/Catalog/MinimumCatalogTest.php`
+- `composer quality`
 
 ## Architecture Stop Rule
 

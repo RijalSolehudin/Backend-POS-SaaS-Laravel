@@ -102,6 +102,48 @@
                         </form>
 
                         <div class="mt-4 border-t border-slate-200 pt-4">
+                            <p class="text-sm font-black">Variants</p>
+                            <form class="mt-3 grid gap-2 rounded-lg bg-slate-50 p-3 md:grid-cols-2" method="post" action="{{ route('tenant.catalog.products.variants.store', ['tenant' => $tenant->id, 'product' => $product->id]) }}">
+                                @csrf
+                                <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="name" placeholder="Variant name" required maxlength="120">
+                                <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="sku" placeholder="Variant SKU" required maxlength="64">
+                                <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="price_minor" type="number" min="0" step="1" value="{{ $product->base_price_minor }}" required>
+                                <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase" name="currency" value="{{ $product->currency }}" maxlength="3" required>
+                                <label class="flex items-center gap-2 text-sm font-bold">
+                                    <input name="is_default" type="checkbox" value="1">
+                                    Default
+                                </label>
+                                <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="display_order" type="number" min="0" step="1" value="0">
+                                <button class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold md:col-span-2">Create variant</button>
+                            </form>
+
+                            <div class="mt-3 grid gap-3">
+                                @foreach (($variants->get($product->id) ?? collect()) as $variant)
+                                    <form class="grid gap-2 rounded-lg border border-slate-200 p-3 md:grid-cols-2" method="post" action="{{ route('tenant.catalog.products.variants.update', ['tenant' => $tenant->id, 'product' => $product->id, 'variant' => $variant->id]) }}">
+                                        @csrf
+                                        @method('put')
+                                        <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="name" value="{{ $variant->name }}" required maxlength="120">
+                                        <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="sku" value="{{ $variant->sku }}" required maxlength="64">
+                                        <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="price_minor" type="number" min="0" step="1" value="{{ $variant->price_minor }}" required>
+                                        <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase" name="currency" value="{{ $variant->currency }}" maxlength="3" required>
+                                        <label class="flex items-center gap-2 text-sm font-bold">
+                                            <input name="is_default" type="checkbox" value="1" @checked($variant->is_default)>
+                                            Default
+                                        </label>
+                                        <input class="rounded-lg border border-slate-300 px-3 py-2 text-sm" name="display_order" type="number" min="0" step="1" value="{{ $variant->display_order }}">
+                                        <button class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold md:col-span-2">Save variant</button>
+                                    </form>
+                                    <form method="post" action="{{ route('tenant.catalog.products.variants.status', ['tenant' => $tenant->id, 'product' => $product->id, 'variant' => $variant->id]) }}">
+                                        @csrf
+                                        <input type="hidden" name="status" value="{{ $variant->status->value === 'active' ? 'inactive' : 'active' }}">
+                                        <button class="text-sm font-bold text-slate-600">{{ $variant->status->value === 'active' ? 'Deactivate variant' : 'Activate variant' }}</button>
+                                        <span class="ml-2 text-xs uppercase text-slate-500">{{ $variant->status->value }}</span>
+                                    </form>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div class="mt-4 border-t border-slate-200 pt-4">
                             <p class="text-sm font-black">Outlet availability</p>
                             <div class="mt-3 grid gap-3">
                                 @foreach ($outlets as $outlet)

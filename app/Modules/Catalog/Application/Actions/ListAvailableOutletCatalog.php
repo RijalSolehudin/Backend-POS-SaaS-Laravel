@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Catalog\Application\Actions;
 
 use App\Modules\Catalog\Application\Data\AvailableCatalogProduct;
+use App\Modules\Catalog\Application\Data\AvailableCatalogVariant;
 use App\Modules\Catalog\Domain\Enums\CategoryStatus;
 use App\Modules\Catalog\Domain\Enums\ProductStatus;
 use App\Modules\Catalog\Domain\Models\Product;
+use App\Modules\Catalog\Domain\Models\ProductVariant;
 use App\Modules\Tenancy\Application\Data\PosOutletContext;
 use Illuminate\Support\Facades\DB;
 
@@ -67,8 +69,52 @@ final readonly class ListAvailableOutletCatalog
                 parentCategoryName: $row->parent_category_name,
                 priceMinor: $row->outlet_price_minor ?? $row->base_price_minor,
                 currency: $row->currency,
+                variants: $this->variants($context, $row),
             ),
             $rows,
+        );
+    }
+
+    /**
+     * @param  object{id: string, sku: string, name: string, base_price_minor: int, outlet_price_minor: int|null, currency: string}  $row
+     * @return list<AvailableCatalogVariant>
+     */
+    private function variants(PosOutletContext $context, object $row): array
+    {
+        /** @var list<object{id: string, sku: string, name: string, price_minor: int, currency: string, is_default: bool}> $variants */
+        $variants = ProductVariant::query()
+            ->where('tenant_id', $context->tenantId)
+            ->where('product_id', $row->id)
+            ->where('status', ProductStatus::Active)
+            ->orderByDesc('is_default')
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get(['id', 'sku', 'name', 'price_minor', 'currency', 'is_default'])
+            ->all();
+
+        if ($variants === []) {
+            return [
+                new AvailableCatalogVariant(
+                    id: $row->id,
+                    sku: $row->sku,
+                    name: $row->name,
+                    priceMinor: $row->outlet_price_minor ?? $row->base_price_minor,
+                    currency: $row->currency,
+                    isDefault: true,
+                ),
+            ];
+        }
+
+        return array_map(
+            fn (object $variant): AvailableCatalogVariant => new AvailableCatalogVariant(
+                id: $variant->id,
+                sku: $variant->sku,
+                name: $variant->name,
+                priceMinor: $variant->price_minor,
+                currency: $variant->currency,
+                isDefault: (bool) $variant->is_default,
+            ),
+            $variants,
         );
     }
 }

@@ -1,6 +1,6 @@
 # P04-04 — Modifier Groups and Options
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

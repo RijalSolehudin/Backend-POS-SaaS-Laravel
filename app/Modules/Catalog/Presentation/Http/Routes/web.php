@@ -37,4 +37,16 @@ Route::prefix('admin/tenants/{tenant}/catalog')
             ->where('product', '[0-9a-hjkmnp-tv-z]{26}')
             ->name('products.availability')
             ->block();
+        Route::post('products/{product}/variants', [TenantCatalogController::class, 'storeVariant'])
+            ->where('product', '[0-9a-hjkmnp-tv-z]{26}')
+            ->name('products.variants.store')
+            ->block();
+        Route::put('products/{product}/variants/{variant}', [TenantCatalogController::class, 'updateVariant'])
+            ->where(['product' => '[0-9a-hjkmnp-tv-z]{26}', 'variant' => '[0-9a-hjkmnp-tv-z]{26}'])
+            ->name('products.variants.update')
+            ->block();
+        Route::post('products/{product}/variants/{variant}/status', [TenantCatalogController::class, 'changeVariantStatus'])
+            ->where(['product' => '[0-9a-hjkmnp-tv-z]{26}', 'variant' => '[0-9a-hjkmnp-tv-z]{26}'])
+            ->name('products.variants.status')
+            ->block();
     });

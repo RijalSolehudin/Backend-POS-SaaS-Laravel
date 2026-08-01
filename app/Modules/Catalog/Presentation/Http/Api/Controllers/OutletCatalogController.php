@@ -57,6 +57,17 @@ final class OutletCatalogController extends Controller
                     ],
                     'price_minor' => $product->priceMinor,
                     'currency' => $product->currency,
+                    'variants' => array_map(
+                        fn ($variant): array => [
+                            'id' => $variant->id,
+                            'sku' => $variant->sku,
+                            'name' => $variant->name,
+                            'price_minor' => $variant->priceMinor,
+                            'currency' => $variant->currency,
+                            'is_default' => $variant->isDefault,
+                        ],
+                        $product->variants,
+                    ),
                 ],
                 $catalog->handle($resolved),
             ),

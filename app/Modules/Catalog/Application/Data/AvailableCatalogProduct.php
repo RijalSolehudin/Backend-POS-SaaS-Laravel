@@ -16,5 +16,7 @@ final readonly class AvailableCatalogProduct
         public ?string $parentCategoryName,
         public int $priceMinor,
         public string $currency,
+        /** @var list<AvailableCatalogVariant> */
+        public array $variants = [],
     ) {}
 }

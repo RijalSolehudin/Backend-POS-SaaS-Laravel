@@ -14,8 +14,8 @@ Implementasi Phase 04 mengikuti [ADR-039 Catalog Expansion MVP Policy](../../arc
 |---|---|---|---|
 | P04-01 | [Catalog Expansion Decision Gate](P04-01-catalog-expansion-decision-gate.md) | Phase 03 | Done |
 | P04-02 | [Category Hierarchy and Display Ordering](P04-02-category-hierarchy-display-ordering.md) | P04-01 | Done |
-| P04-03 | [Sellable Variants](P04-03-sellable-variants.md) | P04-01 | Ready |
-| P04-04 | [Modifier Groups and Options](P04-04-modifier-groups-options.md) | P04-03 | Planned |
+| P04-03 | [Sellable Variants](P04-03-sellable-variants.md) | P04-01 | Done |
+| P04-04 | [Modifier Groups and Options](P04-04-modifier-groups-options.md) | P04-03 | Ready |
 | P04-05 | [Outlet Availability and Price Overrides](P04-05-outlet-availability-price-overrides.md) | P04-03, P04-04 | Planned |
 | P04-06 | [Order Item Snapshot Integration](P04-06-order-item-snapshot-integration.md) | P04-03, P04-04, P04-05 | Planned |
 | P04-07 | [Catalog Admin Operations and Import Baseline](P04-07-catalog-admin-operations-import-baseline.md) | P04-02..P04-05 | Planned |

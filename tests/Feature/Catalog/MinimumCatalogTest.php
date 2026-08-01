@@ -9,6 +9,7 @@ use App\Modules\Catalog\Domain\Enums\ProductStatus;
 use App\Modules\Catalog\Domain\Models\Category;
 use App\Modules\Catalog\Domain\Models\Product;
 use App\Modules\Catalog\Domain\Models\ProductOutletAvailability;
+use App\Modules\Catalog\Domain\Models\ProductVariant;
 use App\Modules\Identity\Domain\Enums\PredefinedRole;
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\Identity\Domain\Models\UserRoleAssignment;
@@ -182,6 +183,59 @@ final class MinimumCatalogTest extends TestCase
             ->assertJsonPath('data.1.sku', 'SECOND');
     }
 
+    public function test_owner_manages_sellable_variants_and_flutter_reads_active_variants(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $cashier = $this->user('cashier@example.com', $tenant, MembershipType::Member, PredefinedRole::Cashier);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $this->assignOutlet($tenant, $outlet, $cashier);
+        $this->device($tenant, $outlet, '01k123456789abcdefghjkmnpq', $owner);
+        $category = $this->category($tenant, 'Drinks');
+        $product = $this->product($tenant, $category, 'LATTE', 'Latte');
+        $this->availability($tenant, $outlet, $product, true);
+        $this->login($owner);
+
+        $this->post(route('tenant.catalog.products.variants.store', [
+            'tenant' => $tenant->id,
+            'product' => $product->id,
+        ]), [
+            'name' => 'Regular',
+            'sku' => 'latte-regular',
+            'price_minor' => 22000,
+            'currency' => 'IDR',
+            'is_default' => '1',
+            'display_order' => 20,
+        ])->assertRedirect();
+
+        $this->post(route('tenant.catalog.products.variants.store', [
+            'tenant' => $tenant->id,
+            'product' => $product->id,
+        ]), [
+            'name' => 'Large',
+            'sku' => 'latte-large',
+            'price_minor' => 28000,
+            'currency' => 'IDR',
+            'display_order' => 10,
+        ])->assertRedirect();
+
+        $inactive = $this->variant($tenant, $product, 'LATTE-INACTIVE', 'Inactive', ProductStatus::Inactive);
+        self::assertSame(ProductStatus::Inactive, $inactive->status);
+
+        $this->forgetWebSession();
+
+        $response = $this->withToken($this->posToken($outlet))
+            ->getJson(route('api.v1.pos.outlets.catalog', ['outlet' => $outlet->id]));
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.0.variants.0.sku', 'LATTE-REGULAR')
+            ->assertJsonPath('data.0.variants.0.is_default', true)
+            ->assertJsonPath('data.0.variants.0.price_minor', 22000)
+            ->assertJsonPath('data.0.variants.1.sku', 'LATTE-LARGE')
+            ->assertJsonCount(2, 'data.0.variants');
+    }
+
     private function tenant(string $name = 'Tenant One', string $code = 'tenant-one'): Tenant
     {
         return Tenant::query()->create([
@@ -289,6 +343,27 @@ final class MinimumCatalogTest extends TestCase
             'product_id' => $product->id,
             'outlet_id' => $outlet->id,
             'available' => $available,
+        ]);
+    }
+
+    private function variant(
+        Tenant $tenant,
+        Product $product,
+        string $sku,
+        string $name,
+        ProductStatus $status = ProductStatus::Active,
+        int $displayOrder = 0,
+    ): ProductVariant {
+        return ProductVariant::query()->create([
+            'tenant_id' => $tenant->id,
+            'product_id' => $product->id,
+            'name' => $name,
+            'sku' => $sku,
+            'price_minor' => 10000,
+            'currency' => 'IDR',
+            'is_default' => false,
+            'display_order' => $displayOrder,
+            'status' => $status,
         ]);
     }
 

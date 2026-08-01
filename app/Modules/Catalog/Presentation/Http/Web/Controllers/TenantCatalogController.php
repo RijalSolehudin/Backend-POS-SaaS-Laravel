@@ -6,19 +6,24 @@ namespace App\Modules\Catalog\Presentation\Http\Web\Controllers;
 
 use App\Modules\Catalog\Application\Actions\ChangeCategoryStatus;
 use App\Modules\Catalog\Application\Actions\ChangeProductStatus;
+use App\Modules\Catalog\Application\Actions\ChangeProductVariantStatus;
 use App\Modules\Catalog\Application\Actions\CreateCategory;
 use App\Modules\Catalog\Application\Actions\CreateProduct;
+use App\Modules\Catalog\Application\Actions\CreateProductVariant;
 use App\Modules\Catalog\Application\Actions\SetOutletAvailability;
 use App\Modules\Catalog\Application\Actions\UpdateCategory;
 use App\Modules\Catalog\Application\Actions\UpdateProduct;
+use App\Modules\Catalog\Application\Actions\UpdateProductVariant;
 use App\Modules\Catalog\Application\Data\CategoryInput;
 use App\Modules\Catalog\Application\Data\ProductInput;
+use App\Modules\Catalog\Application\Data\ProductVariantInput;
 use App\Modules\Catalog\Application\Exceptions\CatalogException;
 use App\Modules\Catalog\Domain\Enums\CategoryStatus;
 use App\Modules\Catalog\Domain\Enums\ProductStatus;
 use App\Modules\Catalog\Domain\Models\Category;
 use App\Modules\Catalog\Domain\Models\Product;
 use App\Modules\Catalog\Domain\Models\ProductOutletAvailability;
+use App\Modules\Catalog\Domain\Models\ProductVariant;
 use App\Modules\Tenancy\Application\Contracts\TenantCatalogReference;
 use App\Modules\Tenancy\Application\Data\TenantCatalogSummary;
 use App\Modules\Tenancy\Application\Data\TenantRequestContext;
@@ -54,6 +59,13 @@ final class TenantCatalogController extends Controller
                 ->where('tenant_id', $context->tenantId)
                 ->get()
                 ->keyBy(fn (ProductOutletAvailability $availability): string => $availability->product_id.'|'.$availability->outlet_id),
+            'variants' => ProductVariant::query()
+                ->where('tenant_id', $context->tenantId)
+                ->orderByDesc('is_default')
+                ->orderBy('display_order')
+                ->orderBy('name')
+                ->get()
+                ->groupBy('product_id'),
             'outlets' => $this->tenancy->activeOutlets($context->tenantId),
             'defaultCurrency' => $tenant->currency,
         ]);
@@ -188,6 +200,63 @@ final class TenantCatalogController extends Controller
         return back()->with('status', 'Outlet availability updated.');
     }
 
+    public function storeVariant(
+        Request $request,
+        string $tenant,
+        string $product,
+        CreateProductVariant $create,
+    ): RedirectResponse {
+        $input = $this->validatedVariant($request, $product);
+
+        try {
+            $create->handle($this->context($request), $input);
+        } catch (CatalogException $exception) {
+            throw $this->validation($exception);
+        }
+
+        return back()->with('status', 'Variant created.');
+    }
+
+    public function updateVariant(
+        Request $request,
+        string $tenant,
+        string $product,
+        string $variant,
+        UpdateProductVariant $update,
+    ): RedirectResponse {
+        $input = $this->validatedVariant($request, $product);
+
+        try {
+            $update->handle($this->context($request), $variant, $input);
+        } catch (CatalogException $exception) {
+            throw $this->validation($exception);
+        }
+
+        return back()->with('status', 'Variant updated.');
+    }
+
+    public function changeVariantStatus(
+        Request $request,
+        string $tenant,
+        string $product,
+        string $variant,
+        ChangeProductVariantStatus $change,
+    ): RedirectResponse {
+        $input = $request->validate(['status' => ['required', 'in:active,inactive']]);
+
+        try {
+            $change->handle(
+                $this->context($request),
+                $variant,
+                ProductStatus::from((string) $input['status']),
+            );
+        } catch (CatalogException) {
+            abort(404);
+        }
+
+        return back()->with('status', 'Variant status updated.');
+    }
+
     private function context(Request $request): TenantRequestContext
     {
         $context = $request->attributes->get('tenant_context');
@@ -251,6 +320,28 @@ final class TenantCatalogController extends Controller
         );
     }
 
+    private function validatedVariant(Request $request, string $productId): ProductVariantInput
+    {
+        $input = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'sku' => ['required', 'string', 'max:64'],
+            'price_minor' => ['required', 'integer', 'min:0'],
+            'currency' => ['required', 'string', 'size:3'],
+            'is_default' => ['nullable', 'boolean'],
+            'display_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        return new ProductVariantInput(
+            productId: $productId,
+            name: (string) $input['name'],
+            sku: (string) $input['sku'],
+            priceMinor: (int) $input['price_minor'],
+            currency: (string) $input['currency'],
+            isDefault: (bool) ($input['is_default'] ?? false),
+            displayOrder: (int) ($input['display_order'] ?? 0),
+        );
+    }
+
     private function validation(CatalogException $exception): ValidationException
     {
         return ValidationException::withMessages([
@@ -258,6 +349,7 @@ final class TenantCatalogController extends Controller
                 'CATALOG_SKU_UNAVAILABLE' => 'sku',
                 'CATALOG_CATEGORY_NOT_FOUND' => 'category_id',
                 'CATALOG_CATEGORY_PARENT_INVALID' => 'parent_id',
+                'CATALOG_CURRENCY_MISMATCH' => 'currency',
                 'CATALOG_OUTLET_NOT_FOUND' => 'outlet_id',
                 default => 'product',
             } => [$exception->getMessage()],
