@@ -81,6 +81,17 @@ Refund Phase 03 adalah full manual refund, bukan gateway settlement.
 - Original order, payment, dan receipt snapshot tetap immutable.
 - Shift summary dan daily sales menampilkan gross sales, refunds, dan net sales.
 
+## Cash Movement and Shift Discrepancy
+
+Cash movement dipakai untuk menjelaskan perubahan uang tunai di drawer selain order/refund.
+
+- Cashier mencatat cash in/out melalui `POST /api/v1/pos/outlets/{outlet}/shifts/{shift}/cash-movements`.
+- Payload minimum: `type`, `amount_minor`, `currency`, `reason`, dan optional `approval_id`.
+- `cash_in` tidak membutuhkan supervisor approval.
+- `cash_out` dengan amount di atas threshold membutuhkan approval action `cash_movements.cash_out`.
+- Shift summary menghitung expected cash dari opening cash, cash payments, cash refunds, cash in, dan cash out.
+- Close shift menyimpan expected cash dan counted cash. Jika variance tidak nol, audit event `shift.discrepancy.recorded` dibuat.
+
 ## Troubleshooting
 
 - `DEVICE_NOT_REGISTERED`: installation ID belum terdaftar pada tenant user.
@@ -98,5 +109,8 @@ Refund Phase 03 adalah full manual refund, bukan gateway settlement.
 - `REFUND_AMOUNT_MISMATCH`: amount refund tidak sama dengan refundable amount tersisa.
 - `REFUND_CURRENCY_MISMATCH`: currency refund tidak sama dengan payment original.
 - `REFUND_ALREADY_RECORDED`: payment sudah memiliki refund record.
+- `CASH_MOVEMENT_SHIFT_NOT_OPEN`: cash movement dicoba pada shift yang bukan `open`.
+- `CASH_MOVEMENT_REASON_REQUIRED`: reason cash movement kosong.
+- `SHIFT_CURRENCY_MISMATCH`: currency cash movement tidak sama dengan currency shift.
 
 Gunakan `X-Request-ID` atau `trace_id` dari error body untuk korelasi log.

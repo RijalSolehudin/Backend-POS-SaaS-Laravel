@@ -23,6 +23,12 @@ Route::prefix('api/v1')
                     'shift' => '[0-9a-hjkmnp-tv-z]{26}',
                 ])
                 ->name('pos.outlets.shifts.close');
+            Route::post('pos/outlets/{outlet}/shifts/{shift}/cash-movements', [ShiftController::class, 'cashMovement'])
+                ->where([
+                    'outlet' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'shift' => '[0-9a-hjkmnp-tv-z]{26}',
+                ])
+                ->name('pos.outlets.shifts.cash-movements.store');
             Route::get('pos/outlets/{outlet}/shifts/{shift}/summary', [ShiftController::class, 'summary'])
                 ->where([
                     'outlet' => '[0-9a-hjkmnp-tv-z]{26}',

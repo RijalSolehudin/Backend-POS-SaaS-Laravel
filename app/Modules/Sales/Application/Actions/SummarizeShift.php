@@ -6,9 +6,11 @@ namespace App\Modules\Sales\Application\Actions;
 
 use App\Modules\Sales\Application\Data\ShiftSummary;
 use App\Modules\Sales\Application\Exceptions\ShiftException;
+use App\Modules\Sales\Domain\Enums\CashMovementType;
 use App\Modules\Sales\Domain\Enums\OrderStatus;
 use App\Modules\Sales\Domain\Enums\PaymentMethod;
 use App\Modules\Sales\Domain\Enums\PaymentStatus;
+use App\Modules\Sales\Domain\Models\CashMovement;
 use App\Modules\Sales\Domain\Models\Order;
 use App\Modules\Sales\Domain\Models\Payment;
 use App\Modules\Sales\Domain\Models\Refund;
@@ -52,7 +54,9 @@ final readonly class SummarizeShift
         $manualNonCashPaymentsMinor = $this->paymentSum($shift, PaymentMethod::ManualNonCash);
         $refundsMinor = $this->refundSum($shift);
         $cashRefundsMinor = $this->refundSum($shift, PaymentMethod::Cash);
-        $expectedCashMinor = $shift->opening_cash_minor + $cashPaymentsMinor - $cashRefundsMinor;
+        $cashInMinor = $this->cashMovementSum($shift, CashMovementType::CashIn);
+        $cashOutMinor = $this->cashMovementSum($shift, CashMovementType::CashOut);
+        $expectedCashMinor = $shift->opening_cash_minor + $cashPaymentsMinor - $cashRefundsMinor + $cashInMinor - $cashOutMinor;
 
         return new ShiftSummary(
             tenantId: $shift->tenant_id,
@@ -73,6 +77,8 @@ final readonly class SummarizeShift
             recordedPaymentsMinor: $recordedPaymentsMinor,
             cashPaymentsMinor: $cashPaymentsMinor,
             manualNonCashPaymentsMinor: $manualNonCashPaymentsMinor,
+            cashInMinor: $cashInMinor,
+            cashOutMinor: $cashOutMinor,
             currency: $shift->currency,
         );
     }
@@ -105,5 +111,15 @@ final readonly class SummarizeShift
         }
 
         return (int) $query->sum('amount_minor');
+    }
+
+    private function cashMovementSum(Shift $shift, CashMovementType $type): int
+    {
+        return (int) CashMovement::query()
+            ->where('tenant_id', $shift->tenant_id)
+            ->where('outlet_id', $shift->outlet_id)
+            ->where('shift_id', $shift->id)
+            ->where('type', $type)
+            ->sum('amount_minor');
     }
 }

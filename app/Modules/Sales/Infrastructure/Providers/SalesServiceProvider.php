@@ -8,6 +8,11 @@ use Illuminate\Support\ServiceProvider;
 
 final class SalesServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->mergeConfigFrom(base_path('config/sales.php'), 'sales');
+    }
+
     public function boot(): void
     {
         $moduleRoot = dirname(__DIR__, 2);

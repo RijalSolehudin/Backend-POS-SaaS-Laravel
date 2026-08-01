@@ -1,6 +1,6 @@
 # P03-04 — Cash In/Out and Shift Discrepancy
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -44,6 +44,13 @@ Cashier dapat mencatat cash movement selama shift dan close shift dapat menjelas
 - Feature tests untuk cash out approval, missing approval, threshold, closed shift rejection, and idempotency conflict.
 - Shift summary tests untuk expected cash dan variance.
 - `composer quality` lulus.
+
+## Evidence
+
+- `tests/Feature/Sales/CashMovementShiftDiscrepancyTest.php` verifies cash in, cash out with supervisor approval, idempotent replay, idempotency conflict, closed shift rejection, and discrepancy audit.
+- POS API exposes `POST /api/v1/pos/outlets/{outlet}/shifts/{shift}/cash-movements`.
+- Shift summary exposes cash in, cash out, expected cash, and variance.
+- Close shift stores expected cash snapshot and emits `shift.discrepancy.recorded` audit event when counted cash differs.
 
 ## Architecture Stop Rule
 

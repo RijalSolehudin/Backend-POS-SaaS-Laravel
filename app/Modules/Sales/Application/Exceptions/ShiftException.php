@@ -30,6 +30,11 @@ final class ShiftException extends BusinessException
         return new self('The requested shift is not open.', 'SHIFT_NOT_OPEN');
     }
 
+    public static function currencyMismatch(): self
+    {
+        return new self('Cash movement currency must match the shift currency.', 'SHIFT_CURRENCY_MISMATCH');
+    }
+
     public function errorCode(): string
     {
         return $this->businessErrorCode;

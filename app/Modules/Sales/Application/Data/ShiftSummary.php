@@ -27,6 +27,8 @@ final readonly class ShiftSummary
         public int $recordedPaymentsMinor,
         public int $cashPaymentsMinor,
         public int $manualNonCashPaymentsMinor,
+        public int $cashInMinor,
+        public int $cashOutMinor,
         public string $currency,
     ) {}
 }

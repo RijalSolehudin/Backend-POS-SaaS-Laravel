@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class CloseShift
 {
-    public function __construct(private SummarizeShift $summaries) {}
+    public function __construct(
+        private SummarizeShift $summaries,
+        private RecordSalesAuditEvent $audit,
+    ) {}
 
     public function handle(PosOutletContext $context, string $shiftId, int $closingCashMinor): Shift
     {
@@ -34,6 +37,7 @@ final readonly class CloseShift
             }
 
             $summary = $this->summaries->fromShift($shift);
+            $cashVarianceMinor = $closingCashMinor - $summary->expectedCashMinor;
 
             $shift->forceFill([
                 'status' => ShiftStatus::Closed,
@@ -43,6 +47,24 @@ final readonly class CloseShift
                 'gross_sales_minor' => $summary->grossSalesMinor,
                 'closed_at' => now(),
             ])->save();
+
+            if ($cashVarianceMinor !== 0) {
+                $this->audit->handle(
+                    tenantId: $context->tenantId,
+                    outletId: $context->outletId,
+                    actorUserId: $context->userId,
+                    eventType: 'shift.discrepancy.recorded',
+                    targetType: 'sales_shift',
+                    targetId: $shift->id,
+                    outcome: 'recorded',
+                    correlationId: $shift->id,
+                    metadata: [
+                        'expected_cash_minor' => $summary->expectedCashMinor,
+                        'closing_cash_minor' => $closingCashMinor,
+                        'cash_variance_minor' => $cashVarianceMinor,
+                    ],
+                );
+            }
 
             return $shift;
         });
