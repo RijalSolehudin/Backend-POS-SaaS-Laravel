@@ -31,3 +31,4 @@ Planned -> Ready -> In Progress -> In Review -> Done
 - [Phase 02 — POS Core Vertical Slice](phase-02/README.md)
 - [Phase 03 — Operational Safety](phase-03/README.md)
 - [Phase 04 — Catalog and Pricing Expansion](phase-04/README.md)
+- [Phase 05 — Inventory](phase-05/README.md)
