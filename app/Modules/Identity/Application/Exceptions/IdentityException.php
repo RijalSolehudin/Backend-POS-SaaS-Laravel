@@ -23,6 +23,14 @@ final class IdentityException extends BusinessException
         );
     }
 
+    public static function invalidCredentials(): self
+    {
+        return new self(
+            'The tenant credentials are invalid or inactive.',
+            'IDENTITY_INVALID_CREDENTIALS',
+        );
+    }
+
     public function errorCode(): string
     {
         return $this->businessErrorCode;

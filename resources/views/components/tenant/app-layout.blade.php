@@ -1,4 +1,4 @@
-@props(['tenant', 'context' => null, 'title', 'heading', 'description' => null])
+@props(['tenant', 'context' => null, 'title', 'heading', 'description' => null, 'canManageDevices' => false])
 
 <!doctype html>
 <html lang="en">
@@ -21,6 +21,11 @@
             <a href="{{ route('tenant.home', ['tenant' => $tenant->id]) }}">Home</a>
             @if (($context ?? null)?->isOwner())
                 <a href="{{ route('tenant.outlets.index', ['tenant' => $tenant->id]) }}">Outlets</a>
+                <a href="{{ route('tenant.users.index', ['tenant' => $tenant->id]) }}">Users</a>
+                <a href="{{ route('tenant.catalog.index', ['tenant' => $tenant->id]) }}">Catalog</a>
+            @endif
+            @if ($canManageDevices)
+                <a href="{{ route('tenant.devices.index', ['tenant' => $tenant->id]) }}">Devices</a>
             @endif
         </nav>
         <form class="ml-auto" method="post" action="{{ route('tenant.logout', ['tenant' => $tenant->id]) }}">

@@ -1,6 +1,6 @@
 # P01-02 — Platform Identity
 
-Status: **In Review**
+Status: **Done**
 
 ## Outcome
 
@@ -58,8 +58,8 @@ Platform Administrator memiliki identity, authentication, MFA, session, bootstra
 - Feature tests tersedia untuk identity isolation, password + TOTP, first bootstrap, recovery code, session cap/timeout/suspension, dan emergency recovery.
 - Composer audit tidak menemukan active advisory setelah Guzzle diperbarui ke 7.15.1.
 - Laravel Boost digunakan untuk memverifikasi Laravel 13 guard/provider, password rule, rate limiter, session, prompt, queue, dan notification behavior.
-- MariaDB-backed feature suite belum dapat dijalankan pada host ini karena Docker/Podman/MariaDB test service tidak tersedia. SQLite smoke test sengaja tidak dijadikan evidence dan gagal pada MariaDB-specific `ascii_bin` collation.
-- P01-02 tetap `In Review` sampai feature suite dan fresh migration lulus pada MariaDB 11.4.
+- MariaDB-backed feature suite lulus pada MariaDB 11.4 test container `127.0.0.1:33067`.
+- `composer quality` lulus: static quality gate, 11 unit tests/37 assertions, dan 37 feature tests/306 assertions.
 
 ## Architecture Check
 

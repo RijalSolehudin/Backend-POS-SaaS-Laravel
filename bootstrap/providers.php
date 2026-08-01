@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Catalog\Infrastructure\Providers\CatalogServiceProvider;
 use App\Modules\Identity\Infrastructure\Providers\IdentityServiceProvider;
 use App\Modules\PlatformIdentity\Infrastructure\Providers\PlatformIdentityServiceProvider;
 use App\Modules\Tenancy\Infrastructure\Providers\TenancyServiceProvider;
@@ -10,4 +11,5 @@ return [
     IdentityServiceProvider::class,
     PlatformIdentityServiceProvider::class,
     TenancyServiceProvider::class,
+    CatalogServiceProvider::class,
 ];

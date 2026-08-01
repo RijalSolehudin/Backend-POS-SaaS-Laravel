@@ -1,6 +1,6 @@
 # P01-04 — Tenant Provisioning
 
-Status: **In Review**
+Status: **Done**
 
 ## Outcome
 
@@ -60,8 +60,8 @@ Platform Administrator dapat memprovisikan tenant, outlet awal, dan Tenant Owner
 - Unit suite lulus: 11 tests dan 37 assertions, termasuk HMAC provisioning fingerprint.
 - Feature subset tanpa database lulus: 3 tests dan 18 assertions untuk safe platform boundary, middleware composition, serta non-interactive CLI rejection.
 - Blade templates berhasil diprecompile dan Vite production build berhasil.
-- MariaDB feature tests tersedia untuk complete state, retry, mismatch, duplicate email rollback, final-stage rollback, disable, Web recent confirmation, tenant-user rejection, CLI, dan ULID schema compatibility.
-- MariaDB-backed suite belum dapat dijalankan karena test service pada `127.0.0.1:33067` tidak tersedia. P01-04 tetap `In Review` sampai fresh migration dan seluruh feature suite lulus pada MariaDB 11.4.
+- MariaDB feature tests lulus untuk complete state, retry, mismatch, duplicate email rollback, final-stage rollback, disable, Web recent confirmation, tenant-user rejection, CLI, dan ULID schema compatibility.
+- `composer quality` lulus pada MariaDB 11.4 test container `127.0.0.1:33067`.
 
 ## Architecture Check
 

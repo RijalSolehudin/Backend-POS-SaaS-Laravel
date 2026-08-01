@@ -4,8 +4,8 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 
 ## Status Proyek
 
-- Tahap: Phase 01 Foundation in progress
-- Implementasi aplikasi: P01-01 sampai P01-04 berada dalam review; belum dinilai selesai
+- Tahap: Phase 01 Foundation done
+- Implementasi aplikasi: P01-01 sampai P01-11 selesai; Phase 02 menjadi tahap berikutnya
 - Target awal: MVP POS vertical slice
 
 ## Cara Membaca
@@ -28,6 +28,7 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 | `product/` | Visi, scope, aktor, dan aturan bisnis |
 | `architecture/` | Arsitektur, konvensi teknis, dan keputusan lintas modul |
 | `architecture/decisions/` | Architecture Decision Records (ADR) |
+| `api/` | Kontrak OpenAPI untuk endpoint REST yang sudah tersedia |
 | `modules/` | Batas dan tanggung jawab setiap domain module |
 | `roadmap/` | Urutan delivery, acceptance criteria, dan Definition of Done |
 | `execution/` | Work package implementasi, dependency, verifikasi, dan evidence |

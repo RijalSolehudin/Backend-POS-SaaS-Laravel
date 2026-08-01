@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Infrastructure\Tenancy;
 
 use App\Modules\Identity\Domain\Enums\UserStatus;
 use App\Modules\Identity\Domain\Models\User;
+use App\Modules\Identity\Domain\Models\UserRoleAssignment;
 use App\Modules\Tenancy\Application\Contracts\TenantUserDirectory;
 use App\Modules\Tenancy\Application\Data\TenantUserSummary;
 
@@ -23,10 +24,27 @@ final class DatabaseTenantUserDirectory implements TenantUserDirectory
                 name: $user->name,
                 email: $user->email,
                 active: $user->status === UserStatus::Active,
+                roles: $this->rolesForUser($user->id),
             ))
             ->values()
             ->all();
 
         return array_values($users);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function rolesForUser(string $userId): array
+    {
+        $roles = UserRoleAssignment::query()
+            ->where('user_id', $userId)
+            ->orderBy('role')
+            ->pluck('role')
+            ->map(fn (mixed $role): string => is_string($role) ? $role : (string) $role->value)
+            ->values()
+            ->all();
+
+        return array_values($roles);
     }
 }

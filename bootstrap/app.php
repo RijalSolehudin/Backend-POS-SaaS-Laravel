@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\ApiProblemDetails;
+use App\Http\EnsureActiveApiTenantUser;
+use App\Http\EnsureApiRequestId;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->appendToGroup('api', EnsureApiRequestId::class);
+        $middleware->alias([
+            'api.tenant-user-active' => EnsureActiveApiTenantUser::class,
+        ]);
+
         $middleware->redirectGuestsTo(
             fn (Request $request): string => $request->is('platform', 'platform/*')
                 ? route('platform.login')
@@ -25,6 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request): Response {
+            if ($request->is('api/*')) {
+                return app(ApiProblemDetails::class)->render($response, $exception, $request);
+            }
+
             if (
                 ! $request->is('platform', 'platform/*')
                 || $request->expectsJson()

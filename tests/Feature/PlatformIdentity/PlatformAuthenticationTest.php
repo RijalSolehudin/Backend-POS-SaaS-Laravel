@@ -50,10 +50,13 @@ final class PlatformAuthenticationTest extends TestCase
 
     public function test_tenant_credentials_do_not_authenticate_on_platform_login(): void
     {
-        $this->post(route('platform.login.store'), [
-            'email' => 'tenant@example.com',
-            'password' => 'tenant-password',
-        ])->assertSessionHasErrors('email');
+        $this->followingRedirects()
+            ->from(route('platform.login'))
+            ->post(route('platform.login.store'), [
+                'email' => 'tenant@example.com',
+                'password' => 'tenant-password',
+            ])
+            ->assertSee('The supplied credentials are invalid.');
 
         $this->assertGuest('platform');
     }

@@ -1,6 +1,6 @@
 # P01-10 — Minimum Catalog
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 
@@ -42,21 +42,25 @@ Tenant actor berwenang dapat mengelola category dan product sederhana melalui We
 
 ## Implementation Checklist
 
-- [ ] Implementasikan category use cases dan Web adapter.
-- [ ] Implementasikan product use cases dan Web adapter.
-- [ ] Implementasikan outlet availability.
-- [ ] Implementasikan catalog read API.
-- [ ] Terapkan `_minor`, currency, dan decimal serialization rules.
-- [ ] Tambahkan authorization, validation, isolation, dan contract tests.
+- [x] Implementasikan category use cases dan Web adapter.
+- [x] Implementasikan product use cases dan Web adapter.
+- [x] Implementasikan outlet availability.
+- [x] Implementasikan catalog read API.
+- [x] Terapkan `_minor`, currency, dan decimal serialization rules.
+- [x] Tambahkan authorization, validation, isolation, dan contract tests.
 
 ## Verification and Evidence
 
-- Duplicate tenant SKU dan cross-tenant reference ditolak.
-- Product inactive/unavailable tidak muncul di Flutter.
-- Monetary value keluar sebagai integer minor unit dengan currency eksplisit.
-- Evidence Web/API demo dan test matrix dicatat.
+- Duplicate tenant SKU ditolak dengan validation error `sku`.
+- Cross-tenant category reference ditolak dengan validation error `category_id`.
+- Product inactive/unavailable tidak muncul di Flutter catalog API.
+- Monetary value keluar sebagai integer `price_minor` dan currency eksplisit.
+- Web Admin endpoint tersedia di `admin/tenants/{tenant}/catalog`.
+- Flutter endpoint tersedia di `GET /api/v1/pos/outlets/{outlet}/catalog`.
+- Automated evidence: `php artisan test tests/Feature/Catalog/MinimumCatalogTest.php` lulus 4 test / 26 assertion.
+- Quality evidence: `composer quality` lulus composer validate, Pint, PHPStan, Deptrac 0 violation, unit 11 test / 37 assertion, feature 57 test / 414 assertion.
+- Build evidence: `npm run build` lulus.
 
 ## Architecture Check
 
 Berhenti dan tanyakan product owner jika dibutuhkan aturan SKU global, multi-currency conversion, tax inclusion, price history, soft delete, variant, modifier, atau catalog hierarchy tambahan.
-

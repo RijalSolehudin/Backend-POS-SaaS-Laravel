@@ -1,6 +1,6 @@
 # Phase 01 Execution Plan
 
-Status: **In Progress**
+Status: **Done**
 
 Dokumen ini memecah [Phase 01 Foundation](../../roadmap/phase-01-foundation.md) menjadi work package berbasis outcome. [Acceptance Criteria Phase 01](../../roadmap/phase-01-acceptance-criteria.md) tetap menjadi ukuran penyelesaian utama.
 
@@ -10,17 +10,17 @@ Persetujuan dokumen ini tidak mengizinkan implementasi. Setiap work package haru
 
 | ID | Work package | Dependency utama | Status |
 |---|---|---|---|
-| P01-01 | [Modular Foundation](P01-01-modular-foundation.md) | Tidak ada | In Review |
-| P01-02 | [Platform Identity](P01-02-platform-identity.md) | P01-01 | In Review |
-| P01-03 | [Platform Admin Shell](P01-03-platform-admin-shell.md) | P01-02 | In Review |
-| P01-04 | [Tenant Provisioning](P01-04-tenant-provisioning.md) | P01-02, P01-03 | In Review |
-| P01-05 | [Tenant Identity](P01-05-tenant-identity.md) | P01-01, P01-04 | In Review |
-| P01-06 | [Tenancy and Outlets](P01-06-tenancy-and-outlets.md) | P01-04, P01-05 | In Review |
-| P01-07 | [Predefined RBAC](P01-07-predefined-rbac.md) | P01-05, P01-06 | Planned |
-| P01-08 | [Device Registry](P01-08-device-registry.md) | P01-06, P01-07 | Planned |
-| P01-09 | [API Foundation](P01-09-api-foundation.md) | P01-05, P01-06, P01-08 | Planned |
-| P01-10 | [Minimum Catalog](P01-10-minimum-catalog.md) | P01-06, P01-07, P01-09 | Planned |
-| P01-11 | [Security, Audit, and Readiness](P01-11-security-audit-readiness.md) | Seluruh work package terkait | Planned |
+| P01-01 | [Modular Foundation](P01-01-modular-foundation.md) | Tidak ada | Done |
+| P01-02 | [Platform Identity](P01-02-platform-identity.md) | P01-01 | Done |
+| P01-03 | [Platform Admin Shell](P01-03-platform-admin-shell.md) | P01-02 | Done |
+| P01-04 | [Tenant Provisioning](P01-04-tenant-provisioning.md) | P01-02, P01-03 | Done |
+| P01-05 | [Tenant Identity](P01-05-tenant-identity.md) | P01-01, P01-04 | Done |
+| P01-06 | [Tenancy and Outlets](P01-06-tenancy-and-outlets.md) | P01-04, P01-05 | Done |
+| P01-07 | [Predefined RBAC](P01-07-predefined-rbac.md) | P01-05, P01-06 | Done |
+| P01-08 | [Device Registry](P01-08-device-registry.md) | P01-06, P01-07 | Done |
+| P01-09 | [API Foundation](P01-09-api-foundation.md) | P01-05, P01-06, P01-08 | Done |
+| P01-10 | [Minimum Catalog](P01-10-minimum-catalog.md) | P01-06, P01-07, P01-09 | Done |
+| P01-11 | [Security, Audit, and Readiness](P01-11-security-audit-readiness.md) | Seluruh work package terkait | Done |
 
 Urutan ini menunjukkan dependency logis, bukan kewajiban menjalankan semuanya secara serial. Pekerjaan hanya dapat diparalelkan bila boundary dan dependency-nya sudah terpenuhi.
 

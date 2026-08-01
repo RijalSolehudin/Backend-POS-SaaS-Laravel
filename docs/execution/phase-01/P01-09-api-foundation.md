@@ -1,6 +1,6 @@
 # P01-09 — Flutter API Foundation
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 
@@ -43,22 +43,24 @@ Flutter POS pada registered device dapat memperoleh Sanctum token dan mengakses 
 
 ## Implementation Checklist
 
-- [ ] Implementasikan login/logout adapter untuk use case token.
-- [ ] Kaitkan token ke device dan enforce expiry/revocation.
-- [ ] Implementasikan immutable outlet request context.
-- [ ] Standardisasi success, validation, auth, dan domain failures.
-- [ ] Tambahkan request ID dan safe logging/error handling.
-- [ ] Dokumentasikan endpoint dalam OpenAPI.
-- [ ] Tambahkan contract, auth, lifecycle, dan isolation tests.
+- [x] Implementasikan login/logout adapter untuk use case token.
+- [x] Kaitkan token ke device dan enforce expiry/revocation.
+- [x] Implementasikan immutable outlet request context.
+- [x] Standardisasi success, validation, auth, dan domain failures.
+- [x] Tambahkan request ID dan safe logging/error handling.
+- [x] Dokumentasikan endpoint dalam OpenAPI.
+- [x] Tambahkan contract, auth, lifecycle, dan isolation tests.
 
 ## Verification and Evidence
 
-- Plain token hanya terlihat saat issuance dan tidak masuk log.
-- Expired, replaced, revoked, disabled, dan wrong-outlet token ditolak.
-- Response sesuai content type, envelope, stable code, dan request ID.
-- Evidence contract tests dan OpenAPI validation dicatat.
+- Plain token hanya dikembalikan pada `POST /api/v1/pos/auth/login`; persistent token tetap hashed pada Sanctum.
+- Login ulang user-device mengganti token lama; logout menghapus current token; device revoked/reassigned tetap mencabut token lewat P01-08 lifecycle.
+- Wrong-outlet token menghasilkan `OUTLET_NOT_FOUND`; unassigned cashier menghasilkan `TENANCY_FORBIDDEN`.
+- Response sukses memakai envelope `data`; error memakai `application/problem+json`, stable `code`, dan `X-Request-ID`/`trace_id`.
+- Automated evidence: `php artisan test tests/Feature/Tenancy/FlutterApiFoundationTest.php` lulus 7 test / 44 assertion.
+- Quality evidence: `composer quality` lulus composer validate, Pint, PHPStan, Deptrac 0 violation, unit 11 test / 37 assertion, feature 53 test / 388 assertion.
+- OpenAPI baseline: [docs/api/openapi.yaml](../../api/openapi.yaml).
 
 ## Architecture Check
 
 Berhenti dan tanyakan product owner jika muncul kebutuhan refresh token, token abilities baru, idempotency convention API, pagination/filter contract baru, atau re-authentication POS.
-

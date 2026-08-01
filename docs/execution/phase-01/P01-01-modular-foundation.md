@@ -1,11 +1,11 @@
 # P01-01 — Modular Foundation
 
-Status: **In Review**
+Status: **Done**
 
 Readiness approved: **2026-07-24**
 Implementation started: **2026-07-24**
 
-Implementation authorized by product owner. Completion tetap membutuhkan seluruh verification dan evidence P01-01.
+Implementation authorized by product owner. Verification dan evidence P01-01 telah terpenuhi melalui MariaDB-backed full quality gate.
 
 ## Outcome
 
@@ -58,7 +58,7 @@ Fondasi Laravel modular mempunyai boundary, convention, dan quality gate yang ko
 - [x] Terapkan convention action `handle()` sesuai ADR-023.
 - [x] Implementasikan shared minimal `ActorContext` sesuai ADR-024 dan ADR-031.
 - [x] Dokumentasikan transaction boundary pada application layer.
-- [ ] Verifikasi composition/presentation entry points pada use case nyata pertama.
+- [x] Verifikasi composition/presentation entry points pada use case nyata pertama.
 - [x] Siapkan architecture/static checks yang relevan.
 - [x] Konfigurasikan Deptrac sebagai architecture quality gate sesuai ADR-026.
 - [x] Konfigurasikan Pint check dan Larastan level 8 sesuai ADR-030.
@@ -68,12 +68,13 @@ Fondasi Laravel modular mempunyai boundary, convention, dan quality gate yang ko
 
 ## Verification and Evidence
 
-- [ ] Fresh migration dan database-backed test lulus pada MariaDB 11.4 strict mode.
+- [x] Fresh migration dan database-backed test lulus pada MariaDB 11.4 strict mode.
   - Container definition dan mandatory MariaDB compatibility test tersedia.
-  - Local verification tertunda karena mesin implementasi belum mempunyai Docker-compatible runtime.
+  - Local MariaDB 11.4 container tersedia pada `127.0.0.1:33067`.
+  - `composer quality` lulus dengan MariaDB-backed feature suite.
   - GitHub Actions workflow siap menjalankan MariaDB service.
-- [ ] Use case nyata pertama dipakai minimal dua presentation adapter tanpa HTTP internal.
-  - Diverifikasi saat presentation/use case pertama tersedia pada work package berikutnya.
+- [x] Use case nyata pertama dipakai minimal dua presentation adapter tanpa HTTP internal.
+  - `ProvisionTenant` dipakai oleh Platform Admin Web dan controlled interactive CLI.
 - [x] Architecture check mendeteksi dependency violation yang disengaja.
   - Temporary `Catalog Domain -> Catalog Presentation` probe ditolak Deptrac dengan exit code 1, lalu probe dihapus.
 - [x] `composer quality:static` lulus:
@@ -81,8 +82,8 @@ Fondasi Laravel modular mempunyai boundary, convention, dan quality gate yang ko
   - Pint formatting check.
   - Larastan/PHPStan level 8 tanpa baseline.
   - Deptrac tanpa skip violation.
-- [x] Unit test lulus: 5 tests, 11 assertions.
-- [x] Existing non-database feature smoke test lulus: 1 test, 1 assertion.
+- [x] Unit test lulus: 11 tests, 37 assertions.
+- [x] Feature test lulus: 37 tests, 306 assertions.
 - [x] Vite production build lulus tanpa remote font/network dependency.
 - [x] GitHub Actions workflow dapat diparse sebagai valid YAML.
 - [x] Laravel Boost memverifikasi Laravel 13.20.0, Boost 2.4.13, dan Larastan 3.10.0.

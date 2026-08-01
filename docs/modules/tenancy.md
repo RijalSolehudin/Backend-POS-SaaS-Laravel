@@ -15,6 +15,8 @@
 - List authorized outlets.
 - Select and validate active outlet context.
 - Register/reassign/revoke device melalui actor yang berwenang.
+- Issue/revoke POS device token melalui flow user-device-outlet yang tervalidasi.
+- Resolve outlet context untuk Flutter API dari Sanctum token dan route `{outlet}`.
 
 ## API Context
 
@@ -32,6 +34,7 @@
 - User tidak dapat memilih outlet di luar membership yang sah.
 - Semua public module operations menerima tenant context yang tervalidasi.
 - Device `pos_terminal` terikat tepat pada satu tenant/outlet dan request outlet harus cocok dengan binding tersebut.
+- Token POS selalu dikaitkan ke device terdaftar dan user hanya dapat mengakses outlet yang cocok dengan assignment serta binding device.
 
 ## Open Decisions
 

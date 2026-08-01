@@ -10,7 +10,7 @@
 ## MVP Use Cases
 
 - Membuat initial Tenant Owner dan predefined owner role melalui published application boundary saat provisioning.
-- Authenticate user dan menerbitkan Laravel Sanctum API token.
+- Verifikasi credential tenant user dan menerbitkan Laravel Sanctum API token untuk device POS yang tervalidasi.
 - Revoke token aktif atau token perangkat yang dipilih.
 - Resolve authenticated identity.
 - Assign minimum operational roles.
@@ -18,6 +18,7 @@
 ## Role Policy
 
 - Role MVP bersifat predefined: Tenant Owner, Outlet Manager, dan Cashier.
+- Permission matrix MVP tercatat pada [Role Permission Matrix](../architecture/role-permission-matrix.md).
 - Tenant actor berwenang hanya mengelola assignment role.
 - Custom role/permission builder tidak tersedia pada MVP.
 - Platform authority tidak menjadi bagian tenant role matrix.

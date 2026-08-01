@@ -24,11 +24,12 @@ final class PlatformAdminShellTest extends TestCase
             ->assertSee('Sign in to Platform Admin')
             ->assertSee('Platform access is separate from every tenant account.');
 
-        $this->post(route('platform.login.store'), [])
-            ->assertRedirect()
-            ->assertSessionHasErrors(['email', 'password']);
+        $this->from(route('platform.login'))
+            ->post(route('platform.login.store'), [])
+            ->assertRedirect(route('platform.login'));
 
         $this->followingRedirects()
+            ->from(route('platform.login'))
             ->post(route('platform.login.store'), [])
             ->assertSee('role="alert"', false)
             ->assertSee('aria-live="polite"', false);

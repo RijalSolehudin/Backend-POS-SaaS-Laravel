@@ -63,6 +63,7 @@ final class PlatformSessionPolicyTest extends TestCase
         $this->passwordAndTotpLogin($user)->assertRedirect(route('platform.security'));
 
         $user->forceFill(['status' => PlatformUserStatus::Suspended])->save();
+        $this->app['auth']->guard('platform')->forgetUser();
 
         $this->get(route('platform.security'))->assertRedirect(route('platform.login'));
         $this->assertGuest('platform');

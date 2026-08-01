@@ -6,8 +6,14 @@ namespace App\Modules\Identity\Infrastructure\Providers;
 
 use App\Modules\Identity\Application\Actions\CreateInitialTenantOwner;
 use App\Modules\Identity\Application\Contracts\InitialTenantOwnerCreator;
+use App\Modules\Identity\Application\Contracts\PosTokenIssuer;
+use App\Modules\Identity\Application\Contracts\TenantCredentialVerifier;
+use App\Modules\Identity\Application\Contracts\TenantRoleAssignments;
 use App\Modules\Identity\Application\Contracts\UserAccessRevoker;
 use App\Modules\Identity\Domain\Models\User;
+use App\Modules\Identity\Infrastructure\Persistence\DatabasePosTokenIssuer;
+use App\Modules\Identity\Infrastructure\Persistence\DatabaseTenantCredentialVerifier;
+use App\Modules\Identity\Infrastructure\Persistence\DatabaseTenantRoleAssignments;
 use App\Modules\Identity\Infrastructure\Persistence\DatabaseUserAccessRevoker;
 use App\Modules\Identity\Infrastructure\Tenancy\DatabaseTenantUserDirectory;
 use App\Modules\Identity\Presentation\Http\Middleware\EnforceTenantSessionPolicy;
@@ -15,6 +21,7 @@ use App\Modules\Identity\Presentation\Http\Middleware\RequireCurrentTenantPasswo
 use App\Modules\Tenancy\Application\Contracts\TenantUserDirectory;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\ServiceProvider;
 
 final class IdentityServiceProvider extends ServiceProvider
@@ -23,6 +30,9 @@ final class IdentityServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(base_path('config/identity.php'), 'identity');
         $this->app->bind(InitialTenantOwnerCreator::class, CreateInitialTenantOwner::class);
+        $this->app->bind(PosTokenIssuer::class, DatabasePosTokenIssuer::class);
+        $this->app->bind(TenantCredentialVerifier::class, DatabaseTenantCredentialVerifier::class);
+        $this->app->bind(TenantRoleAssignments::class, DatabaseTenantRoleAssignments::class);
         $this->app->bind(UserAccessRevoker::class, DatabaseUserAccessRevoker::class);
         $this->app->bind(TenantUserDirectory::class, DatabaseTenantUserDirectory::class);
     }
@@ -40,6 +50,12 @@ final class IdentityServiceProvider extends ServiceProvider
             'tenant.session-policy',
         ]);
         $this->loadRoutesFrom($moduleRoot.'/Presentation/Http/Routes/web.php');
+
+        if ($this->app->runningInConsole()) {
+            Schedule::command('sanctum:prune-expired --hours=24')
+                ->daily()
+                ->withoutOverlapping();
+        }
 
         ResetPassword::createUrlUsing(
             fn (User $user, string $token): string => route('tenant.password.reset', [

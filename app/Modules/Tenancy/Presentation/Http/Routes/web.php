@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Modules\Tenancy\Presentation\Http\Web\Controllers\PlatformTenantController;
 use App\Modules\Tenancy\Presentation\Http\Web\Controllers\TenantHomeController;
 use App\Modules\Tenancy\Presentation\Http\Web\Controllers\TenantOutletController;
+use App\Modules\Tenancy\Presentation\Http\Web\Controllers\TenantPosDeviceController;
+use App\Modules\Tenancy\Presentation\Http\Web\Controllers\TenantUserRoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('platform')
@@ -36,7 +38,31 @@ Route::prefix('admin/tenants/{tenant}')
     ->group(function (): void {
         Route::get('/', TenantHomeController::class)->name('home');
 
+        Route::get('devices', [TenantPosDeviceController::class, 'index'])->name('devices.index');
+        Route::post('devices', [TenantPosDeviceController::class, 'store'])->name('devices.store')->block();
+        Route::put('devices/{device}/outlet', [TenantPosDeviceController::class, 'reassign'])
+            ->where('device', '[0-9a-hjkmnp-tv-z]{26}')
+            ->name('devices.reassign')
+            ->block();
+        Route::post('devices/{device}/revoke', [TenantPosDeviceController::class, 'revoke'])
+            ->where('device', '[0-9a-hjkmnp-tv-z]{26}')
+            ->name('devices.revoke')
+            ->block();
+
         Route::middleware('tenant.owner')->group(function (): void {
+            Route::get('users', [TenantUserRoleController::class, 'index'])->name('users.index');
+            Route::post('users/{user}/roles', [TenantUserRoleController::class, 'store'])
+                ->where('user', '[0-9a-hjkmnp-tv-z]{26}')
+                ->name('users.roles.store')
+                ->block();
+            Route::delete('users/{user}/roles/{role}', [TenantUserRoleController::class, 'destroy'])
+                ->where([
+                    'user' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'role' => 'tenant_owner|outlet_manager|cashier',
+                ])
+                ->name('users.roles.destroy')
+                ->block();
+
             Route::get('outlets', [TenantOutletController::class, 'index'])->name('outlets.index');
             Route::get('outlets/create', [TenantOutletController::class, 'create'])->name('outlets.create');
             Route::post('outlets', [TenantOutletController::class, 'store'])->name('outlets.store')->block();

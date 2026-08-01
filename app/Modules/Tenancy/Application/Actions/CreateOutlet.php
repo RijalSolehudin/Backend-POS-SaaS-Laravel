@@ -9,7 +9,7 @@ use App\Modules\Tenancy\Application\Data\TenancyAuditData;
 use App\Modules\Tenancy\Application\Data\TenantRequestContext;
 use App\Modules\Tenancy\Application\Exceptions\TenancyException;
 use App\Modules\Tenancy\Application\Services\OutletInput;
-use App\Modules\Tenancy\Application\Services\TenantOwnerGuard;
+use App\Modules\Tenancy\Application\Services\TenantPermissionGuard;
 use App\Modules\Tenancy\Domain\Enums\OutletStatus;
 use App\Modules\Tenancy\Domain\Models\Outlet;
 use App\Shared\Application\Context\ActorContext;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class CreateOutlet
 {
     public function __construct(
-        private TenantOwnerGuard $ownerGuard,
+        private TenantPermissionGuard $guard,
         private OutletInput $input,
         private TenancyAuditRecorder $audit,
     ) {}
@@ -29,7 +29,7 @@ final readonly class CreateOutlet
         string $code,
         ActorContext $actor,
     ): Outlet {
-        $this->ownerGuard->authorize($context);
+        $this->guard->authorizeManageOutlets($context);
         $input = $this->input->validate($name, $code);
 
         return DB::transaction(function () use ($context, $input, $actor): Outlet {

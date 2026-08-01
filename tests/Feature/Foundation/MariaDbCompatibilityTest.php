@@ -48,6 +48,10 @@ final class MariaDbCompatibilityTest extends TestCase
                 'tenant_memberships',
                 'tenant_provisioning_requests',
                 'tenancy_audit_events',
+                'pos_devices',
+                'catalog_categories',
+                'catalog_products',
+                'catalog_product_outlet_availabilities',
             ])
             ->where(function ($query): void {
                 $query->where('COLUMN_NAME', 'id')

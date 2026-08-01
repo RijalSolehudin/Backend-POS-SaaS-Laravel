@@ -150,7 +150,11 @@ final class TenantIdentityTest extends TestCase
             'payload' => '',
             'last_activity' => now()->getTimestamp(),
         ]);
-        $token = Password::broker('users')->createToken($user);
+        $token = null;
+        Password::broker('users')->sendResetLink(['email' => $user->email], function (User $resetUser, string $resetToken) use (&$token): void {
+            $token = $resetToken;
+        });
+        $this->assertIsString($token);
 
         $this->post(route('tenant.password.reset.store'), [
             'token' => $token,

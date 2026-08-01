@@ -9,10 +9,13 @@ use App\Modules\PlatformIdentity\Application\Data\SecurityAuditData;
 use App\Modules\PlatformIdentity\Domain\Models\PlatformSecurityAuditEvent;
 use App\Modules\PlatformIdentity\Domain\Models\PlatformUser;
 use App\Modules\PlatformIdentity\Infrastructure\Notifications\PlatformSecurityAlert;
+use App\Shared\Application\Audit\AuditMetadataRedactor;
 use Illuminate\Support\Facades\Notification;
 
-final class DatabaseSecurityAuditRecorder implements SecurityAuditRecorder
+final readonly class DatabaseSecurityAuditRecorder implements SecurityAuditRecorder
 {
+    public function __construct(private AuditMetadataRedactor $redactor) {}
+
     public function record(SecurityAuditData $data): string
     {
         $event = PlatformSecurityAuditEvent::query()->create([
@@ -28,7 +31,7 @@ final class DatabaseSecurityAuditRecorder implements SecurityAuditRecorder
             'user_agent' => $data->userAgent !== null ? mb_substr($data->userAgent, 0, 500) : null,
             'session_id_hash' => $data->sessionIdHash,
             'reason' => $data->reason,
-            'metadata' => $data->metadata,
+            'metadata' => $this->redactor->redact($data->metadata),
             'occurred_at' => now(),
         ]);
 

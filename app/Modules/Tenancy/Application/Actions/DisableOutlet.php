@@ -8,7 +8,7 @@ use App\Modules\Tenancy\Application\Contracts\TenancyAuditRecorder;
 use App\Modules\Tenancy\Application\Data\TenancyAuditData;
 use App\Modules\Tenancy\Application\Data\TenantRequestContext;
 use App\Modules\Tenancy\Application\Exceptions\TenancyException;
-use App\Modules\Tenancy\Application\Services\TenantOwnerGuard;
+use App\Modules\Tenancy\Application\Services\TenantPermissionGuard;
 use App\Modules\Tenancy\Domain\Enums\OutletStatus;
 use App\Modules\Tenancy\Domain\Models\Outlet;
 use App\Shared\Application\Context\ActorContext;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Validator;
 final readonly class DisableOutlet
 {
     public function __construct(
-        private TenantOwnerGuard $ownerGuard,
+        private TenantPermissionGuard $guard,
         private TenancyAuditRecorder $audit,
     ) {}
 
@@ -28,7 +28,7 @@ final readonly class DisableOutlet
         string $reason,
         ActorContext $actor,
     ): void {
-        $this->ownerGuard->authorize($context);
+        $this->guard->authorizeManageOutlets($context);
         $reason = trim($reason);
         Validator::make(['reason' => $reason], [
             'reason' => ['required', 'string', 'min:10', 'max:500'],

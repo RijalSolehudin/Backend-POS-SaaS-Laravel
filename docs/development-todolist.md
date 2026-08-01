@@ -37,8 +37,14 @@ Dokumen versi sebelumnya tersedia di [Development Todolist v1](archive/developme
 - [x] Menyetujui status P01-01 Modular Foundation menjadi `Ready`.
 - [x] Memberikan instruksi untuk memulai implementasi Phase 01 dari P01-01.
 - [x] Menyelesaikan implementasi awal P01-01 Modular Foundation.
-- [ ] Menyelesaikan MariaDB container dan first real use-case integration verification P01-01.
+- [x] Menyelesaikan MariaDB container dan first real use-case integration verification P01-01.
+- [x] Menyelesaikan verification P01-01 sampai P01-06 pada MariaDB-backed `composer quality`.
+- [x] Menyelesaikan P01-07 Predefined RBAC.
+- [x] Menyelesaikan P01-08 POS Device Registry.
+- [x] Menyelesaikan P01-09 Flutter API Foundation.
+- [x] Menyelesaikan P01-10 Minimum Catalog.
+- [x] Menyelesaikan P01-11 Security, Audit, and Operational Readiness.
 
-Implementasi Phase 01 sedang berjalan pada P01-01. Work package lain tetap membutuhkan readiness review sebelum implementasi.
+Implementasi Phase 01 Foundation telah selesai. Tahap berikutnya berada pada Phase 02 POS Core.
 
-Tidak ada phase implementasi yang saat ini ditandai selesai.
+Phase 01 selesai penuh setelah P01-11 menutup security, audit, operational readiness, dan evidence gate.

@@ -1,6 +1,6 @@
 # P01-08 — POS Device Registry
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 
@@ -42,22 +42,27 @@ Owner atau Manager berwenang dapat mendaftarkan, memindahkan, dan mencabut termi
 
 ## Implementation Checklist
 
-- [ ] Implementasikan device persistence dan installation ID validation.
-- [ ] Implementasikan registration, reassignment, dan revocation use cases.
-- [ ] Hubungkan management UI ke use cases.
-- [ ] Terapkan authorization dan same-tenant constraint.
-- [ ] Terapkan atomic linked-token revocation.
-- [ ] Audit actor, device, outlet, reason, dan outcome.
-- [ ] Tambahkan lifecycle dan cross-tenant tests.
+- [x] Implementasikan device persistence dan installation ID validation.
+- [x] Implementasikan registration, reassignment, dan revocation use cases.
+- [x] Hubungkan management UI ke use cases.
+- [x] Terapkan authorization dan same-tenant constraint.
+- [x] Terapkan atomic linked-token revocation.
+- [x] Audit actor, device, outlet, reason, dan outcome.
+- [x] Tambahkan lifecycle dan cross-tenant tests.
 
 ## Verification and Evidence
 
-- Unknown device menghasilkan `DEVICE_NOT_REGISTERED`.
-- Revoked device/token menghasilkan `DEVICE_REVOKED`.
+- `pos_devices` menyimpan installation ULID, tenant/outlet binding, metadata client, status, registration actor, last seen, dan revocation metadata.
+- Sanctum `personal_access_tokens` mempunyai nullable `pos_device_id` untuk linked-token revocation P01-08 dan enforcement P01-09.
+- `RegisterPosDevice`, `ReassignPosDevice`, `RevokePosDevice`, dan `ResolveRegisteredPosDevice` tersedia sebagai application actions.
+- Outlet Manager dapat register device hanya pada outlet assignment yang sah; Cashier ditolak.
 - Reassignment lintas tenant ditolak dan tidak mengubah state.
+- Reassignment/revocation menghapus linked Sanctum tokens secara atomik.
 - Device record tetap tersedia setelah revocation untuk audit.
+- Unknown device menghasilkan stable code `DEVICE_NOT_REGISTERED`; revoked device menghasilkan `DEVICE_REVOKED`.
+- Tenant Admin menyediakan `/admin/tenants/{tenant}/devices` untuk registration, reassignment, dan revocation.
+- `composer quality` lulus: static quality gate, 11 unit tests/37 assertions, dan 46 feature tests/344 assertions pada MariaDB-backed test run.
 
 ## Architecture Check
 
 Berhenti dan tanyakan product owner jika installation ID format/lifecycle belum memadai, dibutuhkan device approval flow, multi-outlet device, device credential, atau trusted hardware signal.
-

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\Contracts\HasApiTokens as HasApiTokensContract;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -22,7 +23,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $must_change_password
  */
 #[UseFactory(UserFactory::class)]
-final class User extends Authenticatable
+final class User extends Authenticatable implements HasApiTokensContract
 {
     use HasApiTokens;
 

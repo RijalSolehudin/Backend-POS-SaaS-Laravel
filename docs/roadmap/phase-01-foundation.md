@@ -1,6 +1,6 @@
 # Phase 01: Foundation
 
-Status: **In Progress**
+Status: **Done**
 
 ## Outcome
 
@@ -30,7 +30,7 @@ Acceptance criteria lengkap dan telah disetujui berada pada [Phase 01 Acceptance
 
 ## Execution Plan
 
-Rencana eksekusi berbasis capability berada pada [Phase 01 Execution Plan](../execution/phase-01/README.md). Seluruh work package masih berstatus `Planned` dan tidak mengizinkan implementasi tanpa readiness review serta instruksi terpisah dari product owner.
+Rencana eksekusi berbasis capability berada pada [Phase 01 Execution Plan](../execution/phase-01/README.md). P01-01 sampai P01-11 telah selesai dan Phase 01 memenuhi Definition of Done baseline.
 
 ## Out of Scope
 

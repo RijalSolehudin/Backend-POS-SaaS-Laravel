@@ -6,6 +6,7 @@ namespace Tests\Feature\Tenancy;
 
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\PlatformIdentity\Domain\Enums\PlatformUserStatus;
+use App\Modules\PlatformIdentity\Domain\Models\PlatformRecoveryCode;
 use App\Modules\PlatformIdentity\Domain\Models\PlatformUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -23,20 +24,34 @@ final class TenantProvisioningWebTest extends TestCase
         parent::setUp();
 
         config()->set('identity.password.check_compromised', false);
+        config()->set('platform_identity.sensitive_confirmation_seconds', 30);
     }
 
     public function test_platform_admin_must_recently_confirm_before_provisioning_from_web(): void
     {
         $platformUser = $this->platformUser();
+        $recoveryCode = '2345-6789-ABCD-EFGH';
+        PlatformRecoveryCode::query()->create([
+            'platform_user_id' => $platformUser->getKey(),
+            'code_hash' => Hash::make(str_replace('-', '', $recoveryCode)),
+        ]);
+
         $this->passwordAndTotpLogin($platformUser);
 
         $this->get(route('platform.tenants.create'))
-            ->assertRedirect(route('platform.confirm-sensitive'));
+            ->assertOk()
+            ->assertSee('Provision tenant')
+            ->assertSee('Initial Tenant Owner');
 
         $this->travel(31)->seconds();
+
+        $expiredResponse = $this->get(route('platform.tenants.create'));
+        self::assertSame(302, $expiredResponse->getStatusCode());
+        self::assertSame(route('platform.confirm-sensitive'), $expiredResponse->headers->get('Location'));
+
         $this->post(route('platform.confirm-sensitive.store'), [
             'password' => 'correct horse battery staple',
-            'code' => TOTP::createFromSecret('JBSWY3DPEHPK3PXP', new InternalClock)->now(),
+            'code' => $recoveryCode,
         ])->assertRedirect(route('platform.tenants.create'));
 
         $this->get(route('platform.tenants.create'))

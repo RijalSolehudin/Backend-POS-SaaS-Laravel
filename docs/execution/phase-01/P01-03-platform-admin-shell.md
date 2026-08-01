@@ -1,6 +1,6 @@
 # P01-03 — Platform Admin Shell
 
-Status: **In Review**
+Status: **Done**
 
 ## Outcome
 
@@ -59,7 +59,8 @@ Platform Administrator dapat masuk ke area `/platform/...` yang terisolasi dan s
 - Feature subset tanpa database untuk route middleware dan safe error boundary lulus: 2 tests dan 9 assertions.
 - `npm install` audit tidak menemukan vulnerability pada 67 packages.
 - Feature tests tersedia untuk guest/authenticated shell, platform guard redirect, middleware boundary, session visibility, dan safe 404 response.
-- MariaDB-backed feature suite belum dapat dijalankan karena test service pada `127.0.0.1:33067` tidak tersedia. P01-03 tetap `In Review` sampai suite tersebut lulus pada MariaDB 11.4.
+- MariaDB-backed feature suite lulus pada MariaDB 11.4 test container `127.0.0.1:33067`.
+- `composer quality` lulus: static quality gate, 11 unit tests/37 assertions, dan 37 feature tests/306 assertions.
 
 ## Architecture Check
 

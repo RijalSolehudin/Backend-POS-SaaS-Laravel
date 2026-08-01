@@ -22,7 +22,7 @@ final class TenantProvisioningCliTest extends TestCase
         $command
             ->expectsQuestion('Operator name or email', 'operator@example.com')
             ->expectsQuestion('Provisioning reason / ticket', 'Pilot onboarding CLI-001')
-            ->expectsQuestion('Idempotency key', '01k123456789abcdefghjkmnp')
+            ->expectsQuestion('Idempotency key', '01k123456789abcdefghjkmnpq')
             ->expectsQuestion('Tenant name', 'Kopi Nusantara')
             ->expectsQuestion('Tenant code', 'kopi-nusantara')
             ->expectsQuestion('Currency', 'IDR')
@@ -36,7 +36,8 @@ final class TenantProvisioningCliTest extends TestCase
             ->expectsConfirmation('Provision this tenant?', 'yes')
             ->expectsOutputToContain('Tenant provisioned successfully.')
             ->doesntExpectOutput('tenant owner secure password')
-            ->assertExitCode(0);
+            ->assertExitCode(0)
+            ->run();
 
         $this->assertDatabaseHas('tenants', ['code' => 'kopi-nusantara']);
         $this->assertDatabaseHas('users', ['email' => 'owner@example.com']);

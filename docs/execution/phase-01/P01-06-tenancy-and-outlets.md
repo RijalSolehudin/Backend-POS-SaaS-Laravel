@@ -1,6 +1,6 @@
 # P01-06 — Tenancy and Outlets
 
-Status: **In Review**
+Status: **Done**
 
 ## Outcome
 
@@ -63,8 +63,8 @@ Tenant Owner dapat mengelola outlet dan user assignment melalui Tenant Admin den
 - Composite foreign key mencegah assignment outlet/user lintas tenant pada database layer.
 - Tenant user display data diakses melalui `TenantUserDirectory`; Tenancy tidak mengubah Identity model.
 - `TenantOutletManagementTest` mencakup lifecycle outlet, non-owner denial, cross-tenant child ULID, multi-outlet assignment, dan cross-tenant user rejection.
-- Pint, Larastan level 8, Deptrac, route cache, dan Blade compilation lulus pada 2026-07-26.
-- Database-backed feature execution menunggu MariaDB test service `127.0.0.1:33067` yang belum tersedia.
+- Pint, Larastan level 8, Deptrac, route cache, Blade compilation, 11 unit tests/37 assertions, dan 37 feature tests/306 assertions lulus melalui `composer quality`.
+- Database-backed feature execution lulus pada MariaDB 11.4 test container `127.0.0.1:33067`.
 
 ## Architecture Check
 

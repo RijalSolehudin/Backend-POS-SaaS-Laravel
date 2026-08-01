@@ -8,7 +8,7 @@ use App\Modules\Tenancy\Application\Contracts\TenancyAuditRecorder;
 use App\Modules\Tenancy\Application\Data\TenancyAuditData;
 use App\Modules\Tenancy\Application\Data\TenantRequestContext;
 use App\Modules\Tenancy\Application\Exceptions\TenancyException;
-use App\Modules\Tenancy\Application\Services\TenantOwnerGuard;
+use App\Modules\Tenancy\Application\Services\TenantPermissionGuard;
 use App\Modules\Tenancy\Domain\Models\Outlet;
 use App\Modules\Tenancy\Domain\Models\OutletUserAssignment;
 use App\Shared\Application\Context\ActorContext;
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class RemoveUserFromOutlet
 {
     public function __construct(
-        private TenantOwnerGuard $ownerGuard,
+        private TenantPermissionGuard $guard,
         private TenancyAuditRecorder $audit,
     ) {}
 
@@ -27,7 +27,7 @@ final readonly class RemoveUserFromOutlet
         string $userId,
         ActorContext $actor,
     ): void {
-        $this->ownerGuard->authorize($context);
+        $this->guard->authorizeManageOutletUsers($context);
 
         DB::transaction(function () use ($context, $outletId, $userId, $actor): void {
             if (! Outlet::query()->where('tenant_id', $context->tenantId)->whereKey($outletId)->exists()) {

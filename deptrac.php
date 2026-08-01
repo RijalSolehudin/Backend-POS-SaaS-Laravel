@@ -58,6 +58,10 @@ return static function (DeptracConfig $config): void {
             $applicationDependencies[] = Layer::withName('Identity Application');
         }
 
+        if ($module === 'Catalog') {
+            $applicationDependencies[] = Layer::withName('Tenancy Application');
+        }
+
         $infrastructureDependencies = [
             $application,
             $domain,
@@ -80,9 +84,25 @@ return static function (DeptracConfig $config): void {
             $bootstrapDependencies[] = Layer::withName('Identity Application');
         }
 
+        if ($module === 'Catalog') {
+            $infrastructureDependencies[] = Layer::withName('Tenancy Application');
+            $bootstrapDependencies[] = Layer::withName('Tenancy Application');
+        }
+
         if ($module === 'Identity') {
             $infrastructureDependencies[] = Layer::withName('Tenancy Application');
             $bootstrapDependencies[] = Layer::withName('Tenancy Application');
+        }
+
+        $presentationDependencies = [
+            $application,
+            $domain,
+            $sharedApplication,
+            $sharedDomain,
+        ];
+
+        if ($module === 'Catalog') {
+            $presentationDependencies[] = Layer::withName('Tenancy Application');
         }
 
         array_push($layers, $domain, $application, $infrastructure, $presentation, $bootstrap);
@@ -91,12 +111,7 @@ return static function (DeptracConfig $config): void {
             Ruleset::forLayer($domain)->accesses($sharedDomain),
             Ruleset::forLayer($application)->accesses(...$applicationDependencies),
             Ruleset::forLayer($infrastructure)->accesses(...$infrastructureDependencies),
-            Ruleset::forLayer($presentation)->accesses(
-                $application,
-                $domain,
-                $sharedApplication,
-                $sharedDomain,
-            ),
+            Ruleset::forLayer($presentation)->accesses(...$presentationDependencies),
             Ruleset::forLayer($bootstrap)->accesses(...$bootstrapDependencies),
         );
     }

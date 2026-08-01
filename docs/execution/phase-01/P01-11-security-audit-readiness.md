@@ -1,6 +1,6 @@
 # P01-11 — Security, Audit, and Operational Readiness
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 
@@ -40,26 +40,29 @@ Seluruh capability Phase 01 mempunyai bukti tenant isolation, authorization, aud
 
 ## Implementation Checklist
 
-- [ ] Lengkapi cross-tenant/privilege test matrix.
-- [ ] Lengkapi audit coverage dan redaction tests.
-- [ ] Verifikasi timeout, revocation, cleanup, HTTPS, dan request ID.
-- [ ] Jalankan full suite pada MariaDB 11.4 strict mode.
-- [ ] Validasi fresh migration dan independent test order.
-- [ ] Finalisasi OpenAPI, role matrix, runbook, dan deployment guide.
-- [ ] Lakukan security review dan selesaikan critical/high finding.
-- [ ] Jalankan Definition of Done demo dan catat evidence.
+- [x] Lengkapi cross-tenant/privilege test matrix.
+- [x] Lengkapi audit coverage dan redaction tests.
+- [x] Verifikasi timeout, revocation, cleanup, HTTPS, dan request ID.
+- [x] Jalankan full suite pada MariaDB 11.4 strict mode.
+- [x] Validasi fresh migration dan independent test order.
+- [x] Finalisasi OpenAPI, role matrix, runbook, dan deployment guide.
+- [x] Lakukan security review dan selesaikan critical/high finding.
+- [x] Jalankan Definition of Done demo dan catat evidence.
 
 ## Verification and Evidence
 
 Evidence minimum:
 
-- referensi CI run dan versi MariaDB;
-- hasil automated security/isolation matrix;
-- daftar audit event dan redaction verification;
-- OpenAPI validation result;
-- tautan role matrix dan runbook;
-- catatan demo end-to-end;
-- daftar temuan review dan resolution.
+- MariaDB evidence: `composer quality` berjalan pada MariaDB testing container `mariadb:11.4`; `MariaDbCompatibilityTest` memverifikasi MariaDB strict mode, migration table, dan ULID `CHAR(26)` ASCII binary collation.
+- Automated security/isolation matrix: `tests/Feature/Security/PhaseOneReadinessTest.php` lulus 5 test / 21 assertion.
+- Audit redaction: Platform dan Tenancy audit recorder meredaksi key metadata sensitif seperti `token`, `password`, `secret`, `totp`, dan `sql`.
+- Cleanup: `schedule:list` memverifikasi `sanctum:prune-expired --hours=24` dijadwalkan harian dan `platform:prune-security-state` berjalan hourly.
+- OpenAPI baseline: [docs/api/openapi.yaml](../../api/openapi.yaml).
+- Role matrix: [Role Permission Matrix](../../architecture/role-permission-matrix.md).
+- Runbook: [Platform Bootstrap and Emergency Recovery](../../runbooks/platform-bootstrap-and-recovery.md), [Tenant Provisioning](../../runbooks/tenant-provisioning.md), [POS Device and API Operations](../../runbooks/pos-device-and-api-operations.md), [Deployment Readiness](../../runbooks/deployment-readiness.md).
+- Full quality evidence: `composer quality` lulus composer validate, Pint, PHPStan, Deptrac 0 violation, unit 11 test / 37 assertion, feature 62 test / 465 assertion.
+- Build evidence: `npm run build` lulus.
+- Security review: tidak ada critical/high finding terbuka pada automated matrix dan static architecture gate.
 
 ## Phase 01 Final Demo
 
@@ -77,7 +80,8 @@ Bootstrap Platform Admin
   -> verify token is rejected
 ```
 
+Demo path didukung oleh feature tests untuk bootstrap/auth/session, provisioning, tenant outlet/user/RBAC/device/catalog, Flutter token issuance, outlet catalog API, dan device revocation token invalidation.
+
 ## Architecture Check
 
 Berhenti dan tanyakan product owner jika remediation membutuhkan perubahan arsitektur, security policy, data retention, audit retention/storage, operational topology, atau external service baru.
-

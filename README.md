@@ -31,6 +31,16 @@ npm run build
 
 Convention module, action, database test, dan quality tooling dijelaskan pada [Development Conventions](docs/architecture/development-conventions.md).
 
+## Operational Readiness
+
+Production/staging deployment wajib menjalankan queue worker dan scheduler:
+
+```shell
+php artisan schedule:run
+```
+
+Ikuti [Deployment Readiness Runbook](docs/runbooks/deployment-readiness.md) untuk HTTPS/session cookie, migration, scheduler, audit, dan release evidence.
+
 ## Platform Administrator Bootstrap
 
 Setelah migration serta queue/scheduler deployment siap, buat Platform Administrator pertama melalui prompt terkontrol:

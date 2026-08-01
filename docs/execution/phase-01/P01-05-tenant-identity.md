@@ -1,6 +1,6 @@
 # P01-05 — Tenant Identity
 
-Status: **In Review**
+Status: **Done**
 
 ## Outcome
 
@@ -65,8 +65,8 @@ Tenant user dapat mengakses Tenant Admin melalui session terpisah, dengan lifecy
 - Forced initial password change, password broker 30 menit, user/tenant active check, logout, dan server-side timeout tersedia.
 - Sanctum `v4.3.3` terpasang dan personal access token memakai ULID-compatible `tokenable_id`.
 - `TenantIdentityTest` mencakup login, forced password change, Platform/Tenant isolation, cross-tenant hiding, disabled tenant, timeout termasuk passive polling, dan session/token revocation.
-- Composer validation, 11 unit tests/37 assertions, Pint, Larastan level 8, dan Deptrac lulus pada 2026-07-26.
-- Delapan test Tenant Identity tersedia; eksekusi database-backed menunggu MariaDB test service `127.0.0.1:33067` yang masih menolak koneksi sesuai environment ADR-027.
+- Composer validation, Pint, Larastan level 8, Deptrac, 11 unit tests/37 assertions, dan 37 feature tests/306 assertions lulus melalui `composer quality`.
+- Delapan test Tenant Identity lulus pada MariaDB 11.4 test container `127.0.0.1:33067`.
 
 ## Architecture Check
 
