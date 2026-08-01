@@ -1,6 +1,6 @@
 # P06-02 — Recipe Module Foundation
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 

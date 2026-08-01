@@ -12,5 +12,6 @@ enum StockMovementType: string
     case Waste = 'waste';
     case TransferOut = 'transfer_out';
     case TransferIn = 'transfer_in';
+    case SalesDeduction = 'sales_deduction';
     case Reversal = 'reversal';
 }

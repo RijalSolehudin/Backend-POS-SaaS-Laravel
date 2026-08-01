@@ -1,6 +1,6 @@
 # Phase 06: Recipe and Procurement
 
-Status: **Not Started**
+Status: **In Progress**
 
 ## Outcome
 

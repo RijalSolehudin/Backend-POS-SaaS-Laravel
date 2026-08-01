@@ -1,6 +1,6 @@
 # Phase 06 Execution Plan
 
-Status: **Planned**
+Status: **In Progress**
 
 Dokumen ini memecah [Phase 06 Recipe and Procurement](../../roadmap/phase-06-recipe-procurement.md) menjadi work package berbasis outcome.
 
@@ -14,9 +14,9 @@ Detail implementasi wajib mengikuti [Phase 06 Implementation Contract](implement
 | ID | Work package | Dependency utama | Status |
 |---|---|---|---|
 | P06-01 | [Recipe and Procurement Decision Gate](P06-01-recipe-procurement-decision-gate.md) | Phase 05 | Done |
-| P06-02 | [Recipe Module Foundation](P06-02-recipe-module-foundation.md) | P06-01, P05 | Planned |
-| P06-03 | [Recipe Versioning and Costing](P06-03-recipe-versioning-costing.md) | P06-02, P05 | Planned |
-| P06-04 | [Sales Stock Deduction Integration](P06-04-sales-stock-deduction-integration.md) | P06-03, P05 | Planned |
+| P06-02 | [Recipe Module Foundation](P06-02-recipe-module-foundation.md) | P06-01, P05 | Done |
+| P06-03 | [Recipe Versioning and Costing](P06-03-recipe-versioning-costing.md) | P06-02, P05 | Done |
+| P06-04 | [Sales Stock Deduction Integration](P06-04-sales-stock-deduction-integration.md) | P06-03, P05 | Done |
 | P06-05 | [Procurement Module Foundation](P06-05-procurement-module-foundation.md) | P06-01, P05 | Planned |
 | P06-06 | [Purchase Order Approval Lifecycle](P06-06-purchase-order-approval-lifecycle.md) | P06-05 | Planned |
 | P06-07 | [Goods Receipt and Purchase Return](P06-07-goods-receipt-purchase-return.md) | P06-06, P05 | Planned |

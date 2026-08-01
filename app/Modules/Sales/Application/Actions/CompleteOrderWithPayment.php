@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Sales\Application\Actions;
 
+use App\Modules\Recipe\Application\Actions\DeductOrderInventory;
 use App\Modules\Sales\Application\Exceptions\OrderException;
 use App\Modules\Sales\Application\Services\IdempotencyStore;
 use App\Modules\Sales\Application\Services\ReceiptSnapshotFactory;
@@ -25,6 +26,7 @@ final readonly class CompleteOrderWithPayment
     public function __construct(
         private ReceiptSnapshotFactory $receipts,
         private IdempotencyStore $idempotency,
+        private DeductOrderInventory $deductions,
     ) {}
 
     public function handle(
@@ -86,6 +88,8 @@ final readonly class CompleteOrderWithPayment
             if ($currency !== $order->currency) {
                 throw OrderException::paymentCurrencyMismatch();
             }
+
+            $this->deductions->handle($order, $idempotencyKey);
 
             $payment = Payment::query()->create([
                 'tenant_id' => $context->tenantId,

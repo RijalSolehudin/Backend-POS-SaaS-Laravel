@@ -46,7 +46,7 @@ Gunakan module `Recipe` dan `Procurement` dengan struktur standar `Application`,
 - Trigger deduction setelah Sales order completed, sebelum response complete dikembalikan.
 - Deduction harus dalam transaction yang sama atau punya compensating recovery check; MVP memilih transaction yang sama.
 - Satu `sales_order_item_id` hanya boleh punya satu successful deduction.
-- Jika recipe mapping missing, order tetap boleh complete hanya bila product ditandai no-recipe-required dalam mapping policy. Default MVP: missing recipe menolak completion untuk variant yang `requires_recipe=true`.
+- Jika recipe mapping missing, variant dianggap belum dikelola Recipe dan order tetap boleh complete tanpa deduction. Mapping dengan `requires_recipe=true` wajib menunjuk active recipe version sebelum completion.
 - Inventory insufficient stock membuat complete order gagal dengan business error.
 
 ## Procurement Rules

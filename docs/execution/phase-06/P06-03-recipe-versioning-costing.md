@@ -1,6 +1,6 @@
 # P06-03 — Recipe Versioning and Costing
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 

@@ -4,6 +4,7 @@ use App\Modules\Catalog\Infrastructure\Providers\CatalogServiceProvider;
 use App\Modules\Identity\Infrastructure\Providers\IdentityServiceProvider;
 use App\Modules\Inventory\Infrastructure\Providers\InventoryServiceProvider;
 use App\Modules\PlatformIdentity\Infrastructure\Providers\PlatformIdentityServiceProvider;
+use App\Modules\Recipe\Infrastructure\Providers\RecipeServiceProvider;
 use App\Modules\Sales\Infrastructure\Providers\SalesServiceProvider;
 use App\Modules\Tenancy\Infrastructure\Providers\TenancyServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -16,4 +17,5 @@ return [
     CatalogServiceProvider::class,
     SalesServiceProvider::class,
     InventoryServiceProvider::class,
+    RecipeServiceProvider::class,
 ];

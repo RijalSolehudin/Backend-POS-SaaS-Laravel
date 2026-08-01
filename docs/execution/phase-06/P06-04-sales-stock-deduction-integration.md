@@ -1,6 +1,6 @@
 # P06-04 — Sales Stock Deduction Integration
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 
@@ -17,6 +17,7 @@ Order completed mengurangi Inventory secara idempotent berdasarkan active recipe
 
 - Ikuti [Phase 06 Implementation Contract](implementation-contract.md).
 - Deduction terjadi sebelum payment/receipt final.
+- Variant tanpa mapping recipe dianggap belum dikelola Recipe dan tidak membuat deduction; mapping `requires_recipe=true` tanpa active version menolak completion.
 - Insufficient stock menolak completion.
 - Retry complete order tidak membuat deduction ganda.
 
