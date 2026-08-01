@@ -1,6 +1,6 @@
 # Phase 03: Operational Safety
 
-Status: **Not Started**
+Status: **In Progress**
 
 ## Outcome
 
@@ -18,6 +18,7 @@ MVP memiliki kontrol finansial, auditability, failure recovery, dan kesiapan pil
 
 ## Architecture Decisions Required
 
+- Proposed decision: [ADR-038 Operational Safety MVP Policy](../architecture/decisions/038-operational-safety-mvp-policy.md).
 - Approval model untuk sensitive actions.
 - Refund dan payment reversal semantics.
 - Audit retention dan sensitive-data policy.
@@ -31,4 +32,3 @@ MVP memiliki kontrol finansial, auditability, failure recovery, dan kesiapan pil
 - Failure scenario kritis memiliki recovery procedure yang diuji.
 - Daily reconciliation dapat menjelaskan discrepancy.
 - Pilot checklist diterima sebelum outlet menggunakan sistem untuk transaksi riil.
-

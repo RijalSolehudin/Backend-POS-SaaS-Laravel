@@ -29,3 +29,4 @@ Planned -> Ready -> In Progress -> In Review -> Done
 
 - [Phase 01 — Foundation](phase-01/README.md)
 - [Phase 02 — POS Core Vertical Slice](phase-02/README.md)
+- [Phase 03 — Operational Safety](phase-03/README.md)

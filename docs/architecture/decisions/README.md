@@ -56,6 +56,7 @@
 
 ## Open Architecture Decisions
 
+- [ADR-038](038-operational-safety-mvp-policy.md) Operational Safety MVP policy.
 - Recipe module ownership.
 - Offline synchronization strategy.
 - Stock deduction timing dan inventory costing.
