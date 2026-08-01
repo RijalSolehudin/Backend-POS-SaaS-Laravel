@@ -1,6 +1,6 @@
 # P05-02 — Inventory Module Foundation
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
