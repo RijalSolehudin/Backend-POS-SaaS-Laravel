@@ -1,6 +1,6 @@
 # P03-06 — Concurrency and Recovery Hardening
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -39,6 +39,20 @@ Critical Sales mutations memiliki retry, locking, idempotency, dan recovery chec
 - Feature tests untuk critical replay matrix.
 - Console tests bila recovery check dibuat sebagai command.
 - `composer quality` lulus.
+
+## Delivered
+
+- Command `sales:recovery-check` untuk menemukan state finansial yang ambigu setelah timeout, retry, atau partial persistence.
+- Recovery finding untuk completed order tanpa recorded payment, completed order tanpa receipt, recorded payment pada order non-completed, refund/cash-out dengan approval belum consumed, dan idempotency resource yang hilang.
+- Console tests untuk state sehat dan state bermasalah.
+- Runbook [Sales Retry and Recovery](../../runbooks/sales-retry-and-recovery.md) berisi retry policy, lock boundary, finding code, audit/correlation ID, dan stop rule.
+
+## Evidence
+
+- Laravel Boost SearchDocs digunakan untuk panduan console command exit code, Artisan call, query builder exists, join, dan service provider.
+- `php artisan test tests/Feature/Sales/SalesRecoveryCheckTest.php`
+- `composer quality`
+- `npm run build`
 
 ## Architecture Stop Rule
 

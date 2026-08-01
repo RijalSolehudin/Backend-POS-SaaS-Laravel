@@ -1,6 +1,6 @@
 # P03-07 — Operational Baseline
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

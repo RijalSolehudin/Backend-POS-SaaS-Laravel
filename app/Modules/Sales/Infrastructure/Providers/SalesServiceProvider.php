@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Infrastructure\Providers;
 
 use App\Modules\Sales\Presentation\Console\Commands\PruneSalesAuditEventsCommand;
+use App\Modules\Sales\Presentation\Console\Commands\SalesRecoveryCheckCommand;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,6 +28,7 @@ final class SalesServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 PruneSalesAuditEventsCommand::class,
+                SalesRecoveryCheckCommand::class,
             ]);
 
             Schedule::command('sales:prune-audit-events')
