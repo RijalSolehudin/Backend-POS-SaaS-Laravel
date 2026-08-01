@@ -1,6 +1,6 @@
 # P04-05 — Outlet Availability and Price Overrides
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -39,6 +39,21 @@ Tenant admin dapat mengatur availability dan price override per outlet untuk pro
 - Feature tests untuk availability dan price override.
 - Regression tests untuk existing product outlet availability.
 - `composer quality` lulus.
+
+## Delivered
+
+- Variant outlet availability dan price override schema ditambahkan.
+- Modifier option outlet availability dan price delta override schema ditambahkan.
+- POS catalog menyembunyikan variant/option yang unavailable pada outlet target.
+- POS catalog memakai outlet override price bila tersedia dan fallback ke base price bila override null.
+- Product lama tetap menggunakan product outlet availability yang sudah ada.
+
+## Evidence
+
+- Laravel Boost SearchDocs digunakan untuk update/create, query builder, dan migration guidance.
+- `php artisan test tests/Feature/Catalog/MinimumCatalogTest.php`
+- `composer quality`
+- `npm run build`
 
 ## Architecture Stop Rule
 

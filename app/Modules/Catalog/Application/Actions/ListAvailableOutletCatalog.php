@@ -12,8 +12,10 @@ use App\Modules\Catalog\Domain\Enums\CategoryStatus;
 use App\Modules\Catalog\Domain\Enums\ProductStatus;
 use App\Modules\Catalog\Domain\Models\ModifierGroup;
 use App\Modules\Catalog\Domain\Models\ModifierOption;
+use App\Modules\Catalog\Domain\Models\ModifierOptionOutletOverride;
 use App\Modules\Catalog\Domain\Models\Product;
 use App\Modules\Catalog\Domain\Models\ProductVariant;
+use App\Modules\Catalog\Domain\Models\VariantOutletAvailability;
 use App\Modules\Tenancy\Application\Data\PosOutletContext;
 use Illuminate\Support\Facades\DB;
 
@@ -62,7 +64,7 @@ final readonly class ListAvailableOutletCatalog
             ])
             ->all();
 
-        return array_map(
+        $products = array_map(
             fn (object $row): AvailableCatalogProduct => new AvailableCatalogProduct(
                 id: $row->id,
                 sku: $row->sku,
@@ -77,6 +79,11 @@ final readonly class ListAvailableOutletCatalog
             ),
             $rows,
         );
+
+        return array_values(array_filter(
+            $products,
+            fn (AvailableCatalogProduct $product): bool => $product->variants !== [],
+        ));
     }
 
     /**
@@ -110,18 +117,38 @@ final readonly class ListAvailableOutletCatalog
             ];
         }
 
-        return array_map(
-            fn (object $variant): AvailableCatalogVariant => new AvailableCatalogVariant(
+        $resolved = [];
+
+        foreach ($variants as $variant) {
+            $availability = $this->variantAvailability($context, $variant->id);
+
+            if ($availability instanceof VariantOutletAvailability && ! $availability->available) {
+                continue;
+            }
+
+            $resolved[] = new AvailableCatalogVariant(
                 id: $variant->id,
                 sku: $variant->sku,
                 name: $variant->name,
-                priceMinor: $variant->price_minor,
+                priceMinor: $availability instanceof VariantOutletAvailability && $availability->price_minor !== null
+                    ? $availability->price_minor
+                    : $variant->price_minor,
                 currency: $variant->currency,
                 isDefault: (bool) $variant->is_default,
                 modifierGroups: $this->modifierGroups($context, $row->id, $variant->id),
-            ),
-            $variants,
-        );
+            );
+        }
+
+        return $resolved;
+    }
+
+    private function variantAvailability(PosOutletContext $context, string $variantId): ?VariantOutletAvailability
+    {
+        return VariantOutletAvailability::query()
+            ->where('tenant_id', $context->tenantId)
+            ->where('outlet_id', $context->outletId)
+            ->where('variant_id', $variantId)
+            ->first();
     }
 
     /**
@@ -174,14 +201,34 @@ final readonly class ListAvailableOutletCatalog
             ->get(['id', 'name', 'price_delta_minor', 'currency'])
             ->all();
 
-        return array_map(
-            fn (object $option): AvailableModifierOption => new AvailableModifierOption(
+        $resolved = [];
+
+        foreach ($options as $option) {
+            $override = $this->modifierOptionOverride($context, $option->id);
+
+            if ($override instanceof ModifierOptionOutletOverride && ! $override->available) {
+                continue;
+            }
+
+            $resolved[] = new AvailableModifierOption(
                 id: $option->id,
                 name: $option->name,
-                priceDeltaMinor: $option->price_delta_minor,
+                priceDeltaMinor: $override instanceof ModifierOptionOutletOverride && $override->price_delta_minor !== null
+                    ? $override->price_delta_minor
+                    : $option->price_delta_minor,
                 currency: $option->currency,
-            ),
-            $options,
-        );
+            );
+        }
+
+        return $resolved;
+    }
+
+    private function modifierOptionOverride(PosOutletContext $context, string $optionId): ?ModifierOptionOutletOverride
+    {
+        return ModifierOptionOutletOverride::query()
+            ->where('tenant_id', $context->tenantId)
+            ->where('outlet_id', $context->outletId)
+            ->where('option_id', $optionId)
+            ->first();
     }
 }

@@ -9,9 +9,11 @@ use App\Modules\Catalog\Domain\Enums\ProductStatus;
 use App\Modules\Catalog\Domain\Models\Category;
 use App\Modules\Catalog\Domain\Models\ModifierGroup;
 use App\Modules\Catalog\Domain\Models\ModifierOption;
+use App\Modules\Catalog\Domain\Models\ModifierOptionOutletOverride;
 use App\Modules\Catalog\Domain\Models\Product;
 use App\Modules\Catalog\Domain\Models\ProductOutletAvailability;
 use App\Modules\Catalog\Domain\Models\ProductVariant;
+use App\Modules\Catalog\Domain\Models\VariantOutletAvailability;
 use App\Modules\Identity\Domain\Enums\PredefinedRole;
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\Identity\Domain\Models\UserRoleAssignment;
@@ -274,6 +276,43 @@ final class MinimumCatalogTest extends TestCase
             ->assertJsonCount(1, 'data.0.variants.0.modifier_groups.0.options');
     }
 
+    public function test_flutter_catalog_resolves_outlet_variant_and_modifier_overrides(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $cashier = $this->user('cashier@example.com', $tenant, MembershipType::Member, PredefinedRole::Cashier);
+        $mainOutlet = $this->outlet($tenant, 'MAIN');
+        $otherOutlet = $this->outlet($tenant, 'OTHER');
+        $this->assignOutlet($tenant, $mainOutlet, $cashier);
+        $this->device($tenant, $mainOutlet, '01k123456789abcdefghjkmnpq', $owner);
+        $category = $this->category($tenant, 'Drinks');
+        $product = $this->product($tenant, $category, 'COFFEE', 'Coffee');
+        $regular = $this->variant($tenant, $product, 'COFFEE-REG', 'Regular', ProductStatus::Active, 10);
+        $hiddenLarge = $this->variant($tenant, $product, 'COFFEE-LARGE', 'Large', ProductStatus::Active, 20);
+        $this->availability($tenant, $mainOutlet, $product, true);
+        $this->availability($tenant, $otherOutlet, $product, true);
+        $this->variantAvailability($tenant, $mainOutlet, $regular, true, 18000);
+        $this->variantAvailability($tenant, $mainOutlet, $hiddenLarge, false);
+
+        $milk = $this->modifierGroup($tenant, $product, 'Milk', false, 0, 1);
+        $oat = $this->modifierOption($tenant, $milk, 'Oat Milk', 5000);
+        $almond = $this->modifierOption($tenant, $milk, 'Almond Milk', 6000);
+        $this->modifierOptionOverride($tenant, $mainOutlet, $oat, true, 7000);
+        $this->modifierOptionOverride($tenant, $mainOutlet, $almond, false);
+
+        $response = $this->withToken($this->posToken($mainOutlet))
+            ->getJson(route('api.v1.pos.outlets.catalog', ['outlet' => $mainOutlet->id]));
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(1, 'data.0.variants')
+            ->assertJsonPath('data.0.variants.0.sku', 'COFFEE-REG')
+            ->assertJsonPath('data.0.variants.0.price_minor', 18000)
+            ->assertJsonCount(1, 'data.0.variants.0.modifier_groups.0.options')
+            ->assertJsonPath('data.0.variants.0.modifier_groups.0.options.0.name', 'Oat Milk')
+            ->assertJsonPath('data.0.variants.0.modifier_groups.0.options.0.price_delta_minor', 7000);
+    }
+
     private function tenant(string $name = 'Tenant One', string $code = 'tenant-one'): Tenant
     {
         return Tenant::query()->create([
@@ -444,6 +483,38 @@ final class MinimumCatalogTest extends TestCase
             'currency' => 'IDR',
             'display_order' => $displayOrder,
             'status' => $status,
+        ]);
+    }
+
+    private function variantAvailability(
+        Tenant $tenant,
+        Outlet $outlet,
+        ProductVariant $variant,
+        bool $available,
+        ?int $priceMinor = null,
+    ): void {
+        VariantOutletAvailability::query()->create([
+            'tenant_id' => $tenant->id,
+            'variant_id' => $variant->id,
+            'outlet_id' => $outlet->id,
+            'available' => $available,
+            'price_minor' => $priceMinor,
+        ]);
+    }
+
+    private function modifierOptionOverride(
+        Tenant $tenant,
+        Outlet $outlet,
+        ModifierOption $option,
+        bool $available,
+        ?int $priceDeltaMinor = null,
+    ): void {
+        ModifierOptionOutletOverride::query()->create([
+            'tenant_id' => $tenant->id,
+            'option_id' => $option->id,
+            'outlet_id' => $outlet->id,
+            'available' => $available,
+            'price_delta_minor' => $priceDeltaMinor,
         ]);
     }
 

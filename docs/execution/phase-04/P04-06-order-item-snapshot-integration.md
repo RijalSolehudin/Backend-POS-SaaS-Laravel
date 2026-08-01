@@ -1,6 +1,6 @@
 # P04-06 — Order Item Snapshot Integration
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 
