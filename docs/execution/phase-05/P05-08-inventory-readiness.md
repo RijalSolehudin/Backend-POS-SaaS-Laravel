@@ -1,6 +1,6 @@
 # P05-08 — Inventory Readiness
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

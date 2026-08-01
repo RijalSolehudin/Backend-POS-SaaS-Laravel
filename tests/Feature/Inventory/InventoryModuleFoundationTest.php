@@ -43,6 +43,7 @@ use App\Modules\Tenancy\Domain\Models\Outlet;
 use App\Modules\Tenancy\Domain\Models\Tenant;
 use App\Modules\Tenancy\Domain\Models\TenantMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 final class InventoryModuleFoundationTest extends TestCase
@@ -700,6 +701,47 @@ final class InventoryModuleFoundationTest extends TestCase
 
         $this->expectExceptionMessage('The inventory transfer is not in a valid state for this action.');
         $this->app->make(CancelInventoryTransfer::class)->handle($context, $transfer->id, 'Too late');
+    }
+
+    public function test_inventory_recovery_check_passes_for_consistent_balance(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'REC-OK', 'Recovery OK');
+        $this->login($owner);
+        $this->recordOpeningBalance($tenant, $outlet, $item, '2.000', 20000, 'opening-recovery-ok');
+
+        $exitCode = Artisan::call('inventory:recovery-check', ['--tenant' => $tenant->id]);
+
+        self::assertSame(0, $exitCode);
+        self::assertStringContainsString('No discrepancies found', Artisan::output());
+    }
+
+    public function test_inventory_recovery_check_reports_discrepancy(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'REC-BAD', 'Recovery Bad');
+        $this->login($owner);
+        $this->recordOpeningBalance($tenant, $outlet, $item, '2.000', 20000, 'opening-recovery-bad');
+
+        InventoryBalance::query()->where('tenant_id', $tenant->id)->where('item_id', $item->id)->firstOrFail()
+            ->forceFill(['quantity' => '9.000', 'total_cost_minor' => 90000])
+            ->save();
+
+        $exitCode = Artisan::call('inventory:recovery-check', ['--tenant' => $tenant->id]);
+        $output = Artisan::output();
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString('Inventory recovery check found discrepancies.', $output);
+        self::assertStringContainsString($tenant->id, $output);
+        self::assertStringContainsString($item->id, $output);
+        self::assertStringContainsString('2.000', $output);
+        self::assertStringContainsString('9.000', $output);
     }
 
     private function tenant(string $name = 'Acme POS', string $code = 'acme-pos'): Tenant

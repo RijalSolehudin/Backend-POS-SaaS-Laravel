@@ -1,6 +1,6 @@
 # P05-07 — Inventory Reconciliation and Recovery
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
