@@ -1,6 +1,6 @@
 # P03-08 — Pilot Readiness
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

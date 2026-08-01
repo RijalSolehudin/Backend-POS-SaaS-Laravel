@@ -1,6 +1,6 @@
 # P03-07 — Operational Baseline
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -48,6 +48,22 @@ Pilot outlet memiliki baseline operasional minimum untuk scheduler, queue, cache
 - `php artisan schedule:list` evidence dengan cache store yang aman untuk environment lokal.
 - `composer quality` lulus.
 - `npm run build` lulus bila ada perubahan frontend.
+
+## Delivered
+
+- Runbook [Operational Baseline](../../runbooks/operational-baseline.md) untuk scheduler, queue, cache, backup/restore rehearsal, monitoring manual, load baseline, dan environment checklist.
+- Deployment readiness diperbarui agar mencakup `sales:prune-audit-events`.
+- Runbook index menautkan Sales retry/recovery dan operational baseline.
+
+## Evidence
+
+- Laravel Boost SearchDocs digunakan untuk scheduler `withoutOverlapping()`, cache atomic locks, queue worker tries, failed job handling, dan service provider guidance.
+- `DB_CONNECTION=mariadb DB_HOST=127.0.0.1 DB_PORT=33067 DB_DATABASE=pos_testing DB_USERNAME=pos DB_PASSWORD=pos-testing-only php artisan schedule:list`
+  - `sanctum:prune-expired --hours=24` daily.
+  - `platform:prune-security-state` hourly.
+  - `sales:prune-audit-events` daily.
+- `composer quality`
+- `npm run build`
 
 ## Architecture Stop Rule
 

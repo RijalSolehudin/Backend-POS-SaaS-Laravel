@@ -18,8 +18,8 @@ Implementasi Phase 03 mengikuti [ADR-038 Operational Safety MVP Policy](../../ar
 | P03-04 | [Cash In/Out and Shift Discrepancy](P03-04-cash-in-out-shift-discrepancy.md) | P03-01, P02-07 | Done |
 | P03-05 | [Audit Trail Hardening](P03-05-audit-trail-hardening.md) | P03-01, P02-08 | Done |
 | P03-06 | [Concurrency and Recovery Hardening](P03-06-concurrency-recovery-hardening.md) | P03-01, P02-09 | Done |
-| P03-07 | [Operational Baseline](P03-07-operational-baseline.md) | P03-01 | Ready |
-| P03-08 | [Pilot Readiness](P03-08-pilot-readiness.md) | P03-02..P03-07 | Planned |
+| P03-07 | [Operational Baseline](P03-07-operational-baseline.md) | P03-01 | Done |
+| P03-08 | [Pilot Readiness](P03-08-pilot-readiness.md) | P03-02..P03-07 | Ready |
 
 ## Readiness Gate
 

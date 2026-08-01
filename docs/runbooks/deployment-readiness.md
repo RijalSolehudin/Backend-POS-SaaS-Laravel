@@ -29,6 +29,9 @@ Baseline scheduled tasks:
 
 - `platform:prune-security-state` setiap jam.
 - `sanctum:prune-expired --hours=24` setiap hari.
+- `sales:prune-audit-events` setiap hari.
+
+Phase 03 scheduler, queue, cache, backup, monitoring, dan load baseline didokumentasikan di [Operational Baseline](operational-baseline.md).
 
 ## Security
 
