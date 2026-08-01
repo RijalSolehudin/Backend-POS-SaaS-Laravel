@@ -1,6 +1,6 @@
 # P03-08 — Pilot Readiness
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -49,6 +49,32 @@ Phase 03 dinyatakan siap pilot outlet berdasarkan evidence end-to-end, operation
 - `composer quality` lulus.
 - `npm run build` lulus.
 - Manual/demo checklist documented for later product owner acceptance.
+
+## Delivered
+
+- Runbook [Phase 03 Pilot Readiness](../../runbooks/phase-03-pilot-readiness.md) berisi demo path, reconciliation checklist, sensitive action checklist, auditability checklist, failure/recovery checklist, operational readiness checklist, dan product owner sign-off points.
+- Runbook POS operations ditautkan ke readiness gate final.
+- Phase 03 roadmap dan execution plan ditandai `Done`.
+
+## Evidence
+
+- Laravel Boost SearchDocs digunakan untuk Laravel feature testing, console/scheduler, queue retry, dan failed job guidance.
+- Sales suite lulus:
+  - `tests/Feature/Sales/SalesModuleFoundationTest.php`
+  - `tests/Feature/Sales/ShiftLifecycleTest.php`
+  - `tests/Feature/Sales/DraftOrderItemManagementTest.php`
+  - `tests/Feature/Sales/PaymentCompletionTest.php`
+  - `tests/Feature/Sales/ReceiptSnapshotTest.php`
+  - `tests/Feature/Sales/ShiftSummaryTest.php`
+  - `tests/Feature/Sales/CancelVoidFlowTest.php`
+  - `tests/Feature/Sales/PosCoreReadinessTest.php`
+  - `tests/Feature/Sales/SensitiveActionApprovalTest.php`
+  - `tests/Feature/Sales/RefundPaymentReversalTest.php`
+  - `tests/Feature/Sales/CashMovementShiftDiscrepancyTest.php`
+  - `tests/Feature/Sales/SalesAuditHardeningTest.php`
+  - `tests/Feature/Sales/SalesRecoveryCheckTest.php`
+- `composer quality`
+- `npm run build`
 
 ## Architecture Stop Rule
 

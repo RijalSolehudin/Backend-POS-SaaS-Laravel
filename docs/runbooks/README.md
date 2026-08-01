@@ -5,4 +5,5 @@
 - [POS Device and API Operations](pos-device-and-api-operations.md)
 - [Sales Retry and Recovery](sales-retry-and-recovery.md)
 - [Operational Baseline](operational-baseline.md)
+- [Phase 03 Pilot Readiness](phase-03-pilot-readiness.md)
 - [Deployment Readiness](deployment-readiness.md)

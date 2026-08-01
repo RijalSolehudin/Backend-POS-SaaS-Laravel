@@ -1,6 +1,6 @@
 # Phase 03 Execution Plan
 
-Status: **Ready**
+Status: **Done**
 
 Dokumen ini memecah [Phase 03 Operational Safety](../../roadmap/phase-03-operational-safety.md) menjadi work package berbasis outcome.
 
@@ -19,7 +19,7 @@ Implementasi Phase 03 mengikuti [ADR-038 Operational Safety MVP Policy](../../ar
 | P03-05 | [Audit Trail Hardening](P03-05-audit-trail-hardening.md) | P03-01, P02-08 | Done |
 | P03-06 | [Concurrency and Recovery Hardening](P03-06-concurrency-recovery-hardening.md) | P03-01, P02-09 | Done |
 | P03-07 | [Operational Baseline](P03-07-operational-baseline.md) | P03-01 | Done |
-| P03-08 | [Pilot Readiness](P03-08-pilot-readiness.md) | P03-02..P03-07 | Ready |
+| P03-08 | [Pilot Readiness](P03-08-pilot-readiness.md) | P03-02..P03-07 | Done |
 
 ## Readiness Gate
 

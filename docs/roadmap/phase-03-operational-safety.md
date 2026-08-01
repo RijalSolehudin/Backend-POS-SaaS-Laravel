@@ -1,6 +1,6 @@
 # Phase 03: Operational Safety
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -32,3 +32,10 @@ MVP memiliki kontrol finansial, auditability, failure recovery, dan kesiapan pil
 - Failure scenario kritis memiliki recovery procedure yang diuji.
 - Daily reconciliation dapat menjelaskan discrepancy.
 - Pilot checklist diterima sebelum outlet menggunakan sistem untuk transaksi riil.
+
+## Evidence
+
+- Execution plan: [Phase 03 Execution Plan](../execution/phase-03/README.md).
+- Pilot readiness checklist: [Phase 03 Pilot Readiness](../runbooks/phase-03-pilot-readiness.md).
+- Operational baseline: [Operational Baseline](../runbooks/operational-baseline.md).
+- Recovery procedure: [Sales Retry and Recovery](../runbooks/sales-retry-and-recovery.md).
