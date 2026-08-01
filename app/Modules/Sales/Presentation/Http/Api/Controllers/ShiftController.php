@@ -7,6 +7,8 @@ namespace App\Modules\Sales\Presentation\Http\Api\Controllers;
 use App\Modules\Sales\Application\Actions\CloseShift;
 use App\Modules\Sales\Application\Actions\GetCurrentShift;
 use App\Modules\Sales\Application\Actions\OpenShift;
+use App\Modules\Sales\Application\Actions\SummarizeShift;
+use App\Modules\Sales\Application\Data\ShiftSummary;
 use App\Modules\Sales\Domain\Models\Shift;
 use App\Modules\Tenancy\Application\Actions\ResolvePosOutletApiContext;
 use App\Modules\Tenancy\Application\Data\PosOutletContext;
@@ -72,6 +74,18 @@ final class ShiftController extends Controller
         return response()->json(['data' => $this->shiftData($closed)]);
     }
 
+    public function summary(
+        string $outlet,
+        string $shift,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        SummarizeShift $summarizeShift,
+    ): JsonResponse {
+        return response()->json([
+            'data' => $this->summaryData($summarizeShift->handle($this->context($outlet, $request, $context), $shift)),
+        ]);
+    }
+
     private function context(
         string $outlet,
         Request $request,
@@ -133,6 +147,32 @@ final class ShiftController extends Controller
             'expected_cash_minor' => $shift->expected_cash_minor,
             'gross_sales_minor' => $shift->gross_sales_minor,
             'currency' => $shift->currency,
+        ];
+    }
+
+    /**
+     * @return array<string, int|string|null>
+     */
+    private function summaryData(ShiftSummary $summary): array
+    {
+        return [
+            'tenant_id' => $summary->tenantId,
+            'outlet_id' => $summary->outletId,
+            'shift_id' => $summary->shiftId,
+            'user_id' => $summary->userId,
+            'status' => $summary->status,
+            'opened_at' => $summary->openedAt->toJSON(),
+            'closed_at' => $summary->closedAt?->toJSON(),
+            'opening_cash_minor' => $summary->openingCashMinor,
+            'closing_cash_minor' => $summary->closingCashMinor,
+            'expected_cash_minor' => $summary->expectedCashMinor,
+            'cash_variance_minor' => $summary->cashVarianceMinor,
+            'completed_orders_count' => $summary->completedOrdersCount,
+            'gross_sales_minor' => $summary->grossSalesMinor,
+            'recorded_payments_minor' => $summary->recordedPaymentsMinor,
+            'cash_payments_minor' => $summary->cashPaymentsMinor,
+            'manual_non_cash_payments_minor' => $summary->manualNonCashPaymentsMinor,
+            'currency' => $summary->currency,
         ];
     }
 }

@@ -268,6 +268,41 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/shifts/{shift}/summary:
+    get:
+      operationId: getShiftSummary
+      summary: Get reconciled sales and cash summary for a POS shift
+      tags:
+        - POS Shifts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: shift
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Shift summary based on completed orders and recorded payments.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftSummaryResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
   /pos/outlets/{outlet}/orders:
     post:
       operationId: createDraftOrder
@@ -725,6 +760,13 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Shift'
+    ShiftSummaryResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/ShiftSummary'
     Shift:
       type: object
       required:
@@ -770,6 +812,71 @@ components:
         expected_cash_minor:
           type: integer
         gross_sales_minor:
+          type: integer
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+    ShiftSummary:
+      type: object
+      required:
+        - tenant_id
+        - outlet_id
+        - shift_id
+        - user_id
+        - status
+        - opened_at
+        - opening_cash_minor
+        - expected_cash_minor
+        - cash_variance_minor
+        - completed_orders_count
+        - gross_sales_minor
+        - recorded_payments_minor
+        - cash_payments_minor
+        - manual_non_cash_payments_minor
+        - currency
+      properties:
+        tenant_id:
+          $ref: '#/components/schemas/Ulid'
+        outlet_id:
+          $ref: '#/components/schemas/Ulid'
+        shift_id:
+          $ref: '#/components/schemas/Ulid'
+        user_id:
+          $ref: '#/components/schemas/Ulid'
+        status:
+          type: string
+          enum:
+            - open
+            - closed
+            - voided
+        opened_at:
+          type: string
+          format: date-time
+        closed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        opening_cash_minor:
+          type: integer
+        closing_cash_minor:
+          type:
+            - integer
+            - 'null'
+        expected_cash_minor:
+          type: integer
+        cash_variance_minor:
+          type: integer
+        completed_orders_count:
+          type: integer
+        gross_sales_minor:
+          type: integer
+        recorded_payments_minor:
+          type: integer
+        cash_payments_minor:
+          type: integer
+        manual_non_cash_payments_minor:
           type: integer
         currency:
           type: string

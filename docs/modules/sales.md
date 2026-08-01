@@ -22,6 +22,7 @@
 - `GET /api/v1/pos/outlets/{outlet}/shifts/current`
 - `POST /api/v1/pos/outlets/{outlet}/shifts/open`
 - `POST /api/v1/pos/outlets/{outlet}/shifts/{shift}/close`
+- `GET /api/v1/pos/outlets/{outlet}/shifts/{shift}/summary`
 - `POST /api/v1/pos/outlets/{outlet}/orders`
 - `GET /api/v1/pos/outlets/{outlet}/orders/{order}`
 - `POST /api/v1/pos/outlets/{outlet}/orders/{order}/items`
@@ -29,6 +30,7 @@
 - `DELETE /api/v1/pos/outlets/{outlet}/orders/{order}/items/{item}`
 - `POST /api/v1/pos/outlets/{outlet}/orders/{order}/complete`
 - `GET /api/v1/pos/outlets/{outlet}/orders/{order}/receipt`
+- `GET /admin/tenants/{tenant}/sales/daily`
 
 ## Invariants
 
@@ -39,6 +41,7 @@
 - Complete order dengan payment bersifat idempotent dan exact-payment-only.
 - Completed order immutable untuk perubahan item.
 - Completion menghasilkan receipt snapshot immutable.
+- Close shift menyimpan summary cash dan gross sales hasil rekonsiliasi.
 - Lifecycle transition hanya melalui use case yang sah.
 - Critical create/mutation operation memiliki idempotency policy.
 - Finalized financial history tidak di-hard-delete.

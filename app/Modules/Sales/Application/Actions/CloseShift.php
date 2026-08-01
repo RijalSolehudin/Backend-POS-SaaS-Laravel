@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class CloseShift
 {
+    public function __construct(private SummarizeShift $summaries) {}
+
     public function handle(PosOutletContext $context, string $shiftId, int $closingCashMinor): Shift
     {
         return DB::transaction(function () use ($context, $shiftId, $closingCashMinor): Shift {
@@ -31,10 +33,14 @@ final readonly class CloseShift
                 throw ShiftException::notOpen();
             }
 
+            $summary = $this->summaries->fromShift($shift);
+
             $shift->forceFill([
                 'status' => ShiftStatus::Closed,
                 'open_shift_key' => null,
                 'closing_cash_minor' => $closingCashMinor,
+                'expected_cash_minor' => $summary->expectedCashMinor,
+                'gross_sales_minor' => $summary->grossSalesMinor,
                 'closed_at' => now(),
             ])->save();
 
