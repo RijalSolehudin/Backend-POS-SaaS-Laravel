@@ -46,6 +46,7 @@ final readonly class UpdateProduct
             'sku' => $sku,
             'base_price_minor' => $input->basePriceMinor,
             'currency' => mb_strtoupper(trim($input->currency)),
+            'display_order' => $input->displayOrder,
         ])->save();
 
         return $product;

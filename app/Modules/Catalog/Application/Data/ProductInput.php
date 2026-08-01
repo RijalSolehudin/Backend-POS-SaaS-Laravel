@@ -12,5 +12,6 @@ final readonly class ProductInput
         public string $categoryId,
         public int $basePriceMinor,
         public string $currency,
+        public int $displayOrder = 0,
     ) {}
 }

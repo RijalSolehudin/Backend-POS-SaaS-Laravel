@@ -148,6 +148,40 @@ final class MinimumCatalogTest extends TestCase
             ->assertJsonPath('data.0.sku', 'VISIBLE');
     }
 
+    public function test_flutter_catalog_uses_category_hierarchy_and_display_order(): void
+    {
+        $tenant = $this->tenant();
+        $owner = $this->user('owner@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $cashier = $this->user('cashier@example.com', $tenant, MembershipType::Member, PredefinedRole::Cashier);
+        $outlet = $this->outlet($tenant, 'MAIN');
+        $this->assignOutlet($tenant, $outlet, $cashier);
+        $this->device($tenant, $outlet, '01k123456789abcdefghjkmnpq', $owner);
+
+        $inactiveParent = $this->category($tenant, 'Inactive Parent', null, 1, CategoryStatus::Inactive);
+        $hiddenChild = $this->category($tenant, 'Hidden Child', $inactiveParent, 1);
+        $food = $this->category($tenant, 'Food', null, 20);
+        $drinks = $this->category($tenant, 'Drinks', null, 10);
+        $coffee = $this->category($tenant, 'Coffee', $drinks, 5);
+
+        $hidden = $this->product($tenant, $hiddenChild, 'HIDDEN', 'Hidden Product');
+        $second = $this->product($tenant, $food, 'SECOND', 'Second Product', ProductStatus::Active, 20);
+        $first = $this->product($tenant, $coffee, 'FIRST', 'First Product', ProductStatus::Active, 5);
+        $this->availability($tenant, $outlet, $hidden, true);
+        $this->availability($tenant, $outlet, $second, true);
+        $this->availability($tenant, $outlet, $first, true);
+
+        $response = $this->withToken($this->posToken($outlet))
+            ->getJson(route('api.v1.pos.outlets.catalog', ['outlet' => $outlet->id]));
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.sku', 'FIRST')
+            ->assertJsonPath('data.0.category.name', 'Coffee')
+            ->assertJsonPath('data.0.category.parent.name', 'Drinks')
+            ->assertJsonPath('data.1.sku', 'SECOND');
+    }
+
     private function tenant(string $name = 'Tenant One', string $code = 'tenant-one'): Tenant
     {
         return Tenant::query()->create([
@@ -212,12 +246,19 @@ final class MinimumCatalogTest extends TestCase
         ]);
     }
 
-    private function category(Tenant $tenant, string $name): Category
-    {
+    private function category(
+        Tenant $tenant,
+        string $name,
+        ?Category $parent = null,
+        int $displayOrder = 0,
+        CategoryStatus $status = CategoryStatus::Active,
+    ): Category {
         return Category::query()->create([
             'tenant_id' => $tenant->id,
+            'parent_id' => $parent?->id,
             'name' => $name,
-            'status' => CategoryStatus::Active,
+            'display_order' => $displayOrder,
+            'status' => $status,
         ]);
     }
 
@@ -227,6 +268,7 @@ final class MinimumCatalogTest extends TestCase
         string $sku,
         string $name,
         ProductStatus $status = ProductStatus::Active,
+        int $displayOrder = 0,
     ): Product {
         return Product::query()->create([
             'tenant_id' => $tenant->id,
@@ -235,6 +277,7 @@ final class MinimumCatalogTest extends TestCase
             'sku' => $sku,
             'base_price_minor' => 10000,
             'currency' => 'IDR',
+            'display_order' => $displayOrder,
             'status' => $status,
         ]);
     }

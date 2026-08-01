@@ -6,5 +6,9 @@ namespace App\Modules\Catalog\Application\Data;
 
 final readonly class CategoryInput
 {
-    public function __construct(public string $name) {}
+    public function __construct(
+        public string $name,
+        public ?string $parentId = null,
+        public int $displayOrder = 0,
+    ) {}
 }

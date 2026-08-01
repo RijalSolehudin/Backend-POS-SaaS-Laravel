@@ -27,8 +27,35 @@ final readonly class UpdateCategory
             throw CatalogException::categoryNotFound();
         }
 
-        $category->forceFill(['name' => trim($input->name)])->save();
+        $this->ensureParentCategory($context, $category, $input->parentId);
+
+        $category->forceFill([
+            'parent_id' => $input->parentId,
+            'name' => trim($input->name),
+            'display_order' => $input->displayOrder,
+        ])->save();
 
         return $category;
+    }
+
+    private function ensureParentCategory(TenantRequestContext $context, Category $category, ?string $parentId): void
+    {
+        if ($parentId === null) {
+            return;
+        }
+
+        if ($parentId === $category->id) {
+            throw CatalogException::invalidCategoryParent();
+        }
+
+        $exists = Category::query()
+            ->where('tenant_id', $context->tenantId)
+            ->whereNull('parent_id')
+            ->whereKey($parentId)
+            ->exists();
+
+        if (! $exists) {
+            throw CatalogException::invalidCategoryParent();
+        }
     }
 }

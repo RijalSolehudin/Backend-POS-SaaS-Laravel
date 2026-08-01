@@ -42,10 +42,12 @@ final class TenantCatalogController extends Controller
             'context' => $context,
             'categories' => Category::query()
                 ->where('tenant_id', $context->tenantId)
+                ->orderBy('display_order')
                 ->orderBy('name')
                 ->get(),
             'products' => Product::query()
                 ->where('tenant_id', $context->tenantId)
+                ->orderBy('display_order')
                 ->orderBy('name')
                 ->get(),
             'availabilities' => ProductOutletAvailability::query()
@@ -59,8 +61,13 @@ final class TenantCatalogController extends Controller
 
     public function storeCategory(Request $request, CreateCategory $create): RedirectResponse
     {
-        $input = $request->validate(['name' => ['required', 'string', 'max:120']]);
-        $create->handle($this->context($request), new CategoryInput((string) $input['name']));
+        $input = $this->validatedCategory($request);
+
+        try {
+            $create->handle($this->context($request), $input);
+        } catch (CatalogException $exception) {
+            throw $this->validation($exception);
+        }
 
         return back()->with('status', 'Category created.');
     }
@@ -71,12 +78,12 @@ final class TenantCatalogController extends Controller
         string $category,
         UpdateCategory $update,
     ): RedirectResponse {
-        $input = $request->validate(['name' => ['required', 'string', 'max:120']]);
+        $input = $this->validatedCategory($request);
 
         try {
-            $update->handle($this->context($request), $category, new CategoryInput((string) $input['name']));
-        } catch (CatalogException) {
-            abort(404);
+            $update->handle($this->context($request), $category, $input);
+        } catch (CatalogException $exception) {
+            throw $this->validation($exception);
         }
 
         return back()->with('status', 'Category updated.');
@@ -216,6 +223,7 @@ final class TenantCatalogController extends Controller
             'category_id' => ['required', 'string', 'size:26'],
             'base_price_minor' => ['required', 'integer', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
+            'display_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
         return new ProductInput(
@@ -224,6 +232,22 @@ final class TenantCatalogController extends Controller
             categoryId: (string) $input['category_id'],
             basePriceMinor: (int) $input['base_price_minor'],
             currency: (string) $input['currency'],
+            displayOrder: (int) ($input['display_order'] ?? 0),
+        );
+    }
+
+    private function validatedCategory(Request $request): CategoryInput
+    {
+        $input = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'parent_id' => ['nullable', 'string', 'size:26'],
+            'display_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        return new CategoryInput(
+            name: (string) $input['name'],
+            parentId: ($input['parent_id'] ?? null) === null || $input['parent_id'] === '' ? null : (string) $input['parent_id'],
+            displayOrder: (int) ($input['display_order'] ?? 0),
         );
     }
 
@@ -233,6 +257,7 @@ final class TenantCatalogController extends Controller
             match ($exception->errorCode()) {
                 'CATALOG_SKU_UNAVAILABLE' => 'sku',
                 'CATALOG_CATEGORY_NOT_FOUND' => 'category_id',
+                'CATALOG_CATEGORY_PARENT_INVALID' => 'parent_id',
                 'CATALOG_OUTLET_NOT_FOUND' => 'outlet_id',
                 default => 'product',
             } => [$exception->getMessage()],

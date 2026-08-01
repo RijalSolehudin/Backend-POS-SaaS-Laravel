@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $sku
  * @property int $base_price_minor
  * @property string $currency
+ * @property int $display_order
  * @property ProductStatus $status
  */
 final class Product extends Model
@@ -30,6 +31,7 @@ final class Product extends Model
     {
         return [
             'base_price_minor' => 'integer',
+            'display_order' => 'integer',
             'status' => ProductStatus::class,
         ];
     }

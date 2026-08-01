@@ -8,19 +8,34 @@
     <div class="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
         <section class="rounded-lg border border-slate-200 bg-white p-5">
             <h2 class="text-lg font-black">Categories</h2>
-            <form class="mt-4 flex gap-3" method="post" action="{{ route('tenant.catalog.categories.store', ['tenant' => $tenant->id]) }}">
+            <form class="mt-4 grid gap-3" method="post" action="{{ route('tenant.catalog.categories.store', ['tenant' => $tenant->id]) }}">
                 @csrf
                 <input class="w-full rounded-lg border border-slate-300 px-3 py-2" name="name" placeholder="Category name" required maxlength="120">
+                <select class="w-full rounded-lg border border-slate-300 px-3 py-2" name="parent_id">
+                    <option value="">No parent</option>
+                    @foreach ($categories->whereNull('parent_id') as $parent)
+                        <option value="{{ $parent->id }}">{{ $parent->name }}</option>
+                    @endforeach
+                </select>
+                <input class="w-full rounded-lg border border-slate-300 px-3 py-2" name="display_order" type="number" min="0" step="1" value="0" placeholder="Display order">
                 <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white">Create</button>
             </form>
 
             <div class="mt-5 space-y-3">
                 @forelse ($categories as $category)
                     <div class="rounded-lg border border-slate-200 p-4">
-                        <form class="flex gap-3" method="post" action="{{ route('tenant.catalog.categories.update', ['tenant' => $tenant->id, 'category' => $category->id]) }}">
+                        <form class="grid gap-3" method="post" action="{{ route('tenant.catalog.categories.update', ['tenant' => $tenant->id, 'category' => $category->id]) }}">
                             @csrf
                             @method('put')
                             <input class="w-full rounded-lg border border-slate-300 px-3 py-2" name="name" value="{{ $category->name }}" required maxlength="120">
+                            <select class="w-full rounded-lg border border-slate-300 px-3 py-2" name="parent_id">
+                                <option value="">No parent</option>
+                                @foreach ($categories->whereNull('parent_id') as $parent)
+                                    @continue($parent->id === $category->id)
+                                    <option value="{{ $parent->id }}" @selected($category->parent_id === $parent->id)>{{ $parent->name }}</option>
+                                @endforeach
+                            </select>
+                            <input class="w-full rounded-lg border border-slate-300 px-3 py-2" name="display_order" type="number" min="0" step="1" value="{{ $category->display_order }}">
                             <button class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold">Save</button>
                         </form>
                         <form class="mt-3" method="post" action="{{ route('tenant.catalog.categories.status', ['tenant' => $tenant->id, 'category' => $category->id]) }}">
@@ -54,6 +69,7 @@
                     <input class="rounded-lg border border-slate-300 px-3 py-2" name="base_price_minor" type="number" min="0" step="1" placeholder="Price minor" required>
                     <input class="rounded-lg border border-slate-300 px-3 py-2 uppercase" name="currency" value="{{ $defaultCurrency }}" maxlength="3" required>
                 </div>
+                <input class="rounded-lg border border-slate-300 px-3 py-2 md:col-span-2" name="display_order" type="number" min="0" step="1" value="0" placeholder="Display order">
                 <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white md:col-span-2">Create product</button>
             </form>
 
@@ -74,6 +90,7 @@
                                 <input class="rounded-lg border border-slate-300 px-3 py-2" name="base_price_minor" type="number" min="0" step="1" value="{{ $product->base_price_minor }}" required>
                                 <input class="rounded-lg border border-slate-300 px-3 py-2 uppercase" name="currency" value="{{ $product->currency }}" maxlength="3" required>
                             </div>
+                            <input class="rounded-lg border border-slate-300 px-3 py-2 md:col-span-2" name="display_order" type="number" min="0" step="1" value="{{ $product->display_order }}">
                             <button class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold md:col-span-2">Save product</button>
                         </form>
 

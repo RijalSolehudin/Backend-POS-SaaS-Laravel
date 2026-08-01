@@ -1,6 +1,6 @@
 # P04-03 — Sellable Variants
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

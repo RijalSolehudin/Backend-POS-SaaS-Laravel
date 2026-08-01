@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property string $id
  * @property string $tenant_id
+ * @property string|null $parent_id
  * @property string $name
+ * @property int $display_order
  * @property CategoryStatus $status
  */
 final class Category extends Model
@@ -25,6 +27,7 @@ final class Category extends Model
     protected function casts(): array
     {
         return [
+            'display_order' => 'integer',
             'status' => CategoryStatus::class,
         ];
     }

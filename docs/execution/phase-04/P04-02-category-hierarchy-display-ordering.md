@@ -1,6 +1,6 @@
 # P04-02 — Category Hierarchy and Display Ordering
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -37,6 +37,20 @@ Tenant admin dapat menyusun category catalog dengan hierarchy dan urutan tampil 
 
 - Feature tests untuk admin category hierarchy dan POS catalog ordering.
 - `composer quality` lulus.
+
+## Delivered
+
+- Category mendukung `parent_id` dan `display_order`.
+- Product mendukung `display_order`.
+- Tenant admin dapat mengisi parent category dan display order dari halaman catalog.
+- POS catalog mengurutkan parent/category/product secara deterministik.
+- POS catalog menyembunyikan product jika category atau parent category inactive.
+
+## Evidence
+
+- Laravel Boost ApplicationInfo digunakan untuk memverifikasi stack Laravel aktif.
+- `php artisan test tests/Feature/Catalog/MinimumCatalogTest.php`
+- `composer quality`
 
 ## Architecture Stop Rule
 

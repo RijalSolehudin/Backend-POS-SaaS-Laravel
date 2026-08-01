@@ -50,6 +50,10 @@ final class OutletCatalogController extends Controller
                     'category' => [
                         'id' => $product->categoryId,
                         'name' => $product->categoryName,
+                        'parent' => $product->parentCategoryId === null ? null : [
+                            'id' => $product->parentCategoryId,
+                            'name' => $product->parentCategoryName,
+                        ],
                     ],
                     'price_minor' => $product->priceMinor,
                     'currency' => $product->currency,

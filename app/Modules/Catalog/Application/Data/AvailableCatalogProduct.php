@@ -12,6 +12,8 @@ final readonly class AvailableCatalogProduct
         public string $name,
         public string $categoryId,
         public string $categoryName,
+        public ?string $parentCategoryId,
+        public ?string $parentCategoryName,
         public int $priceMinor,
         public string $currency,
     ) {}

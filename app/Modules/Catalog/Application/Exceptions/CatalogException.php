@@ -20,6 +20,11 @@ final class CatalogException extends BusinessException
         return new self('The requested category was not found.', 'CATALOG_CATEGORY_NOT_FOUND');
     }
 
+    public static function invalidCategoryParent(): self
+    {
+        return new self('The selected parent category is not valid for this category.', 'CATALOG_CATEGORY_PARENT_INVALID');
+    }
+
     public static function productNotFound(): self
     {
         return new self('The requested product was not found.', 'CATALOG_PRODUCT_NOT_FOUND');

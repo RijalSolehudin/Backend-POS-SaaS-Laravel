@@ -29,6 +29,7 @@ final readonly class CreateProduct
             'sku' => $this->normalizeSku($input->sku),
             'base_price_minor' => $input->basePriceMinor,
             'currency' => mb_strtoupper(trim($input->currency)),
+            'display_order' => $input->displayOrder,
             'status' => ProductStatus::Active,
         ]);
     }
