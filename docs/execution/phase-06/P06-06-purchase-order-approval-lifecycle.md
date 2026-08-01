@@ -1,6 +1,6 @@
 # P06-06 — Purchase Order Approval Lifecycle
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 

@@ -13,5 +13,7 @@ enum StockMovementType: string
     case TransferOut = 'transfer_out';
     case TransferIn = 'transfer_in';
     case SalesDeduction = 'sales_deduction';
+    case PurchaseReceipt = 'purchase_receipt';
+    case PurchaseReturn = 'purchase_return';
     case Reversal = 'reversal';
 }

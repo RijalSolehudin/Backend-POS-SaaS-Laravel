@@ -1,6 +1,6 @@
 # P06-08 — Recipe Procurement Readiness
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 

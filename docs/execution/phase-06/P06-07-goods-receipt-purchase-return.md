@@ -1,6 +1,6 @@
 # P06-07 — Goods Receipt and Purchase Return
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 

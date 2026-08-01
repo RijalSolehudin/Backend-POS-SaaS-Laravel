@@ -23,6 +23,7 @@ Gunakan module `Recipe` dan `Procurement` dengan struktur standar `Application`,
 | `procurement_goods_receipt_lines` | P06-07 | Received quantity |
 | `procurement_purchase_returns` | P06-07 | Return header |
 | `procurement_purchase_return_lines` | P06-07 | Returned quantity |
+| `procurement_idempotency_records` | P06-06/P06-07 | Idempotency audit for PO lifecycle, receipt, and return |
 
 ## Enums
 

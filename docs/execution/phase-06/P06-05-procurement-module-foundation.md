@@ -1,6 +1,6 @@
 # P06-05 — Procurement Module Foundation
 
-Status: **Planned**
+Status: **Done**
 
 ## Outcome
 
