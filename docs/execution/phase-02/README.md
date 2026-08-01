@@ -7,6 +7,7 @@ Dokumen ini memecah [Phase 02 POS Core Vertical Slice](../../roadmap/phase-02-po
 ## Required Decision Gate
 
 Implementasi Phase 02 mengikuti [ADR-037 POS Core MVP Policy](../../architecture/decisions/037-pos-core-mvp-policy.md).
+Detail implementasi wajib mengikuti [Phase 02 Implementation Contract](implementation-contract.md).
 
 ## Urutan yang Direkomendasikan
 

@@ -7,6 +7,7 @@ Dokumen ini memecah [Phase 04 Catalog and Pricing Expansion](../../roadmap/phase
 ## Required Decision Gate
 
 Implementasi Phase 04 mengikuti [ADR-039 Catalog Expansion MVP Policy](../../architecture/decisions/039-catalog-expansion-mvp-policy.md).
+Detail implementasi wajib mengikuti [Phase 04 Implementation Contract](implementation-contract.md).
 
 ## Urutan yang Direkomendasikan
 

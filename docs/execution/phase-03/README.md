@@ -7,6 +7,7 @@ Dokumen ini memecah [Phase 03 Operational Safety](../../roadmap/phase-03-operati
 ## Required Decision Gate
 
 Implementasi Phase 03 mengikuti [ADR-038 Operational Safety MVP Policy](../../architecture/decisions/038-operational-safety-mvp-policy.md).
+Detail implementasi wajib mengikuti [Phase 03 Implementation Contract](implementation-contract.md).
 
 ## Urutan yang Direkomendasikan
 

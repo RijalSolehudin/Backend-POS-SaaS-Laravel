@@ -6,6 +6,8 @@ Dokumen ini memecah [Phase 01 Foundation](../../roadmap/phase-01-foundation.md) 
 
 Persetujuan dokumen ini tidak mengizinkan implementasi. Setiap work package harus melalui readiness review dan instruksi implementasi terpisah dari product owner.
 
+Detail implementasi dan keputusan tetap Phase 01 dirangkum di [Phase 01 Implementation Contract](implementation-contract.md).
+
 ## Urutan yang Direkomendasikan
 
 | ID | Work package | Dependency utama | Status |
