@@ -12,6 +12,13 @@ Route::prefix('admin/tenants/{tenant}/sales')
     ->middleware(['web', 'tenant.authenticated', 'tenant.context', 'tenant.password-current', 'tenant.owner'])
     ->group(function (): void {
         Route::get('daily', TenantSalesSummaryController::class)->name('daily');
+    });
+
+Route::prefix('admin/tenants/{tenant}/sales')
+    ->name('tenant.sales.')
+    ->where(['tenant' => '[0-9a-hjkmnp-tv-z]{26}'])
+    ->middleware(['web', 'tenant.authenticated', 'tenant.context', 'tenant.password-current'])
+    ->group(function (): void {
         Route::post('orders/{order}/void', TenantOrderVoidController::class)
             ->where('order', '[0-9a-hjkmnp-tv-z]{26}')
             ->name('orders.void')

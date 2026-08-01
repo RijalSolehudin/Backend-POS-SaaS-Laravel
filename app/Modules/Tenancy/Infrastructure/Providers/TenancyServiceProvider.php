@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Tenancy\Infrastructure\Providers;
 
 use App\Modules\Identity\Application\Contracts\TenantAccessResolver;
+use App\Modules\Tenancy\Application\Contracts\SensitiveActionApprovalAuthority;
 use App\Modules\Tenancy\Application\Contracts\TenancyAuditRecorder;
 use App\Modules\Tenancy\Application\Contracts\TenantCatalogReference;
+use App\Modules\Tenancy\Infrastructure\Approvals\DatabaseSensitiveActionApprovalAuthority;
 use App\Modules\Tenancy\Infrastructure\Audit\DatabaseTenancyAuditRecorder;
 use App\Modules\Tenancy\Infrastructure\Catalog\DatabaseTenantCatalogReference;
 use App\Modules\Tenancy\Infrastructure\Identity\DatabaseTenantAccessResolver;
@@ -24,6 +26,7 @@ final class TenancyServiceProvider extends ServiceProvider
         $this->app->bind(TenantCatalogReference::class, DatabaseTenantCatalogReference::class);
         $this->app->bind(TenancyAuditRecorder::class, DatabaseTenancyAuditRecorder::class);
         $this->app->bind(TenantAccessResolver::class, DatabaseTenantAccessResolver::class);
+        $this->app->bind(SensitiveActionApprovalAuthority::class, DatabaseSensitiveActionApprovalAuthority::class);
     }
 
     public function boot(Router $router): void

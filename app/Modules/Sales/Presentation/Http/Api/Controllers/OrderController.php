@@ -12,6 +12,7 @@ use App\Modules\Sales\Application\Actions\GetDraftOrder;
 use App\Modules\Sales\Application\Actions\GetOrderReceipt;
 use App\Modules\Sales\Application\Actions\RemoveOrderItem;
 use App\Modules\Sales\Application\Actions\UpdateOrderItem;
+use App\Modules\Sales\Application\Actions\VoidCompletedOrder;
 use App\Modules\Sales\Application\Exceptions\OrderException;
 use App\Modules\Sales\Domain\Enums\PaymentMethod;
 use App\Modules\Sales\Domain\Models\Order;
@@ -172,6 +173,38 @@ final class OrderController extends Controller
             $order,
             $validated['reason'],
             $idempotencyKey,
+        );
+
+        return response()->json(['data' => $this->orderData($updated)]);
+    }
+
+    public function voidOrder(
+        string $outlet,
+        string $order,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        VoidCompletedOrder $void,
+    ): JsonResponse {
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if (! is_string($idempotencyKey)) {
+            throw OrderException::idempotencyKeyRequired();
+        }
+
+        /** @var array{reason: string, approval_id: string} $validated */
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+            'approval_id' => ['required', 'string', 'size:26'],
+        ]);
+
+        $posContext = $this->context($outlet, $request, $context);
+        $updated = $void->handle(
+            $posContext->tenantId,
+            $order,
+            $posContext->userId,
+            $validated['reason'],
+            $idempotencyKey,
+            $validated['approval_id'],
         );
 
         return response()->json(['data' => $this->orderData($updated)]);

@@ -59,6 +59,17 @@ Operational checks:
 - Setelah shift closed, order baru harus ditolak dengan `ORDER_ACTIVE_SHIFT_REQUIRED`.
 - Cross-tenant/outlet/device access harus ditolak dengan stable Problem Details response.
 
+## Sensitive Action Approval
+
+Void completed order sekarang membutuhkan supervisor approval yang valid.
+
+- Cashier membuat approval request melalui application workflow untuk action `orders.void`.
+- Tenant Owner atau Outlet Manager pada outlet terkait menyetujui approval tersebut.
+- Cashier menjalankan `POST /api/v1/pos/outlets/{outlet}/orders/{order}/void` dengan header `Idempotency-Key`, `reason`, dan `approval_id`.
+- Approval hanya valid untuk performer, action, order, outlet, tenant, reason fingerprint, dan target yang sama.
+- Approval yang sudah dipakai berubah menjadi `consumed` dan tidak bisa dipakai untuk mutation baru.
+- Setiap lifecycle approval dicatat pada `sales_audit_events`.
+
 ## Troubleshooting
 
 - `DEVICE_NOT_REGISTERED`: installation ID belum terdaftar pada tenant user.
@@ -67,5 +78,10 @@ Operational checks:
 - `TENANCY_FORBIDDEN`: user tidak punya role/assignment yang cukup.
 - `ORDER_ACTIVE_SHIFT_REQUIRED`: cashier belum membuka shift aktif atau shift sudah closed.
 - `IDEMPOTENCY_CONFLICT`: idempotency key pernah dipakai untuk request fingerprint berbeda.
+- `APPROVAL_REQUIRED`: action sensitif membutuhkan approval valid.
+- `APPROVAL_NOT_FOUND`: approval tidak ditemukan pada tenant/outlet target.
+- `APPROVAL_FORBIDDEN`: approver tidak memenuhi role atau outlet scope.
+- `APPROVAL_TARGET_MISMATCH`: approval tidak cocok dengan performer/action/target/fingerprint request.
+- `APPROVAL_ALREADY_CONSUMED`: approval pernah dipakai untuk mutation sebelumnya.
 
 Gunakan `X-Request-ID` atau `trace_id` dari error body untuk korelasi log.

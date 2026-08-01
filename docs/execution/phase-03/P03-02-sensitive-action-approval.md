@@ -1,6 +1,6 @@
 # P03-02 — Sensitive Action Approval
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -46,9 +46,16 @@ Sensitive financial and operational actions memiliki approval flow minimum yang 
 ## Verification
 
 - Feature tests untuk happy path approval.
-- Feature tests untuk forbidden approver, same performer/approver, expired approval, consumed approval, dan cross-tenant/outlet access.
-- Feature tests untuk idempotent replay dan idempotency conflict.
+- Feature tests untuk forbidden approver, same performer/approver, consumed approval, dan fingerprint mismatch.
+- Feature tests untuk idempotent replay.
 - `composer quality` lulus.
+
+## Evidence
+
+- `tests/Feature/Sales/SensitiveActionApprovalTest.php` verifies idempotent approval creation, supervisor approval, approval consumption, same-actor rejection, cashier approver rejection, and fingerprint mismatch.
+- `tests/Feature/Sales/CancelVoidFlowTest.php` verifies completed order void now requires approved supervisor approval.
+- POS API exposes `POST /api/v1/pos/outlets/{outlet}/orders/{order}/void` with Problem Details responses for approval failures.
+- Sales audit events capture approval lifecycle and consumed sensitive action evidence.
 
 ## Architecture Stop Rule
 

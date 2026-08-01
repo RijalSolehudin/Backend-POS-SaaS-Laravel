@@ -12,6 +12,9 @@ use App\Modules\Catalog\Domain\Models\ProductOutletAvailability;
 use App\Modules\Identity\Domain\Enums\PredefinedRole;
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\Identity\Domain\Models\UserRoleAssignment;
+use App\Modules\Sales\Application\Actions\ApproveSensitiveActionApproval;
+use App\Modules\Sales\Application\Actions\RequestSensitiveActionApproval;
+use App\Modules\Sales\Application\Actions\VoidCompletedOrder;
 use App\Modules\Sales\Domain\Models\Order;
 use App\Modules\Sales\Domain\Models\Payment;
 use App\Modules\Tenancy\Domain\Enums\MembershipType;
@@ -86,7 +89,7 @@ final class CancelVoidFlowTest extends TestCase
             ->assertJsonPath('code', 'IDEMPOTENCY_CONFLICT');
     }
 
-    public function test_tenant_owner_voids_completed_order_and_recorded_payment_with_reason(): void
+    public function test_cashier_voids_completed_order_and_recorded_payment_with_supervisor_approval(): void
     {
         [$owner, $cashier, $tenant, $outlet] = $this->readyOutlet();
         $product = $this->product($tenant, $outlet, 13000);
@@ -94,41 +97,74 @@ final class CancelVoidFlowTest extends TestCase
         $shiftId = $this->openShift($token, $outlet, 50000);
         $orderId = $this->completeOrder($token, $outlet, $product->id, '2', 'cash', 26000, 'complete-before-void');
         $paymentId = (string) Payment::query()->where('order_id', $orderId)->value('id');
+        $reason = 'Wrong payment method selected';
 
-        $this->login($cashier);
-        $this->from(route('tenant.sales.daily', ['tenant' => $tenant->id]))
-            ->post(route('tenant.sales.orders.void', ['tenant' => $tenant->id, 'order' => $orderId]), [
-                'idempotency_key' => 'void-by-cashier',
-                'reason' => 'Manager approval required',
+        $this->withHeader('Idempotency-Key', 'void-without-approval')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.orders.void', [
+                'outlet' => $outlet->id,
+                'order' => $orderId,
+            ]), [
+                'reason' => $reason,
+                'approval_id' => '01k123456789abcdefghjkmnpq',
             ])
-            ->assertForbidden();
-        $this->forgetWebSession();
+            ->assertNotFound()
+            ->assertJsonPath('code', 'APPROVAL_NOT_FOUND');
 
-        $this->login($owner);
-        $this->from(route('tenant.sales.daily', ['tenant' => $tenant->id]))
-            ->post(route('tenant.sales.orders.void', ['tenant' => $tenant->id, 'order' => $orderId]), [
-                'idempotency_key' => 'void-completed-1',
-                'reason' => 'Wrong payment method selected',
+        $approval = app(RequestSensitiveActionApproval::class)->handle(
+            tenantId: $tenant->id,
+            outletId: $outlet->id,
+            performerUserId: $cashier->id,
+            action: 'orders.void',
+            targetType: 'sales_order',
+            targetId: $orderId,
+            requestFingerprint: VoidCompletedOrder::approvalFingerprint($orderId, $reason),
+            reason: $reason,
+            idempotencyKey: 'approval-for-void-1',
+        );
+        app(ApproveSensitiveActionApproval::class)->approve($tenant->id, $approval->id, $owner->id, 'Approved by owner');
+
+        $this->withHeader('Idempotency-Key', 'void-completed-1')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.orders.void', [
+                'outlet' => $outlet->id,
+                'order' => $orderId,
+            ]), [
+                'reason' => $reason,
+                'approval_id' => $approval->id,
             ])
-            ->assertRedirect(route('tenant.sales.daily', ['tenant' => $tenant->id]));
-        $this->from(route('tenant.sales.daily', ['tenant' => $tenant->id]))
-            ->post(route('tenant.sales.orders.void', ['tenant' => $tenant->id, 'order' => $orderId]), [
-                'idempotency_key' => 'void-completed-1',
-                'reason' => 'Wrong payment method selected',
+            ->assertOk()
+            ->assertJsonPath('data.status', 'voided');
+        $this->withHeader('Idempotency-Key', 'void-completed-1')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.orders.void', [
+                'outlet' => $outlet->id,
+                'order' => $orderId,
+            ]), [
+                'reason' => $reason,
+                'approval_id' => $approval->id,
             ])
-            ->assertRedirect(route('tenant.sales.daily', ['tenant' => $tenant->id]));
+            ->assertOk();
 
         $this->assertDatabaseHas('sales_orders', [
             'id' => $orderId,
             'status' => 'voided',
-            'voided_by' => $owner->id,
-            'void_reason' => 'Wrong payment method selected',
+            'voided_by' => $cashier->id,
+            'void_reason' => $reason,
         ]);
         $this->assertDatabaseHas('sales_payments', [
             'id' => $paymentId,
             'status' => 'voided',
-            'voided_by' => $owner->id,
-            'void_reason' => 'Wrong payment method selected',
+            'voided_by' => $cashier->id,
+            'void_reason' => $reason,
+        ]);
+        $this->assertDatabaseHas('sales_sensitive_action_approvals', [
+            'id' => $approval->id,
+            'status' => 'consumed',
+        ]);
+        $this->assertDatabaseHas('sales_audit_events', [
+            'event_type' => 'order.voided',
+            'target_id' => $orderId,
         ]);
         self::assertSame(1, Order::query()->count());
         self::assertSame(1, Payment::query()->count());
@@ -156,6 +192,7 @@ final class CancelVoidFlowTest extends TestCase
             ->post(route('tenant.sales.orders.void', ['tenant' => $tenant->id, 'order' => $orderId]), [
                 'idempotency_key' => 'void-without-reason',
                 'reason' => '',
+                'approval_id' => '01k123456789abcdefghjkmnpq',
             ])
             ->assertSessionHasErrors('reason');
 
@@ -163,6 +200,7 @@ final class CancelVoidFlowTest extends TestCase
             ->post(route('tenant.sales.orders.void', ['tenant' => $tenant->id, 'order' => $orderId]), [
                 'idempotency_key' => 'void-draft-order',
                 'reason' => 'Wrong order',
+                'approval_id' => '01k123456789abcdefghjkmnpq',
             ])
             ->assertRedirect(route('tenant.sales.daily', ['tenant' => $tenant->id]))
             ->assertSessionHasErrors('reason');
@@ -323,11 +361,5 @@ final class CancelVoidFlowTest extends TestCase
             'tenant.authenticated_at' => now()->getTimestamp(),
             'tenant.last_activity_at' => now()->getTimestamp(),
         ]);
-    }
-
-    private function forgetWebSession(): void
-    {
-        $this->app['auth']->guard('web')->forgetUser();
-        $this->flushSession();
     }
 }

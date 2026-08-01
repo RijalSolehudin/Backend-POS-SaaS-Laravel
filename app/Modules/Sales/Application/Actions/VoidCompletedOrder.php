@@ -15,10 +15,28 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class VoidCompletedOrder
 {
-    public function __construct(private SummarizeShift $summaries) {}
+    public function __construct(
+        private SummarizeShift $summaries,
+        private ConsumeSensitiveActionApproval $approvals,
+        private RecordSalesAuditEvent $audit,
+    ) {}
 
-    public function handle(string $tenantId, string $orderId, string $actorUserId, string $reason, string $idempotencyKey): Order
+    public static function approvalFingerprint(string $orderId, string $reason): string
     {
+        return hash('sha256', json_encode([
+            'order_id' => $orderId,
+            'reason' => trim($reason),
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    public function handle(
+        string $tenantId,
+        string $orderId,
+        string $actorUserId,
+        string $reason,
+        string $idempotencyKey,
+        ?string $approvalId,
+    ): Order {
         $reason = trim($reason);
 
         if ($reason === '') {
@@ -29,12 +47,9 @@ final readonly class VoidCompletedOrder
             throw OrderException::idempotencyKeyRequired();
         }
 
-        $requestHash = hash('sha256', json_encode([
-            'order_id' => $orderId,
-            'reason' => $reason,
-        ], JSON_THROW_ON_ERROR));
+        $requestHash = self::approvalFingerprint($orderId, $reason);
 
-        return DB::transaction(function () use ($tenantId, $orderId, $actorUserId, $reason, $idempotencyKey, $requestHash): Order {
+        return DB::transaction(function () use ($tenantId, $orderId, $actorUserId, $reason, $idempotencyKey, $approvalId, $requestHash): Order {
             $order = Order::query()
                 ->with(['items', 'payments'])
                 ->where('tenant_id', $tenantId)
@@ -66,6 +81,17 @@ final readonly class VoidCompletedOrder
             if ($order->status !== OrderStatus::Completed) {
                 throw OrderException::notCompleted();
             }
+
+            $this->approvals->handle(
+                tenantId: $tenantId,
+                outletId: $order->outlet_id,
+                performerUserId: $actorUserId,
+                approvalId: $approvalId,
+                action: 'orders.void',
+                targetType: 'sales_order',
+                targetId: $order->id,
+                requestFingerprint: $requestHash,
+            );
 
             Payment::query()
                 ->where('tenant_id', $tenantId)
@@ -116,6 +142,24 @@ final readonly class VoidCompletedOrder
                 'response_body' => ['order_id' => $order->id],
                 'expires_at' => now()->addDay(),
             ]);
+
+            $this->audit->handle(
+                tenantId: $tenantId,
+                outletId: $order->outlet_id,
+                actorUserId: $actorUserId,
+                eventType: 'order.voided',
+                targetType: 'sales_order',
+                targetId: $order->id,
+                outcome: 'voided',
+                reason: $reason,
+                correlationId: $idempotencyKey,
+                metadata: [
+                    'approval_id' => $approvalId,
+                    'shift_id' => $order->shift_id,
+                    'total_minor' => $order->total_minor,
+                    'currency' => $order->currency,
+                ],
+            );
 
             return $order->refresh();
         });

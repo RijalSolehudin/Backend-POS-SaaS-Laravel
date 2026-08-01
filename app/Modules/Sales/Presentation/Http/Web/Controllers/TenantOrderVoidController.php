@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Presentation\Http\Web\Controllers;
 
 use App\Modules\Sales\Application\Actions\VoidCompletedOrder;
+use App\Modules\Sales\Application\Exceptions\ApprovalException;
 use App\Modules\Sales\Application\Exceptions\OrderException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,9 +23,10 @@ final class TenantOrderVoidController extends Controller
         $user = $request->user();
         abort_if($user === null, 401);
 
-        /** @var array{reason: string, idempotency_key?: string|null} $validated */
+        /** @var array{reason: string, approval_id: string, idempotency_key?: string|null} $validated */
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:500'],
+            'approval_id' => ['required', 'string', 'size:26'],
             'idempotency_key' => ['nullable', 'string', 'max:120'],
         ]);
         $idempotencyKey = $request->header('Idempotency-Key');
@@ -38,8 +40,8 @@ final class TenantOrderVoidController extends Controller
         }
 
         try {
-            $void->handle($tenant, $order, (string) $user->getAuthIdentifier(), $validated['reason'], $idempotencyKey);
-        } catch (OrderException $exception) {
+            $void->handle($tenant, $order, (string) $user->getAuthIdentifier(), $validated['reason'], $idempotencyKey, $validated['approval_id']);
+        } catch (ApprovalException|OrderException $exception) {
             throw ValidationException::withMessages(['reason' => $exception->getMessage()]);
         }
 
