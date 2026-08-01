@@ -95,6 +95,21 @@ final class InventoryException extends BusinessException
         return new self('The stock adjustment type is not valid.', 'INVENTORY_ADJUSTMENT_TYPE_INVALID');
     }
 
+    public static function transferInvalidState(): self
+    {
+        return new self('The inventory transfer is not in a valid state for this action.', 'INVENTORY_TRANSFER_INVALID_STATE');
+    }
+
+    public static function transferNotFound(): self
+    {
+        return new self('The requested inventory transfer was not found.', 'INVENTORY_TRANSFER_NOT_FOUND');
+    }
+
+    public static function transferSameOutlet(): self
+    {
+        return new self('Inventory transfer source and destination outlet must be different.', 'INVENTORY_TRANSFER_SAME_OUTLET');
+    }
+
     public function errorCode(): string
     {
         return $this->businessErrorCode;
@@ -103,9 +118,9 @@ final class InventoryException extends BusinessException
     public function httpStatus(): int
     {
         return match ($this->businessErrorCode) {
-            'INVENTORY_UNIT_NOT_FOUND', 'INVENTORY_ITEM_NOT_FOUND', 'INVENTORY_OUTLET_NOT_FOUND' => 404,
-            'INVENTORY_ITEM_INACTIVE', 'INVENTORY_INSUFFICIENT_STOCK', 'INVENTORY_OPENING_BALANCE_ALREADY_RECORDED', 'INVENTORY_IDEMPOTENCY_CONFLICT', 'INVENTORY_APPROVAL_REQUIRED' => 409,
-            'INVENTORY_UNIT_MISMATCH', 'INVENTORY_CURRENCY_MISMATCH', 'INVENTORY_IDEMPOTENCY_KEY_REQUIRED', 'INVENTORY_REASON_REQUIRED', 'INVENTORY_ADJUSTMENT_TYPE_INVALID' => 422,
+            'INVENTORY_UNIT_NOT_FOUND', 'INVENTORY_ITEM_NOT_FOUND', 'INVENTORY_OUTLET_NOT_FOUND', 'INVENTORY_TRANSFER_NOT_FOUND' => 404,
+            'INVENTORY_ITEM_INACTIVE', 'INVENTORY_INSUFFICIENT_STOCK', 'INVENTORY_OPENING_BALANCE_ALREADY_RECORDED', 'INVENTORY_IDEMPOTENCY_CONFLICT', 'INVENTORY_APPROVAL_REQUIRED', 'INVENTORY_TRANSFER_INVALID_STATE' => 409,
+            'INVENTORY_UNIT_MISMATCH', 'INVENTORY_CURRENCY_MISMATCH', 'INVENTORY_IDEMPOTENCY_KEY_REQUIRED', 'INVENTORY_REASON_REQUIRED', 'INVENTORY_ADJUSTMENT_TYPE_INVALID', 'INVENTORY_TRANSFER_SAME_OUTLET' => 422,
             default => 403,
         };
     }

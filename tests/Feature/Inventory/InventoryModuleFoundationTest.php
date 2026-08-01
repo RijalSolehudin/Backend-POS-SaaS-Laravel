@@ -7,15 +7,24 @@ namespace Tests\Feature\Inventory;
 use App\Modules\Identity\Domain\Enums\PredefinedRole;
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\Identity\Domain\Models\UserRoleAssignment;
+use App\Modules\Inventory\Application\Actions\ApproveInventoryTransfer;
+use App\Modules\Inventory\Application\Actions\CancelInventoryTransfer;
+use App\Modules\Inventory\Application\Actions\CreateInventoryTransfer;
+use App\Modules\Inventory\Application\Actions\DispatchInventoryTransfer;
 use App\Modules\Inventory\Application\Actions\GetInventoryBalance;
 use App\Modules\Inventory\Application\Actions\GetStockCard;
 use App\Modules\Inventory\Application\Actions\ListLowStockItems;
+use App\Modules\Inventory\Application\Actions\ReceiveInventoryTransfer;
 use App\Modules\Inventory\Application\Actions\RecordStockAdjustment;
 use App\Modules\Inventory\Application\Actions\RecordStockMovement;
 use App\Modules\Inventory\Application\Actions\RecordWaste;
+use App\Modules\Inventory\Application\Actions\RequestInventoryTransferApproval;
+use App\Modules\Inventory\Application\Data\InventoryTransferInput;
+use App\Modules\Inventory\Application\Data\InventoryTransferLineInput;
 use App\Modules\Inventory\Application\Data\StockMovementInput;
 use App\Modules\Inventory\Domain\Enums\InventoryStatus;
 use App\Modules\Inventory\Domain\Enums\StockMovementType;
+use App\Modules\Inventory\Domain\Enums\TransferStatus;
 use App\Modules\Inventory\Domain\Models\InventoryAuditEvent;
 use App\Modules\Inventory\Domain\Models\InventoryBalance;
 use App\Modules\Inventory\Domain\Models\InventoryItem;
@@ -575,6 +584,122 @@ final class InventoryModuleFoundationTest extends TestCase
             ->assertOk()
             ->assertSee('Cup 12 oz')
             ->assertDontSee('Other Cup');
+    }
+
+    public function test_transfer_lifecycle_dispatch_receive_idempotency_and_in_transit_balance(): void
+    {
+        $tenant = $this->tenant();
+        $performer = $this->user('performer@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $approver = $this->user('approver@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $source = $this->outlet($tenant, 'SRC');
+        $destination = $this->outlet($tenant, 'DST');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'BEANS-TRF', 'Transfer Beans');
+        $this->login($performer);
+        $this->recordOpeningBalance($tenant, $source, $item, '10.000', 100000, 'opening-transfer-beans');
+        $context = new TenantRequestContext($tenant->id, $performer->id, MembershipType::Owner);
+
+        $transfer = $this->app->make(CreateInventoryTransfer::class)->handle(
+            $context,
+            new InventoryTransferInput(
+                sourceOutletId: $source->id,
+                destinationOutletId: $destination->id,
+                reason: 'Restock second outlet',
+                lines: [new InventoryTransferLineInput($item->id, '4.000')],
+            ),
+        );
+
+        self::assertSame(TransferStatus::Draft, $transfer->status);
+
+        $approval = $this->app->make(RequestInventoryTransferApproval::class)->handle($context, $transfer->id, 'request-transfer-1');
+        $transfer = $this->app->make(ApproveInventoryTransfer::class)->handle($context, $transfer->id, $approver->id, 'Approved transfer');
+
+        self::assertSame($approval->id, $transfer->approval_id);
+        self::assertSame(TransferStatus::Approved, $transfer->status);
+
+        $dispatched = $this->app->make(DispatchInventoryTransfer::class)->handle($context, $transfer->id, 'dispatch-transfer-1');
+        $retryDispatch = $this->app->make(DispatchInventoryTransfer::class)->handle($context, $transfer->id, 'dispatch-transfer-1');
+
+        self::assertSame(TransferStatus::Dispatched, $dispatched->status);
+        self::assertSame($dispatched->id, $retryDispatch->id);
+        self::assertSame(1, InventoryStockMovement::query()->where('movement_type', StockMovementType::TransferOut)->count());
+        self::assertSame('6.000', InventoryBalance::query()->where('outlet_id', $source->id)->firstOrFail()->quantity);
+        self::assertSame(
+            '4.000',
+            $this->app->make(GetInventoryBalance::class)->handle($context, $source->id, $item->id)->inTransitQuantity,
+        );
+
+        $received = $this->app->make(ReceiveInventoryTransfer::class)->handle($context, $transfer->id, 'receive-transfer-1');
+        $retryReceive = $this->app->make(ReceiveInventoryTransfer::class)->handle($context, $transfer->id, 'receive-transfer-1');
+
+        self::assertSame(TransferStatus::Received, $received->status);
+        self::assertSame($received->id, $retryReceive->id);
+        self::assertSame(1, InventoryStockMovement::query()->where('movement_type', StockMovementType::TransferIn)->count());
+        self::assertSame('4.000', InventoryBalance::query()->where('outlet_id', $destination->id)->firstOrFail()->quantity);
+        self::assertSame(40000, InventoryBalance::query()->where('outlet_id', $destination->id)->firstOrFail()->total_cost_minor);
+        self::assertSame(
+            '0.000',
+            $this->app->make(GetInventoryBalance::class)->handle($context, $source->id, $item->id)->inTransitQuantity,
+        );
+
+        $stockCard = $this->app->make(GetStockCard::class)->handle($context, $source->id, $item->id, sourceType: 'inventory_transfer');
+
+        self::assertCount(1, $stockCard);
+        self::assertSame('transfer_out', $stockCard[0]->movementType);
+    }
+
+    public function test_transfer_rejects_cross_tenant_destination(): void
+    {
+        $tenant = $this->tenant();
+        $otherTenant = $this->tenant('Other Tenant', 'other');
+        $performer = $this->user('performer@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $source = $this->outlet($tenant, 'SRC');
+        $otherDestination = $this->outlet($otherTenant, 'OTHER');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'MILK-TRF', 'Transfer Milk');
+        $context = new TenantRequestContext($tenant->id, $performer->id, MembershipType::Owner);
+
+        $this->expectExceptionMessage('The requested outlet is not available for this tenant.');
+
+        $this->app->make(CreateInventoryTransfer::class)->handle(
+            $context,
+            new InventoryTransferInput(
+                sourceOutletId: $source->id,
+                destinationOutletId: $otherDestination->id,
+                reason: 'Invalid tenant destination',
+                lines: [new InventoryTransferLineInput($item->id, '1.000')],
+            ),
+        );
+    }
+
+    public function test_transfer_cancel_is_rejected_after_dispatch(): void
+    {
+        $tenant = $this->tenant();
+        $performer = $this->user('performer@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $approver = $this->user('approver@example.com', $tenant, MembershipType::Owner, PredefinedRole::TenantOwner);
+        $source = $this->outlet($tenant, 'SRC');
+        $destination = $this->outlet($tenant, 'DST');
+        $unit = $this->unit($tenant);
+        $item = $this->item($tenant, $unit, 'MILK-TRF', 'Transfer Milk');
+        $this->login($performer);
+        $this->recordOpeningBalance($tenant, $source, $item, '5.000', 50000, 'opening-transfer-milk');
+        $context = new TenantRequestContext($tenant->id, $performer->id, MembershipType::Owner);
+
+        $transfer = $this->app->make(CreateInventoryTransfer::class)->handle(
+            $context,
+            new InventoryTransferInput(
+                sourceOutletId: $source->id,
+                destinationOutletId: $destination->id,
+                reason: 'Cancel check',
+                lines: [new InventoryTransferLineInput($item->id, '1.000')],
+            ),
+        );
+        $this->app->make(RequestInventoryTransferApproval::class)->handle($context, $transfer->id, 'request-transfer-cancel-1');
+        $this->app->make(ApproveInventoryTransfer::class)->handle($context, $transfer->id, $approver->id, 'Approved transfer');
+        $this->app->make(DispatchInventoryTransfer::class)->handle($context, $transfer->id, 'dispatch-transfer-cancel-1');
+
+        $this->expectExceptionMessage('The inventory transfer is not in a valid state for this action.');
+        $this->app->make(CancelInventoryTransfer::class)->handle($context, $transfer->id, 'Too late');
     }
 
     private function tenant(string $name = 'Acme POS', string $code = 'acme-pos'): Tenant

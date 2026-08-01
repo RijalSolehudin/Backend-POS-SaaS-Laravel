@@ -18,8 +18,8 @@ Detail implementasi wajib mengikuti [Phase 05 Implementation Contract](implement
 | P05-03 | [Opening Balance and Stock Ledger](P05-03-opening-balance-stock-ledger.md) | P05-02 | Done |
 | P05-04 | [Stock Adjustment and Waste](P05-04-stock-adjustment-waste.md) | P05-03 | Done |
 | P05-05 | [Stock Card, Balance, and Low Stock](P05-05-stock-card-balance-low-stock.md) | P05-03, P05-04 | Done |
-| P05-06 | [Inter-Outlet Transfer Lifecycle](P05-06-inter-outlet-transfer-lifecycle.md) | P05-03 | Ready |
-| P05-07 | [Inventory Reconciliation and Recovery](P05-07-inventory-reconciliation-recovery.md) | P05-04, P05-05, P05-06 | Planned |
+| P05-06 | [Inter-Outlet Transfer Lifecycle](P05-06-inter-outlet-transfer-lifecycle.md) | P05-03 | Done |
+| P05-07 | [Inventory Reconciliation and Recovery](P05-07-inventory-reconciliation-recovery.md) | P05-04, P05-05, P05-06 | Ready |
 | P05-08 | [Inventory Readiness](P05-08-inventory-readiness.md) | P05-02..P05-07 | Planned |
 
 ## Readiness Gate

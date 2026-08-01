@@ -7,8 +7,11 @@ namespace App\Modules\Inventory\Application\Actions;
 use App\Modules\Inventory\Application\Data\InventoryBalanceView;
 use App\Modules\Inventory\Application\Exceptions\InventoryException;
 use App\Modules\Inventory\Application\Services\DecimalQuantity;
+use App\Modules\Inventory\Domain\Enums\TransferStatus;
 use App\Modules\Inventory\Domain\Models\InventoryBalance;
 use App\Modules\Inventory\Domain\Models\InventoryItem;
+use App\Modules\Inventory\Domain\Models\InventoryTransfer;
+use App\Modules\Inventory\Domain\Models\InventoryTransferLine;
 use App\Modules\Tenancy\Application\Contracts\TenantCatalogReference;
 use App\Modules\Tenancy\Application\Data\TenantRequestContext;
 use App\Modules\Tenancy\Application\Services\TenantPermissionGuard;
@@ -49,7 +52,7 @@ final readonly class GetInventoryBalance
                 totalCostMinor: 0,
                 currency: $currency,
                 averageCostMinor: null,
-                inTransitQuantity: '0.000',
+                inTransitQuantity: $this->inTransitQuantity($context, $outletId, $itemId),
             );
         }
 
@@ -64,7 +67,7 @@ final readonly class GetInventoryBalance
             totalCostMinor: $balance->total_cost_minor,
             currency: $balance->currency,
             averageCostMinor: $this->quantity->unitCostMinor($balance->total_cost_minor, $quantityScaled),
-            inTransitQuantity: '0.000',
+            inTransitQuantity: $this->inTransitQuantity($context, $outletId, $itemId),
         );
     }
 
@@ -80,5 +83,31 @@ final readonly class GetInventoryBalance
         }
 
         return $item;
+    }
+
+    private function inTransitQuantity(TenantRequestContext $context, string $outletId, string $itemId): string
+    {
+        $transferIds = InventoryTransfer::query()
+            ->where('tenant_id', $context->tenantId)
+            ->where('source_outlet_id', $outletId)
+            ->where('status', TransferStatus::Dispatched)
+            ->pluck('id')
+            ->all();
+
+        if ($transferIds === []) {
+            return '0.000';
+        }
+
+        $scaled = 0;
+
+        foreach (InventoryTransferLine::query()
+            ->where('tenant_id', $context->tenantId)
+            ->where('item_id', $itemId)
+            ->whereIn('transfer_id', $transferIds)
+            ->get(['quantity']) as $line) {
+            $scaled += $this->quantity->toScaled((string) $line->quantity);
+        }
+
+        return $this->quantity->format($scaled);
     }
 }
