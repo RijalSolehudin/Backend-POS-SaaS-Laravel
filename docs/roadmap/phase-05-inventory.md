@@ -1,6 +1,6 @@
 # Phase 05: Inventory
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 

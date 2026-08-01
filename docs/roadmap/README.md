@@ -18,7 +18,7 @@ Roadmap menggunakan vertical slices. Setiap phase harus menghasilkan capability 
 | [02](phase-02-pos-core.md) | MVP POS vertical slice end-to-end | Done |
 | [03](phase-03-operational-safety.md) | Reliability, audit, dan operational safety | Done |
 | [04](phase-04-catalog-expansion.md) | Catalog, variants, modifiers, dan pricing lanjutan | Done |
-| [05](phase-05-inventory.md) | Inventory ledger dan stock operations | Ready |
+| [05](phase-05-inventory.md) | Inventory ledger dan stock operations | Done |
 | [06](phase-06-recipe-procurement.md) | Recipe costing dan procurement | Not Started |
 | [07](phase-07-dining-kitchen.md) | Table service, kitchen, dan printer | Not Started |
 | [08](phase-08-growth.md) | QR order, payment gateway, dan growth features | Not Started |
