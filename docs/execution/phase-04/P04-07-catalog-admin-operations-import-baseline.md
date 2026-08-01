@@ -1,6 +1,6 @@
 # P04-07 — Catalog Admin Operations and Import Baseline
 
-Status: **Planned**
+Status: **Ready**
 
 ## Outcome
 

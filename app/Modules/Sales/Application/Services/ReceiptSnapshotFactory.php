@@ -49,12 +49,17 @@ final readonly class ReceiptSnapshotFactory
                 'items' => $order->items
                     ->map(fn (OrderItem $item): array => [
                         'product_id' => $item->product_id,
+                        'variant_id' => $item->variant_id,
                         'sku' => $item->product_sku,
+                        'variant_sku' => $item->variant_sku,
                         'name' => $item->product_name,
+                        'variant_name' => $item->variant_name,
                         'category_id' => $item->product_category_id,
                         'category_name' => $item->product_category_name,
                         'quantity' => $item->quantity,
                         'unit_price_minor' => $item->unit_price_minor,
+                        'modifier_total_minor' => $item->modifier_total_minor,
+                        'modifiers' => $item->modifier_snapshot ?? [],
                         'line_subtotal_minor' => $item->line_subtotal_minor,
                         'currency' => $item->currency,
                     ])

@@ -7,8 +7,13 @@ namespace Tests\Feature\Sales;
 use App\Modules\Catalog\Domain\Enums\CategoryStatus;
 use App\Modules\Catalog\Domain\Enums\ProductStatus;
 use App\Modules\Catalog\Domain\Models\Category;
+use App\Modules\Catalog\Domain\Models\ModifierGroup;
+use App\Modules\Catalog\Domain\Models\ModifierOption;
+use App\Modules\Catalog\Domain\Models\ModifierOptionOutletOverride;
 use App\Modules\Catalog\Domain\Models\Product;
 use App\Modules\Catalog\Domain\Models\ProductOutletAvailability;
+use App\Modules\Catalog\Domain\Models\ProductVariant;
+use App\Modules\Catalog\Domain\Models\VariantOutletAvailability;
 use App\Modules\Identity\Domain\Enums\PredefinedRole;
 use App\Modules\Identity\Domain\Models\User;
 use App\Modules\Identity\Domain\Models\UserRoleAssignment;
@@ -175,6 +180,97 @@ final class DraftOrderItemManagementTest extends TestCase
             ->assertJsonPath('code', 'ORDER_PRODUCT_UNAVAILABLE');
     }
 
+    public function test_cashier_adds_variant_modifier_item_and_receipt_keeps_catalog_snapshot(): void
+    {
+        [$tenant, $outlet] = $this->readyOutlet();
+        $product = $this->product($tenant, $outlet, 'LATTE', 'Latte', 20000, 20000);
+        $variant = $this->variant($tenant, $product, 'LATTE-LARGE', 'Large', 26000);
+        $this->variantAvailability($tenant, $outlet, $variant, true, 28000);
+        $milk = $this->modifierGroup($tenant, $product, 'Milk', true, 1, 1);
+        $oat = $this->modifierOption($tenant, $milk, 'Oat Milk', 5000);
+        $this->modifierOptionOverride($tenant, $outlet, $oat, true, 7000);
+        $token = $this->posToken($outlet);
+        $this->openShift($tenant, $outlet);
+        $orderId = (string) $this->withHeader('Idempotency-Key', 'create-order-expanded-item')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.orders.store', ['outlet' => $outlet->id]))
+            ->json('data.id');
+
+        $added = $this->withToken($token)->postJson(route('api.v1.pos.outlets.orders.items.store', [
+            'outlet' => $outlet->id,
+            'order' => $orderId,
+        ]), [
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'modifiers' => [$oat->id],
+            'quantity' => '2',
+        ]);
+
+        $added
+            ->assertOk()
+            ->assertJsonPath('data.items.0.product_name', 'Latte')
+            ->assertJsonPath('data.items.0.variant_name', 'Large')
+            ->assertJsonPath('data.items.0.variant_sku', 'LATTE-LARGE')
+            ->assertJsonPath('data.items.0.modifier_total_minor', 7000)
+            ->assertJsonPath('data.items.0.modifiers.0.option_name', 'Oat Milk')
+            ->assertJsonPath('data.items.0.unit_price_minor', 35000)
+            ->assertJsonPath('data.items.0.line_subtotal_minor', 70000)
+            ->assertJsonPath('data.total_minor', 70000);
+
+        $this->withHeader('Idempotency-Key', 'complete-expanded-item')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.orders.complete', [
+                'outlet' => $outlet->id,
+                'order' => $orderId,
+            ]), [
+                'method' => 'cash',
+                'amount_minor' => 70000,
+                'currency' => 'IDR',
+            ])
+            ->assertOk();
+
+        $product->forceFill(['name' => 'Renamed Latte'])->save();
+        $variant->forceFill(['name' => 'Renamed Large', 'price_minor' => 99000])->save();
+        $oat->forceFill(['name' => 'Renamed Oat', 'price_delta_minor' => 1000])->save();
+
+        $this->withToken($token)->getJson(route('api.v1.pos.outlets.orders.receipt', [
+            'outlet' => $outlet->id,
+            'order' => $orderId,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.snapshot.order.items.0.name', 'Latte')
+            ->assertJsonPath('data.snapshot.order.items.0.variant_name', 'Large')
+            ->assertJsonPath('data.snapshot.order.items.0.modifiers.0.option_name', 'Oat Milk')
+            ->assertJsonPath('data.snapshot.order.items.0.unit_price_minor', 35000);
+    }
+
+    public function test_required_modifier_must_be_selected(): void
+    {
+        [$tenant, $outlet] = $this->readyOutlet();
+        $product = $this->product($tenant, $outlet, 'MATCHA', 'Matcha', 20000, 20000);
+        $variant = $this->variant($tenant, $product, 'MATCHA-REG', 'Regular', 20000);
+        $this->variantAvailability($tenant, $outlet, $variant, true);
+        $milk = $this->modifierGroup($tenant, $product, 'Milk', true, 1, 1);
+        $this->modifierOption($tenant, $milk, 'Oat Milk', 5000);
+        $token = $this->posToken($outlet);
+        $this->openShift($tenant, $outlet);
+        $orderId = (string) $this->withHeader('Idempotency-Key', 'create-order-required-modifier')
+            ->withToken($token)
+            ->postJson(route('api.v1.pos.outlets.orders.store', ['outlet' => $outlet->id]))
+            ->json('data.id');
+
+        $this->withToken($token)->postJson(route('api.v1.pos.outlets.orders.items.store', [
+            'outlet' => $outlet->id,
+            'order' => $orderId,
+        ]), [
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'quantity' => '1',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonPath('code', 'ORDER_MODIFIER_SELECTION_INVALID');
+    }
+
     /**
      * @return array{Tenant, Outlet}
      */
@@ -278,6 +374,86 @@ final class DraftOrderItemManagementTest extends TestCase
             'expected_cash_minor' => 50000,
             'gross_sales_minor' => 0,
             'currency' => 'IDR',
+        ]);
+    }
+
+    private function variant(Tenant $tenant, Product $product, string $sku, string $name, int $priceMinor): ProductVariant
+    {
+        return ProductVariant::query()->create([
+            'tenant_id' => $tenant->id,
+            'product_id' => $product->id,
+            'name' => $name,
+            'sku' => $sku,
+            'price_minor' => $priceMinor,
+            'currency' => 'IDR',
+            'is_default' => true,
+            'display_order' => 0,
+            'status' => ProductStatus::Active,
+        ]);
+    }
+
+    private function variantAvailability(
+        Tenant $tenant,
+        Outlet $outlet,
+        ProductVariant $variant,
+        bool $available,
+        ?int $priceMinor = null,
+    ): void {
+        VariantOutletAvailability::query()->create([
+            'tenant_id' => $tenant->id,
+            'variant_id' => $variant->id,
+            'outlet_id' => $outlet->id,
+            'available' => $available,
+            'price_minor' => $priceMinor,
+        ]);
+    }
+
+    private function modifierGroup(
+        Tenant $tenant,
+        Product $product,
+        string $name,
+        bool $required,
+        int $minSelection,
+        int $maxSelection,
+    ): ModifierGroup {
+        return ModifierGroup::query()->create([
+            'tenant_id' => $tenant->id,
+            'product_id' => $product->id,
+            'name' => $name,
+            'required' => $required,
+            'min_selection' => $minSelection,
+            'max_selection' => $maxSelection,
+            'display_order' => 0,
+            'status' => ProductStatus::Active,
+        ]);
+    }
+
+    private function modifierOption(Tenant $tenant, ModifierGroup $group, string $name, int $priceDeltaMinor): ModifierOption
+    {
+        return ModifierOption::query()->create([
+            'tenant_id' => $tenant->id,
+            'group_id' => $group->id,
+            'name' => $name,
+            'price_delta_minor' => $priceDeltaMinor,
+            'currency' => 'IDR',
+            'display_order' => 0,
+            'status' => ProductStatus::Active,
+        ]);
+    }
+
+    private function modifierOptionOverride(
+        Tenant $tenant,
+        Outlet $outlet,
+        ModifierOption $option,
+        bool $available,
+        ?int $priceDeltaMinor = null,
+    ): void {
+        ModifierOptionOutletOverride::query()->create([
+            'tenant_id' => $tenant->id,
+            'option_id' => $option->id,
+            'outlet_id' => $outlet->id,
+            'available' => $available,
+            'price_delta_minor' => $priceDeltaMinor,
         ]);
     }
 

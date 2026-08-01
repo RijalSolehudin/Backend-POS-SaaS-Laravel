@@ -14,6 +14,7 @@ use App\Modules\Sales\Application\Actions\RecordFullRefund;
 use App\Modules\Sales\Application\Actions\RemoveOrderItem;
 use App\Modules\Sales\Application\Actions\UpdateOrderItem;
 use App\Modules\Sales\Application\Actions\VoidCompletedOrder;
+use App\Modules\Sales\Application\Data\OrderItemSelection;
 use App\Modules\Sales\Application\Exceptions\OrderException;
 use App\Modules\Sales\Domain\Enums\PaymentMethod;
 use App\Modules\Sales\Domain\Models\Order;
@@ -68,17 +69,24 @@ final class OrderController extends Controller
         ResolvePosOutletApiContext $context,
         AddOrderItem $add,
     ): JsonResponse {
-        /** @var array{product_id: string, quantity: string} $validated */
+        /** @var array{product_id: string, quantity: string, variant_id?: string|null, modifiers?: list<string>} $validated */
         $validated = $request->validate([
             'product_id' => ['required', 'string', 'size:26'],
+            'variant_id' => ['nullable', 'string', 'size:26'],
+            'modifiers' => ['nullable', 'array'],
+            'modifiers.*' => ['required', 'string', 'size:26'],
             'quantity' => ['required', 'numeric', 'gt:0', 'regex:/^\d+(\.\d{1,3})?$/'],
         ]);
 
         $updated = $add->handle(
             $this->context($outlet, $request, $context),
             $order,
-            $validated['product_id'],
-            $validated['quantity'],
+            new OrderItemSelection(
+                productId: $validated['product_id'],
+                quantity: $validated['quantity'],
+                variantId: $validated['variant_id'] ?? null,
+                modifierOptionIds: $validated['modifiers'] ?? [],
+            ),
         );
 
         return response()->json(['data' => $this->orderData($updated)]);
@@ -333,12 +341,17 @@ final class OrderController extends Controller
                 ->map(fn (OrderItem $item): array => [
                     'id' => $item->id,
                     'product_id' => $item->product_id,
+                    'variant_id' => $item->variant_id,
                     'product_sku' => $item->product_sku,
+                    'variant_sku' => $item->variant_sku,
                     'product_name' => $item->product_name,
+                    'variant_name' => $item->variant_name,
                     'product_category_id' => $item->product_category_id,
                     'product_category_name' => $item->product_category_name,
                     'quantity' => $item->quantity,
                     'unit_price_minor' => $item->unit_price_minor,
+                    'modifier_total_minor' => $item->modifier_total_minor,
+                    'modifiers' => $item->modifier_snapshot ?? [],
                     'line_subtotal_minor' => $item->line_subtotal_minor,
                     'currency' => $item->currency,
                 ])

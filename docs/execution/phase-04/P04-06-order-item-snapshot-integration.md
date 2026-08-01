@@ -1,6 +1,6 @@
 # P04-06 — Order Item Snapshot Integration
 
-Status: **Ready**
+Status: **Done**
 
 ## Outcome
 
@@ -42,6 +42,23 @@ Sales order item dapat merekam variant dan modifier selection sebagai immutable 
 - Regression tests untuk product sederhana Phase 02.
 - Receipt snapshot tests diperluas.
 - `composer quality` lulus.
+
+## Delivered
+
+- Sales order item menyimpan snapshot variant dan modifier selection secara additive.
+- POS add item menerima `variant_id` dan `modifiers` opsional.
+- Harga unit dihitung dari resolved variant price plus selected modifier price deltas.
+- Required/min/max modifier rules divalidasi server-side.
+- Receipt snapshot membaca variant/modifier snapshot dari order item, bukan catalog live.
+- Product sederhana lama tetap kompatibel tanpa payload variant/modifier.
+
+## Evidence
+
+- Laravel Boost ApplicationInfo digunakan untuk memverifikasi stack Laravel aktif.
+- `php artisan test tests/Feature/Sales/DraftOrderItemManagementTest.php`
+- `php artisan test tests/Feature/Catalog/MinimumCatalogTest.php tests/Feature/Sales/DraftOrderItemManagementTest.php tests/Feature/Sales/ReceiptSnapshotTest.php`
+- `composer quality`
+- `npm run build`
 
 ## Architecture Stop Rule
 

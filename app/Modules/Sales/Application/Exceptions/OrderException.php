@@ -60,6 +60,16 @@ final class OrderException extends BusinessException
         return new self('The requested product is not available for this outlet.', 'ORDER_PRODUCT_UNAVAILABLE');
     }
 
+    public static function variantUnavailable(): self
+    {
+        return new self('The requested product variant is not available for this outlet.', 'ORDER_VARIANT_UNAVAILABLE');
+    }
+
+    public static function modifierSelectionInvalid(): self
+    {
+        return new self('The selected modifiers do not satisfy catalog modifier rules.', 'ORDER_MODIFIER_SELECTION_INVALID');
+    }
+
     public static function paymentAmountMismatch(): self
     {
         return new self('Payment amount must equal the order total.', 'PAYMENT_AMOUNT_MISMATCH');
