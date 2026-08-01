@@ -29,8 +29,10 @@
 - `PUT /api/v1/pos/outlets/{outlet}/orders/{order}/items/{item}`
 - `DELETE /api/v1/pos/outlets/{outlet}/orders/{order}/items/{item}`
 - `POST /api/v1/pos/outlets/{outlet}/orders/{order}/complete`
+- `POST /api/v1/pos/outlets/{outlet}/orders/{order}/cancel`
 - `GET /api/v1/pos/outlets/{outlet}/orders/{order}/receipt`
 - `GET /admin/tenants/{tenant}/sales/daily`
+- `POST /admin/tenants/{tenant}/sales/orders/{order}/void`
 
 ## Invariants
 
@@ -42,6 +44,7 @@
 - Completed order immutable untuk perubahan item.
 - Completion menghasilkan receipt snapshot immutable.
 - Close shift menyimpan summary cash dan gross sales hasil rekonsiliasi.
+- Draft order cancellation dan completed order void menyimpan actor, reason, dan timestamp.
 - Lifecycle transition hanya melalui use case yang sah.
 - Critical create/mutation operation memiliki idempotency policy.
 - Finalized financial history tidak di-hard-delete.

@@ -40,6 +40,16 @@ final class OrderException extends BusinessException
         return new self('Only draft orders can be changed.', 'ORDER_NOT_DRAFT');
     }
 
+    public static function notCompleted(): self
+    {
+        return new self('Only completed orders can be voided.', 'ORDER_NOT_COMPLETED');
+    }
+
+    public static function reasonRequired(): self
+    {
+        return new self('A reason is required for this order transition.', 'ORDER_REASON_REQUIRED');
+    }
+
     public static function itemsRequired(): self
     {
         return new self('At least one order item is required before completion.', 'ORDER_ITEMS_REQUIRED');

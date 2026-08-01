@@ -27,7 +27,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string $currency
  * @property CarbonImmutable|null $completed_at
  * @property CarbonImmutable|null $cancelled_at
+ * @property string|null $cancelled_by
+ * @property string|null $cancel_reason
  * @property CarbonImmutable|null $voided_at
+ * @property string|null $voided_by
+ * @property string|null $void_reason
  */
 final class Order extends Model
 {

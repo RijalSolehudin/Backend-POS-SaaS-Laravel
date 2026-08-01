@@ -590,6 +590,65 @@ paths:
           $ref: '#/components/responses/Problem'
         '422':
           $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/orders/{order}/cancel:
+    post:
+      operationId: cancelDraftOrder
+      summary: Cancel a draft POS order
+      tags:
+        - POS Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: order
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+      responses:
+        '200':
+          description: Draft order cancelled, or replayed for the same idempotency key.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
   /pos/outlets/{outlet}/orders/{order}/receipt:
     get:
       operationId: getOrderReceipt
@@ -952,6 +1011,37 @@ components:
           type: string
           minLength: 3
           maxLength: 3
+        completed_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        cancelled_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        cancelled_by:
+          oneOf:
+            - $ref: '#/components/schemas/Ulid'
+            - type: 'null'
+        cancel_reason:
+          type:
+            - string
+            - 'null'
+        voided_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        voided_by:
+          oneOf:
+            - $ref: '#/components/schemas/Ulid'
+            - type: 'null'
+        void_reason:
+          type:
+            - string
+            - 'null'
         items:
           type: array
           items:
@@ -1028,6 +1118,19 @@ components:
         recorded_at:
           type: string
           format: date-time
+        voided_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        voided_by:
+          oneOf:
+            - $ref: '#/components/schemas/Ulid'
+            - type: 'null'
+        void_reason:
+          type:
+            - string
+            - 'null'
     ReceiptResponse:
       type: object
       required:

@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $currency
  * @property CarbonImmutable $recorded_at
  * @property CarbonImmutable|null $voided_at
+ * @property string|null $voided_by
+ * @property string|null $void_reason
  */
 final class Payment extends Model
 {

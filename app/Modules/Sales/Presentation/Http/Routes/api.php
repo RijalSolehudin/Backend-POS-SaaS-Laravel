@@ -64,6 +64,12 @@ Route::prefix('api/v1')
                     'order' => '[0-9a-hjkmnp-tv-z]{26}',
                 ])
                 ->name('pos.outlets.orders.complete');
+            Route::post('pos/outlets/{outlet}/orders/{order}/cancel', [OrderController::class, 'cancel'])
+                ->where([
+                    'outlet' => '[0-9a-hjkmnp-tv-z]{26}',
+                    'order' => '[0-9a-hjkmnp-tv-z]{26}',
+                ])
+                ->name('pos.outlets.orders.cancel');
             Route::get('pos/outlets/{outlet}/orders/{order}/receipt', [OrderController::class, 'receipt'])
                 ->where([
                     'outlet' => '[0-9a-hjkmnp-tv-z]{26}',

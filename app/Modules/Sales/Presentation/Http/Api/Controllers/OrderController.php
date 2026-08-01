@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Presentation\Http\Api\Controllers;
 
 use App\Modules\Sales\Application\Actions\AddOrderItem;
+use App\Modules\Sales\Application\Actions\CancelDraftOrder;
 use App\Modules\Sales\Application\Actions\CompleteOrderWithPayment;
 use App\Modules\Sales\Application\Actions\CreateDraftOrder;
 use App\Modules\Sales\Application\Actions\GetDraftOrder;
@@ -148,6 +149,34 @@ final class OrderController extends Controller
         return response()->json(['data' => $this->orderData($updated)]);
     }
 
+    public function cancel(
+        string $outlet,
+        string $order,
+        Request $request,
+        ResolvePosOutletApiContext $context,
+        CancelDraftOrder $cancel,
+    ): JsonResponse {
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if (! is_string($idempotencyKey)) {
+            throw OrderException::idempotencyKeyRequired();
+        }
+
+        /** @var array{reason: string} $validated */
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $updated = $cancel->handle(
+            $this->context($outlet, $request, $context),
+            $order,
+            $validated['reason'],
+            $idempotencyKey,
+        );
+
+        return response()->json(['data' => $this->orderData($updated)]);
+    }
+
     public function receipt(
         string $outlet,
         string $order,
@@ -224,6 +253,13 @@ final class OrderController extends Controller
             'tax_minor' => $order->tax_minor,
             'total_minor' => $order->total_minor,
             'currency' => $order->currency,
+            'completed_at' => $order->completed_at?->toJSON(),
+            'cancelled_at' => $order->cancelled_at?->toJSON(),
+            'cancelled_by' => $order->cancelled_by,
+            'cancel_reason' => $order->cancel_reason,
+            'voided_at' => $order->voided_at?->toJSON(),
+            'voided_by' => $order->voided_by,
+            'void_reason' => $order->void_reason,
             'items' => $order->items
                 ->map(fn (OrderItem $item): array => [
                     'id' => $item->id,
@@ -247,6 +283,9 @@ final class OrderController extends Controller
                     'amount_minor' => $payment->amount_minor,
                     'currency' => $payment->currency,
                     'recorded_at' => $payment->recorded_at->toJSON(),
+                    'voided_at' => $payment->voided_at?->toJSON(),
+                    'voided_by' => $payment->voided_by,
+                    'void_reason' => $payment->void_reason,
                 ])
                 ->values()
                 ->all(),
