@@ -8,6 +8,7 @@ Dokumen ini memecah [Phase 08 Growth Features](../../roadmap/phase-08-growth.md)
 
 Implementasi Phase 08 mengikuti [ADR-043 Growth Channels MVP Policy](../../architecture/decisions/043-growth-channels-mvp-policy.md).
 Detail implementasi wajib mengikuti [Phase 08 Implementation Contract](implementation-contract.md).
+Panduan langkah manual untuk implementer tersedia di [Manual Development Work Packages](manual-development-work-packages.md).
 
 ## Urutan yang Direkomendasikan
 
