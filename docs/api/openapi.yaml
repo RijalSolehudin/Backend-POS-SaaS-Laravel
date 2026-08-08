@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: POS SaaS API
   version: 1.0.0
-  description: Baseline API v1 contract for the Phase 01 Flutter POS foundation.
+  description: API v1 contract for POS auth, catalog, sales, KDS, QR ordering, and offline sync.
 servers:
   - url: /api/v1
 paths:
@@ -684,6 +684,422 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/shifts/{shift}/cash-movements:
+    post:
+      operationId: recordCashMovement
+      summary: Record a cash drawer movement for an open shift
+      tags:
+        - POS Shifts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: shift
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - amount_minor
+                - currency
+                - reason
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - cash_in
+                    - cash_out
+                amount_minor:
+                  type: integer
+                  minimum: 1
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                approval_id:
+                  oneOf:
+                    - $ref: '#/components/schemas/Ulid'
+                    - type: 'null'
+      responses:
+        '201':
+          description: Cash movement recorded or replayed for the same idempotency key.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashMovementResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/orders/{order}/void:
+    post:
+      operationId: voidCompletedOrder
+      summary: Void a completed POS order with approval
+      tags:
+        - POS Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: order
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+                - approval_id
+              properties:
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                approval_id:
+                  $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Completed order voided, or replayed for the same idempotency key.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/orders/{order}/refund:
+    post:
+      operationId: recordFullRefund
+      summary: Record a full manual refund for a completed order
+      tags:
+        - POS Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: order
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount_minor
+                - currency
+                - reason
+                - approval_id
+              properties:
+                amount_minor:
+                  type: integer
+                  minimum: 0
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                approval_id:
+                  $ref: '#/components/schemas/Ulid'
+      responses:
+        '201':
+          description: Full refund recorded, or replayed for the same idempotency key.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/kds/snapshot:
+    get:
+      operationId: getKdsSnapshot
+      summary: Get current kitchen display snapshot for an outlet
+      tags:
+        - POS Kitchen
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: station_id
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Current active kitchen tickets and station-filtered items.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KdsSnapshotResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /qr/{token}:
+    get:
+      operationId: getPublicQrCatalog
+      summary: Get public QR ordering catalog from a signed opaque token
+      tags:
+        - QR Ordering
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Public QR session and available outlet catalog.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicQrCatalogResponse'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/sync/bootstrap:
+    get:
+      operationId: getSyncBootstrapPolicy
+      summary: Get offline sync retention and trust policy for a POS device
+      tags:
+        - POS Sync
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Device-specific offline sync policy.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncBootstrapResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/sync/catalog-snapshot:
+    get:
+      operationId: getOfflineCatalogSnapshot
+      summary: Get versioned outlet catalog snapshot for offline read
+      tags:
+        - POS Sync
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Versioned catalog snapshot and cache retention policy.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfflineCatalogSnapshotResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/sync/push:
+    post:
+      operationId: pushSyncMutation
+      summary: Push one idempotent offline mutation from a POS device
+      tags:
+        - POS Sync
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncMutationInput'
+      responses:
+        '200':
+          description: Duplicate, rejected, or conflict result.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncMutationResponse'
+        '202':
+          description: Mutation accepted for server-authoritative processing.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncMutationResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /pos/outlets/{outlet}/sync/pull:
+    get:
+      operationId: pullSyncOutbox
+      summary: Pull server outbox records for the authenticated POS device
+      tags:
+        - POS Sync
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: outlet
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: after_cursor
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+      responses:
+        '200':
+          description: Outbox records after the requested cursor.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncOutboxResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
 components:
   securitySchemes:
     bearerAuth:
@@ -893,6 +1309,10 @@ components:
         - recorded_payments_minor
         - cash_payments_minor
         - manual_non_cash_payments_minor
+        - refunds_minor
+        - net_sales_minor
+        - cash_in_minor
+        - cash_out_minor
         - currency
       properties:
         tenant_id:
@@ -937,6 +1357,14 @@ components:
           type: integer
         manual_non_cash_payments_minor:
           type: integer
+        refunds_minor:
+          type: integer
+        net_sales_minor:
+          type: integer
+        cash_in_minor:
+          type: integer
+        cash_out_minor:
+          type: integer
         currency:
           type: string
           minLength: 3
@@ -949,6 +1377,14 @@ components:
       properties:
         product_id:
           $ref: '#/components/schemas/Ulid'
+        variant_id:
+          oneOf:
+            - $ref: '#/components/schemas/Ulid'
+            - type: 'null'
+        modifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ulid'
         quantity:
           type: string
           pattern: '^\d+(\.\d{1,3})?$'
@@ -1299,9 +1735,314 @@ components:
                   type: string
                   minLength: 3
                   maxLength: 3
-                recorded_at:
-                  type: string
-                  format: date-time
+        recorded_at:
+          type: string
+          format: date-time
+    CashMovementResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/CashMovement'
+    CashMovement:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - outlet_id
+        - shift_id
+        - user_id
+        - type
+        - amount_minor
+        - currency
+        - reason
+        - recorded_at
+      properties:
+        id:
+          $ref: '#/components/schemas/Ulid'
+        tenant_id:
+          $ref: '#/components/schemas/Ulid'
+        outlet_id:
+          $ref: '#/components/schemas/Ulid'
+        shift_id:
+          $ref: '#/components/schemas/Ulid'
+        user_id:
+          $ref: '#/components/schemas/Ulid'
+        approval_id:
+          oneOf:
+            - $ref: '#/components/schemas/Ulid'
+            - type: 'null'
+        type:
+          type: string
+          enum:
+            - cash_in
+            - cash_out
+        amount_minor:
+          type: integer
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        reason:
+          type: string
+        recorded_at:
+          type: string
+          format: date-time
+    RefundResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Refund'
+    Refund:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - outlet_id
+        - shift_id
+        - order_id
+        - payment_id
+        - approval_id
+        - refunded_by
+        - method
+        - status
+        - amount_minor
+        - currency
+        - reason
+        - recorded_at
+      properties:
+        id:
+          $ref: '#/components/schemas/Ulid'
+        tenant_id:
+          $ref: '#/components/schemas/Ulid'
+        outlet_id:
+          $ref: '#/components/schemas/Ulid'
+        shift_id:
+          $ref: '#/components/schemas/Ulid'
+        order_id:
+          $ref: '#/components/schemas/Ulid'
+        payment_id:
+          $ref: '#/components/schemas/Ulid'
+        approval_id:
+          $ref: '#/components/schemas/Ulid'
+        refunded_by:
+          $ref: '#/components/schemas/Ulid'
+        method:
+          type: string
+          enum:
+            - cash
+            - manual_non_cash
+        status:
+          type: string
+        amount_minor:
+          type: integer
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        reason:
+          type: string
+        recorded_at:
+          type: string
+          format: date-time
+    KdsSnapshotResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+          properties:
+            tickets:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            stations:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+    PublicQrCatalogResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - session
+            - catalog
+          properties:
+            session:
+              type: object
+              additionalProperties: true
+            catalog:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+    SyncBootstrapResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - device_id
+            - device_revoked
+            - local_cache_retention_hours
+            - local_order_retention_hours
+            - requires_local_encryption
+            - server_accepts_local_encryption_keys
+          properties:
+            device_id:
+              $ref: '#/components/schemas/Ulid'
+            device_revoked:
+              type: boolean
+            local_cache_retention_hours:
+              type: integer
+            local_order_retention_hours:
+              type: integer
+            requires_local_encryption:
+              type: boolean
+            server_accepts_local_encryption_keys:
+              type: boolean
+    OfflineCatalogSnapshotResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - version
+            - catalog
+            - retention_hours
+          properties:
+            version:
+              type: string
+            catalog:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            retention_hours:
+              type: integer
+    SyncMutationInput:
+      type: object
+      required:
+        - client_record_id
+        - action
+        - sequence_number
+        - idempotency_key
+        - payload_hash
+        - payload
+      properties:
+        client_record_id:
+          type: string
+          maxLength: 120
+        action:
+          type: string
+          enum:
+            - offline_order.create_draft
+            - offline_order.add_item
+            - offline_order.update_item
+            - offline_order.remove_item
+            - offline_order.complete_cash
+            - offline_order.complete_manual
+        sequence_number:
+          type: integer
+          minimum: 1
+        idempotency_key:
+          type: string
+          maxLength: 120
+        payload_hash:
+          type: string
+          minLength: 64
+          maxLength: 64
+        payload:
+          type: object
+          additionalProperties: true
+    SyncMutationResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - status
+            - resource_type
+            - resource_id
+            - response
+          properties:
+            status:
+              type: string
+              enum:
+                - accepted
+                - duplicate
+                - rejected
+                - conflict
+            resource_type:
+              type:
+                - string
+                - 'null'
+            resource_id:
+              oneOf:
+                - $ref: '#/components/schemas/Ulid'
+                - type: 'null'
+            response:
+              type:
+                - object
+                - 'null'
+              additionalProperties: true
+    SyncOutboxResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncOutboxRecord'
+    SyncOutboxRecord:
+      type: object
+      required:
+        - cursor
+        - event_type
+        - resource_type
+        - resource_id
+        - payload
+        - created_at
+      properties:
+        cursor:
+          $ref: '#/components/schemas/Ulid'
+        event_type:
+          type: string
+        resource_type:
+          type:
+            - string
+            - 'null'
+        resource_id:
+          oneOf:
+            - $ref: '#/components/schemas/Ulid'
+            - type: 'null'
+        payload:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
     Problem:
       type: object
       required:
