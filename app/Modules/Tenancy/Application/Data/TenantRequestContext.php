@@ -8,7 +8,7 @@ use App\Modules\Tenancy\Domain\Enums\MembershipType;
 
 final readonly class TenantRequestContext
 {
-    public function __construct(
+    public function __construct(            
         public string $tenantId,
         public string $userId,
         public MembershipType $membershipType,
