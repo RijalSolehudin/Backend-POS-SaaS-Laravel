@@ -20,6 +20,7 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 8. [Execution Plans](execution/README.md)
 9. [Module Map](modules/README.md)
 10. [Operational Runbooks](runbooks/)
+11. [Testing Documentation](testing/README.md)
 
 ## Struktur Dokumentasi
 
@@ -33,6 +34,7 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 | `roadmap/` | Urutan delivery, acceptance criteria, dan Definition of Done |
 | `execution/` | Work package implementasi, dependency, verifikasi, dan evidence |
 | `runbooks/` | Prosedur operasional terkontrol untuk bootstrap, recovery, dan deployment |
+| `testing/` | Manual test case, checklist QA, dan alur verifikasi end-to-end |
 | `archive/` | Dokumen versi lama untuk referensi historis |
 
 ## Aturan Perubahan

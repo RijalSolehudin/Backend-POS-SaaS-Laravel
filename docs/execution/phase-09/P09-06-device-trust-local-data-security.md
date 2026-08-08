@@ -1,6 +1,6 @@
 # P09-06 — Device Trust and Local Data Security
 
-Status: **Planned**
+Status: **Implemented — Pending MariaDB Verification**
 
 ## Outcome
 
@@ -11,6 +11,13 @@ Device sync memakai trust boundary yang jelas dan local data policy tersedia unt
 - Perketat device sync authorization.
 - Return local retention/encryption policy from bootstrap.
 - Revoke device blocks new sync mutation.
+
+## Delivered
+
+- Endpoint Sync memakai POS device token yang diselesaikan oleh `ResolvePosOutletApiContext`.
+- Bootstrap sync mengembalikan retention policy dan `requires_local_encryption`.
+- Server menolak local encryption key melalui policy `server_accepts_local_encryption_keys=false`.
+- Revoked POS device atau revoked sync state tidak dapat push mutation baru.
 
 ## Implementation Contract
 

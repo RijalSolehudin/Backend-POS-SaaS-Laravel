@@ -22,7 +22,7 @@ Roadmap menggunakan vertical slices. Setiap phase harus menghasilkan capability 
 | [06](phase-06-recipe-procurement.md) | Recipe costing dan procurement | Not Started |
 | [07](phase-07-dining-kitchen.md) | Table service, kitchen, dan printer | Not Started |
 | [08](phase-08-growth.md) | QR order, payment gateway, dan growth features | Not Started |
-| [09](phase-09-offline-scale.md) | Offline sync, scale, dan production maturity | Not Started |
+| [09](phase-09-offline-scale.md) | Offline sync, scale, dan production maturity | Implemented — Pending MariaDB Verification |
 
 ## Architecture Decision Gate
 

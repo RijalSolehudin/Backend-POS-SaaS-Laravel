@@ -14,6 +14,7 @@ use App\Modules\Recipe\Infrastructure\Providers\RecipeServiceProvider;
 use App\Modules\Reporting\Infrastructure\Providers\ReportingServiceProvider;
 use App\Modules\Reservation\Infrastructure\Providers\ReservationServiceProvider;
 use App\Modules\Sales\Infrastructure\Providers\SalesServiceProvider;
+use App\Modules\Sync\Infrastructure\Providers\SyncServiceProvider;
 use App\Modules\Tenancy\Infrastructure\Providers\TenancyServiceProvider;
 use App\Providers\AppServiceProvider;
 
@@ -34,4 +35,5 @@ return [
     ReservationServiceProvider::class,
     PromotionServiceProvider::class,
     ReportingServiceProvider::class,
+    SyncServiceProvider::class,
 ];
