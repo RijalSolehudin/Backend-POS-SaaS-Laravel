@@ -16,6 +16,10 @@
                 <h2 class="font-black">Users and roles</h2>
                 <p class="mt-2 text-sm text-slate-600">Assign Tenant Owner, Outlet Manager, and Cashier roles with server-side authorization.</p>
             </a>
+            <a href="{{ route('tenant.dining.index', ['tenant' => $tenant->id]) }}" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 class="font-black">Dining</h2>
+                <p class="mt-2 text-sm text-slate-600">Manage outlet floors and dine-in table status boundaries.</p>
+            </a>
         @endif
         @if ($canManageDevices)
             <a href="{{ route('tenant.devices.index', ['tenant' => $tenant->id]) }}" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

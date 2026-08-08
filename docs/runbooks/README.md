@@ -10,4 +10,6 @@
 - [Phase 03 Pilot Readiness](phase-03-pilot-readiness.md)
 - [Catalog Import Export](catalog-import-export.md)
 - [Phase 04 Catalog Readiness](phase-04-catalog-readiness.md)
+- [Phase 07 Dining Kitchen Readiness](phase-07-dining-kitchen-readiness.md)
+- [Phase 08 Growth Readiness](phase-08-growth-readiness.md)
 - [Deployment Readiness](deployment-readiness.md)

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Sales\Infrastructure\Providers;
 
+use App\Modules\Sales\Application\Contracts\DiningOrderReference;
+use App\Modules\Sales\Application\Contracts\KitchenOrderReference;
+use App\Modules\Sales\Infrastructure\Persistence\DatabaseDiningOrderReference;
+use App\Modules\Sales\Infrastructure\Persistence\DatabaseKitchenOrderReference;
 use App\Modules\Sales\Presentation\Console\Commands\PruneSalesAuditEventsCommand;
 use App\Modules\Sales\Presentation\Console\Commands\SalesRecoveryCheckCommand;
 use Illuminate\Support\Facades\Schedule;
@@ -14,6 +18,8 @@ final class SalesServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(base_path('config/sales.php'), 'sales');
+        $this->app->bind(DiningOrderReference::class, DatabaseDiningOrderReference::class);
+        $this->app->bind(KitchenOrderReference::class, DatabaseKitchenOrderReference::class);
     }
 
     public function boot(): void

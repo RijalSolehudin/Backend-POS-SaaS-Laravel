@@ -52,7 +52,7 @@
         ],
         "format": "pint",
         "format:check": "pint --test",
-        "analyse": "phpstan analyse --memory-limit=1G",
+        "analyse": "php -d memory_limit=1G vendor/phpstan/phpstan/phpstan.phar analyse --debug",
         "architecture": "deptrac analyse --config-file=deptrac.php --no-progress",
         "test:unit": "@php artisan test --testsuite=Unit",
         "test:feature": "@php artisan test --testsuite=Feature",

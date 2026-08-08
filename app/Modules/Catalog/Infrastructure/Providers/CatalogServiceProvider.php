@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Infrastructure\Providers;
 
+use App\Modules\Catalog\Application\Contracts\KitchenCatalogReference;
+use App\Modules\Catalog\Infrastructure\Persistence\DatabaseKitchenCatalogReference;
 use App\Modules\Catalog\Presentation\Console\Commands\ExportCatalogCommand;
 use App\Modules\Catalog\Presentation\Console\Commands\ImportCatalogDryRunCommand;
 use Illuminate\Support\ServiceProvider;
 
 final class CatalogServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->bind(KitchenCatalogReference::class, DatabaseKitchenCatalogReference::class);
+    }
+
     public function boot(): void
     {
         $moduleRoot = dirname(__DIR__, 2);

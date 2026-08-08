@@ -32,7 +32,7 @@ return static function (DeptracConfig $config): void {
         ),
     ];
 
-    foreach (['PlatformIdentity', 'Identity', 'Tenancy', 'Catalog', 'Sales'] as $module) {
+    foreach (['PlatformIdentity', 'Identity', 'Tenancy', 'Catalog', 'Sales', 'Dining', 'Kitchen', 'OrderingChannel', 'PaymentsGateway', 'Reservation', 'Promotion', 'Reporting'] as $module) {
         $domain = Layer::withName("{$module} Domain")->collectors(
             DirectoryConfig::create("app/Modules/{$module}/Domain/.*"),
         );
@@ -58,12 +58,43 @@ return static function (DeptracConfig $config): void {
             $applicationDependencies[] = Layer::withName('Identity Application');
         }
 
-        if ($module === 'Catalog' || $module === 'Sales') {
+        if (in_array($module, ['Catalog', 'Sales', 'Dining', 'Kitchen', 'OrderingChannel', 'PaymentsGateway', 'Reservation', 'Promotion', 'Reporting'], true)) {
             $applicationDependencies[] = Layer::withName('Tenancy Application');
         }
 
         if ($module === 'Sales') {
             $applicationDependencies[] = Layer::withName('Catalog Application');
+        }
+
+        if ($module === 'Dining') {
+            $applicationDependencies[] = Layer::withName('Sales Application');
+        }
+
+        if ($module === 'Kitchen') {
+            $applicationDependencies[] = Layer::withName('Catalog Application');
+            $applicationDependencies[] = Layer::withName('Sales Application');
+        }
+
+        if ($module === 'OrderingChannel') {
+            $applicationDependencies[] = Layer::withName('Catalog Application');
+            $applicationDependencies[] = Layer::withName('Dining Application');
+            $applicationDependencies[] = Layer::withName('Dining Domain');
+            $applicationDependencies[] = Layer::withName('Sales Application');
+            $applicationDependencies[] = Layer::withName('Sales Domain');
+        }
+
+        if ($module === 'PaymentsGateway') {
+            $applicationDependencies[] = Layer::withName('Sales Application');
+            $applicationDependencies[] = Layer::withName('Sales Domain');
+        }
+
+        if ($module === 'Reservation') {
+            $applicationDependencies[] = Layer::withName('Dining Application');
+            $applicationDependencies[] = Layer::withName('Dining Domain');
+        }
+
+        if ($module === 'Promotion') {
+            $applicationDependencies[] = Layer::withName('Sales Domain');
         }
 
         $infrastructureDependencies = [
@@ -88,9 +119,41 @@ return static function (DeptracConfig $config): void {
             $bootstrapDependencies[] = Layer::withName('Identity Application');
         }
 
-        if ($module === 'Catalog' || $module === 'Sales') {
+        if (in_array($module, ['Catalog', 'Sales', 'Dining', 'Kitchen', 'OrderingChannel', 'PaymentsGateway', 'Reservation', 'Promotion', 'Reporting'], true)) {
             $infrastructureDependencies[] = Layer::withName('Tenancy Application');
             $bootstrapDependencies[] = Layer::withName('Tenancy Application');
+        }
+
+        if ($module === 'Dining') {
+            $bootstrapDependencies[] = Layer::withName('Sales Application');
+        }
+
+        if ($module === 'Kitchen') {
+            $bootstrapDependencies[] = Layer::withName('Identity Domain');
+            $bootstrapDependencies[] = Layer::withName('Catalog Application');
+            $bootstrapDependencies[] = Layer::withName('Sales Application');
+        }
+
+        if ($module === 'OrderingChannel') {
+            $bootstrapDependencies[] = Layer::withName('Catalog Application');
+            $bootstrapDependencies[] = Layer::withName('Dining Application');
+            $bootstrapDependencies[] = Layer::withName('Dining Domain');
+            $bootstrapDependencies[] = Layer::withName('Sales Application');
+            $bootstrapDependencies[] = Layer::withName('Sales Domain');
+        }
+
+        if ($module === 'PaymentsGateway') {
+            $bootstrapDependencies[] = Layer::withName('Sales Application');
+            $bootstrapDependencies[] = Layer::withName('Sales Domain');
+        }
+
+        if ($module === 'Reservation') {
+            $bootstrapDependencies[] = Layer::withName('Dining Application');
+            $bootstrapDependencies[] = Layer::withName('Dining Domain');
+        }
+
+        if ($module === 'Promotion') {
+            $bootstrapDependencies[] = Layer::withName('Sales Domain');
         }
 
         if ($module === 'Identity') {
@@ -105,8 +168,12 @@ return static function (DeptracConfig $config): void {
             $sharedDomain,
         ];
 
-        if ($module === 'Catalog' || $module === 'Sales') {
+        if (in_array($module, ['Catalog', 'Sales', 'Dining', 'Kitchen', 'OrderingChannel', 'PaymentsGateway', 'Reservation', 'Promotion', 'Reporting'], true)) {
             $presentationDependencies[] = Layer::withName('Tenancy Application');
+        }
+
+        if ($module === 'Kitchen') {
+            $presentationDependencies[] = Layer::withName('Tenancy Domain');
         }
 
         array_push($layers, $domain, $application, $infrastructure, $presentation, $bootstrap);

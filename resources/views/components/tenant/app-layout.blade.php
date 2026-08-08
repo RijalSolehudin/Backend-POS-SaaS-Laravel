@@ -23,6 +23,7 @@
                 <a href="{{ route('tenant.outlets.index', ['tenant' => $tenant->id]) }}">Outlets</a>
                 <a href="{{ route('tenant.users.index', ['tenant' => $tenant->id]) }}">Users</a>
                 <a href="{{ route('tenant.catalog.index', ['tenant' => $tenant->id]) }}">Catalog</a>
+                <a href="{{ route('tenant.dining.index', ['tenant' => $tenant->id]) }}">Dining</a>
             @endif
             @if ($canManageDevices)
                 <a href="{{ route('tenant.devices.index', ['tenant' => $tenant->id]) }}">Devices</a>

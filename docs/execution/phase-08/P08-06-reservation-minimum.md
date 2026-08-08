@@ -1,6 +1,6 @@
 # P08-06 — Reservation Minimum
 
-Status: **Planned**
+Status: **Implemented — Pending MariaDB Verification**
 
 ## Outcome
 

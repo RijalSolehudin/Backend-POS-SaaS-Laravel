@@ -1,6 +1,6 @@
 # P08-07 — Promotion Discount MVP
 
-Status: **Planned**
+Status: **Implemented — Pending MariaDB Verification**
 
 ## Outcome
 
