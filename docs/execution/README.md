@@ -36,3 +36,4 @@ Planned -> Ready -> In Progress -> In Review -> Done
 - [Phase 07 — Dining and Kitchen](phase-07/README.md)
 - [Phase 08 — Growth Features](phase-08/README.md)
 - [Phase 09 — Offline and Scale](phase-09/README.md)
+- [[rencana] Phase 10 — SaaS Lifecycle, Onboarding, and Billing](phase-10/README.md)

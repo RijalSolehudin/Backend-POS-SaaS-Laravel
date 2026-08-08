@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QR Self-Order - Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .screen {
+            display: none;
+            min-height: 100vh;
+        }
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .bottom-sheet {
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+        }
+        .bottom-sheet.open {
+            transform: translateY(0);
+        }
+        .category-chip.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .cart-badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .order-status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .order-status-line {
+            height: 2px;
+            flex: 1;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-50">
+    <!-- Mobile Container -->
+    <div class="max-w-md mx-auto bg-white shadow-2xl min-h-screen relative overflow-hidden">
+
+        <!-- Screen 1: Landing -->
+        <div id="screen-landing" class="screen active">
+            <div class="flex-1 flex flex-col items-center justify-center px-6 py-12">
+                <!-- Logo -->
+                <div class="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                    <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                </div>
+
+                <!-- Outlet Info -->
+                <h1 class="text-2xl font-bold text-gray-900 mb-1">Warung Bahari Seafood</h1>
+                <p class="text-gray-500 flex items-center gap-1 mb-8">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Outlet Senayan
+                </p>
+
+                <div class="w-full h-px bg-gray-200 mb-8"></div>
+
+                <!-- Welcome Message -->
+                <div class="text-center mb-8">
+                    <p class="text-lg text-gray-700 mb-2">Selamat datang!</p>
+                    <div class="inline-flex items-center gap-2 bg-primary-50 text-primary-700 px-4 py-2 rounded-full">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                        </svg>
+                        Anda di Meja T05
+                    </div>
+                </div>
+
+                <p class="text-gray-500 text-center mb-8">
+                    Silakan pilih menu favorit Anda dan pesan langsung dari meja
+                </p>
+
+                <!-- CTA Button -->
+                <button onclick="showScreen('screen-menu')" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg shadow-primary-500/30">
+                    Lihat Menu
+                </button>
+
+                <button onclick="showScreen('screen-tracking')" class="mt-4 text-primary-600 hover:text-primary-700 font-medium">
+                    Lihat pesanan aktif
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center py-4 text-xs text-gray-400">
+                Powered by Ultimate POS
+            </div>
+        </div>
+
+        <!-- Screen 2: Menu -->
+        <div id="screen-menu" class="screen">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-20">
+                <div class="flex items-center justify-between">
+                    <button onclick="showScreen('screen-landing')" class="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <h1 class="font-semibold text-gray-900">Menu</h1>
+                    <div class="flex items-center gap-2">
+                        <button class="p-2 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                        <button onclick="showScreen('screen-cart')" class="p-2 hover:bg-gray-100 rounded-lg relative">
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <span id="cart-count" class="cart-badge absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">3</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="mt-3">
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" placeholder="Cari menu..." class="w-full pl-10 pr-4 py-2.5 bg-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors">
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <div class="mt-3 -mx-4 px-4 overflow-x-auto flex gap-2 pb-1 scrollbar-hide">
+                    <button class="category-chip active flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 transition-colors">
+                        Semua
+                    </button>
+                    <button class="category-chip flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                        Makanan
+                    </button>
+                    <button class="category-chip flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                        Minuman
+                    </button>
+                    <button class="category-chip flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                        Dessert
+                    </button>
+                    <button class="category-chip flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                        Paket
+                    </button>
+                </div>
+            </header>
+
+            <!-- Menu Items -->
+            <div class="flex-1 overflow-y-auto px-4 pb-24">
+                <!-- Category Section -->
+                <div class="pt-4">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-3">Makanan Utama</h2>
+
+                    <!-- Menu Item -->
+                    <div onclick="showScreen('screen-detail')" class="bg-white rounded-xl border border-gray-100 p-3 mb-3 flex gap-3 hover:shadow-md transition-shadow cursor-pointer">
+                        <div class="w-24 h-24 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1512058564366-18510be2db19?w=200&h=200&fit=crop" alt="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-900 truncate">Nasi Goreng Seafood</h3>
+                            <p class="text-sm text-gray-500 line-clamp-2 mt-1">Nasi goreng dengan udang, cumi, dan sayuran segar</p>
+                            <div class="mt-2 flex items-center justify-between">
+                                <span class="font-semibold text-primary-600">Rp 35.000</span>
+                                <button class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Menu Item -->
+                    <div class="bg-white rounded-xl border border-gray-100 p-3 mb-3 flex gap-3 hover:shadow-md transition-shadow cursor-pointer">
+                        <div class="w-24 h-24 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1585032226651-759b368d7246?w=200&h=200&fit=crop" alt="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-900 truncate">Mie Goreng Special</h3>
+                            <p class="text-sm text-gray-500 line-clamp-2 mt-1">Mie goreng dengan telur, sayuran, dan bumbu rahasia</p>
+                            <div class="mt-2 flex items-center justify-between">
+                                <span class="font-semibold text-primary-600">Rp 32.000</span>
+                                <button class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Menu Item -->
+                    <div class="bg-white rounded-xl border border-gray-100 p-3 mb-3 flex gap-3 hover:shadow-md transition-shadow cursor-pointer">
+                        <div class="w-24 h-24 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&h=200&fit=crop" alt="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-900 truncate">Ikan Bakar Jimbaran</h3>
+                            <p class="text-sm text-gray-500 line-clamp-2 mt-1">Ikan segar bakar dengan bumbu Bali</p>
+                            <div class="mt-2 flex items-center justify-between">
+                                <span class="font-semibold text-primary-600">Rp 75.000</span>
+                                <button class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drinks Section -->
+                <div class="pt-4">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-3">Minuman</h2>
+
+                    <!-- Menu Item -->
+                    <div class="bg-white rounded-xl border border-gray-100 p-3 mb-3 flex gap-3 hover:shadow-md transition-shadow cursor-pointer">
+                        <div class="w-24 h-24 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1499638673689-79a0b5115d87?w=200&h=200&fit=crop" alt="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-900 truncate">Es Teh Manis</h3>
+                            <p class="text-sm text-gray-500 line-clamp-2 mt-1">Teh manis dingin menyegarkan</p>
+                            <div class="mt-2 flex items-center justify-between">
+                                <span class="font-semibold text-primary-600">Rp 6.000</span>
+                                <button class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Menu Item -->
+                    <div class="bg-white rounded-xl border border-gray-100 p-3 mb-3 flex gap-3 hover:shadow-md transition-shadow cursor-pointer">
+                        <div class="w-24 h-24 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=200&h=200&fit=crop" alt="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-900 truncate">Es Jeruk Peras</h3>
+                            <p class="text-sm text-gray-500 line-clamp-2 mt-1">Jeruk peras segar dengan es</p>
+                            <div class="mt-2 flex items-center justify-between">
+                                <span class="font-semibold text-primary-600">Rp 12.000</span>
+                                <button class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Cart Button -->
+            <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-gradient-to-t from-white via-white to-transparent">
+                <button onclick="showScreen('screen-cart')" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg shadow-primary-500/30 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-white/20 w-7 h-7 rounded-full flex items-center justify-center text-sm">3</span>
+                        <span>Lihat Keranjang</span>
+                    </div>
+                    <span>Rp 71.300</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 3: Product Detail -->
+        <div id="screen-detail" class="screen">
+            <!-- Header Image -->
+            <div class="relative">
+                <div class="w-full h-64 bg-gray-200">
+                    <img src="https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&h=400&fit=crop" alt="" class="w-full h-full object-cover">
+                </div>
+                <button onclick="showScreen('screen-menu')" class="absolute top-4 left-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <button onclick="showScreen('screen-cart')" class="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg relative">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">3</span>
+                </button>
+            </div>
+
+            <!-- Product Info -->
+            <div class="flex-1 overflow-y-auto pb-32">
+                <div class="px-4 py-4">
+                    <h1 class="text-2xl font-bold text-gray-900">Nasi Goreng Seafood</h1>
+                    <p class="text-xl font-semibold text-primary-600 mt-1">Rp 35.000</p>
+                    <p class="text-gray-500 mt-3">Nasi goreng dengan udang, cumi, dan sayuran segar. Dimasak dengan bumbu spesial dan disajikan dengan telur mata sapi.</p>
+                </div>
+
+                <div class="h-2 bg-gray-100"></div>
+
+                <!-- Variants -->
+                <div class="px-4 py-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold text-gray-900">Pilih Ukuran</h2>
+                        <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">Wajib</span>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:border-primary-500 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="size" value="regular" class="w-5 h-5 text-primary-600">
+                                <span class="font-medium">Regular</span>
+                            </div>
+                            <span class="text-gray-600">Rp 35.000</span>
+                        </label>
+                        <label class="flex items-center justify-between p-3 border-2 border-primary-500 bg-primary-50 rounded-xl cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="size" value="jumbo" checked class="w-5 h-5 text-primary-600">
+                                <span class="font-medium">Jumbo</span>
+                            </div>
+                            <span class="text-gray-600">Rp 45.000</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="h-2 bg-gray-100"></div>
+
+                <!-- Modifiers -->
+                <div class="px-4 py-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold text-gray-900">Tambahan</h2>
+                        <span class="text-xs text-gray-500">Opsional</span>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:border-primary-500 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" class="w-5 h-5 text-primary-600 rounded">
+                                <span class="font-medium">Extra Udang</span>
+                            </div>
+                            <span class="text-gray-600">+ Rp 10.000</span>
+                        </label>
+                        <label class="flex items-center justify-between p-3 border-2 border-primary-500 bg-primary-50 rounded-xl cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" checked class="w-5 h-5 text-primary-600 rounded">
+                                <span class="font-medium">Extra Telur</span>
+                            </div>
+                            <span class="text-gray-600">+ Rp 5.000</span>
+                        </label>
+                        <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:border-primary-500 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" class="w-5 h-5 text-primary-600 rounded">
+                                <span class="font-medium">Sambal Matah</span>
+                            </div>
+                            <span class="text-gray-600">+ Rp 3.000</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="h-2 bg-gray-100"></div>
+
+                <!-- Notes -->
+                <div class="px-4 py-4">
+                    <h2 class="font-semibold text-gray-900 mb-3">Catatan untuk Dapur</h2>
+                    <textarea rows="3" placeholder="Contoh: Tidak pakai kecap, pedas sedang..." class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 p-4">
+                <div class="flex items-center gap-4">
+                    <!-- Quantity -->
+                    <div class="flex items-center gap-3 bg-gray-100 rounded-xl px-3 py-2">
+                        <button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                            </svg>
+                        </button>
+                        <span class="font-semibold text-lg w-8 text-center">1</span>
+                        <button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Add to Cart -->
+                    <button onclick="showScreen('screen-menu')" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors">
+                        Tambah - Rp 50.000
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 4: Cart -->
+        <div id="screen-cart" class="screen">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-20">
+                <div class="flex items-center justify-between">
+                    <button onclick="showScreen('screen-menu')" class="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <h1 class="font-semibold text-gray-900">Keranjang</h1>
+                    <div class="w-10"></div>
+                </div>
+            </header>
+
+            <!-- Table Info -->
+            <div class="bg-primary-50 px-4 py-3 flex items-center gap-3">
+                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                </svg>
+                <span class="text-primary-700 font-medium">Meja T05 - Outdoor</span>
+            </div>
+
+            <!-- Cart Items -->
+            <div class="flex-1 overflow-y-auto pb-48">
+                <div class="p-4 space-y-4">
+                    <!-- Cart Item 1 -->
+                    <div class="bg-white rounded-xl border border-gray-100 p-4">
+                        <div class="flex gap-3">
+                            <div class="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1512058564366-18510be2db19?w=200&h=200&fit=crop" alt="" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900">Nasi Goreng Seafood</h3>
+                                <p class="text-sm text-gray-500">Jumbo</p>
+                                <p class="text-sm text-primary-600">+ Extra Telur</p>
+                                <p class="text-xs text-gray-400 italic mt-1">"Tidak pakai kecap"</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <button class="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                    </svg>
+                                </button>
+                                <span class="font-semibold">1</span>
+                                <button class="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="font-semibold text-gray-900">Rp 50.000</span>
+                                <button class="text-red-500 hover:text-red-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cart Item 2 -->
+                    <div class="bg-white rounded-xl border border-gray-100 p-4">
+                        <div class="flex gap-3">
+                            <div class="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1499638673689-79a0b5115d87?w=200&h=200&fit=crop" alt="" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900">Es Teh Manis</h3>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <button class="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                    </svg>
+                                </button>
+                                <span class="font-semibold">2</span>
+                                <button class="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="font-semibold text-gray-900">Rp 12.000</span>
+                                <button class="text-red-500 hover:text-red-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add More -->
+                    <button onclick="showScreen('screen-menu')" class="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary-500 hover:text-primary-600 transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Tambah menu lain
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary & Checkout -->
+            <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200">
+                <div class="p-4 space-y-2">
+                    <div class="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span>Rp 62.000</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                        <span>Pajak (10%)</span>
+                        <span>Rp 6.200</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                        <span>Service (5%)</span>
+                        <span>Rp 3.100</span>
+                    </div>
+                    <div class="h-px bg-gray-200 my-2"></div>
+                    <div class="flex justify-between font-bold text-lg">
+                        <span>Total</span>
+                        <span>Rp 71.300</span>
+                    </div>
+                </div>
+                <div class="p-4 pt-0">
+                    <button onclick="showScreen('screen-checkout')" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors">
+                        Pesan Sekarang
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 5: Checkout / Customer Info -->
+        <div id="screen-checkout" class="screen">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-20">
+                <div class="flex items-center justify-between">
+                    <button onclick="showScreen('screen-cart')" class="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <h1 class="font-semibold text-gray-900">Konfirmasi Pesanan</h1>
+                    <div class="w-10"></div>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto pb-32">
+                <div class="p-4">
+                    <h2 class="font-semibold text-gray-900 mb-4">Siapa yang memesan?</h2>
+
+                    <!-- Name Input -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Nama <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" placeholder="Masukkan nama Anda" value="Budi" class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    </div>
+
+                    <!-- Phone Input -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            No. HP <span class="text-gray-400">(opsional)</span>
+                        </label>
+                        <input type="tel" placeholder="0812-3456-7890" class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Catatan tambahan
+                        </label>
+                        <textarea rows="3" placeholder="Contoh: Tolong cepat ya..." class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"></textarea>
+                    </div>
+
+                    <div class="h-px bg-gray-200 mb-6"></div>
+
+                    <!-- Order Summary -->
+                    <h2 class="font-semibold text-gray-900 mb-4">Ringkasan Pesanan</h2>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">1x Nasi Goreng Seafood (Jumbo)</span>
+                            <span class="text-gray-900">Rp 50.000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">2x Es Teh Manis</span>
+                            <span class="text-gray-900">Rp 12.000</span>
+                        </div>
+                        <div class="h-px bg-gray-200"></div>
+                        <div class="flex justify-between font-semibold">
+                            <span>Total</span>
+                            <span>Rp 71.300</span>
+                        </div>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="mt-6 bg-blue-50 rounded-xl p-4">
+                        <div class="flex gap-3">
+                            <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-sm text-blue-700">
+                                Pesanan akan dikirim ke dapur setelah dikonfirmasi oleh staff. Pembayaran dilakukan di kasir.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 p-4">
+                <button onclick="showScreen('screen-confirmation')" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors">
+                    Kirim Pesanan
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 6: Confirmation -->
+        <div id="screen-confirmation" class="screen">
+            <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
+                <!-- Success Icon -->
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Pesanan Terkirim!</h1>
+
+                <p class="text-gray-500 mb-6">No. Pesanan:</p>
+                <div class="bg-gray-100 px-6 py-3 rounded-xl mb-8">
+                    <span class="font-mono text-lg font-bold text-gray-900">QR-WB01-20250219-001</span>
+                </div>
+
+                <!-- Status -->
+                <div class="w-full bg-amber-50 rounded-xl p-4 mb-8">
+                    <div class="flex items-center justify-center gap-2 text-amber-700">
+                        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="font-medium">Menunggu Konfirmasi</span>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="w-full text-left mb-8">
+                    <h3 class="font-semibold text-gray-900 mb-3">Detail Pesanan</h3>
+                    <div class="space-y-2 text-gray-600">
+                        <p>- Nasi Goreng Seafood (1)</p>
+                        <p>- Es Teh Manis (2)</p>
+                    </div>
+                    <p class="mt-3 font-semibold text-gray-900">Total: Rp 71.300</p>
+                </div>
+
+                <!-- Actions -->
+                <div class="w-full space-y-3">
+                    <button onclick="showScreen('screen-tracking')" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors">
+                        Lihat Status Pesanan
+                    </button>
+                    <button onclick="showScreen('screen-menu')" class="w-full border border-gray-300 text-gray-700 font-semibold py-4 px-6 rounded-xl hover:bg-gray-50 transition-colors">
+                        Pesan Menu Lain
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 7: Order Tracking -->
+        <div id="screen-tracking" class="screen">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-20">
+                <div class="flex items-center justify-between">
+                    <button onclick="showScreen('screen-menu')" class="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <h1 class="font-semibold text-gray-900">Status Pesanan</h1>
+                    <div class="w-10"></div>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto pb-24">
+                <!-- Order Info -->
+                <div class="p-4 bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-mono font-semibold text-gray-900">QR-WB01-20250219-001</p>
+                            <p class="text-sm text-gray-500">Meja T05 - 3 item</p>
+                        </div>
+                        <span class="font-semibold text-primary-600">Rp 71.300</span>
+                    </div>
+                </div>
+
+                <!-- Progress Steps -->
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-8">
+                        <!-- Step 1: Confirmed -->
+                        <div class="flex flex-col items-center">
+                            <div class="order-status-dot bg-green-500"></div>
+                            <span class="text-xs text-green-600 mt-2 font-medium">Diterima</span>
+                        </div>
+                        <div class="order-status-line bg-green-500 mx-1"></div>
+
+                        <!-- Step 2: Preparing -->
+                        <div class="flex flex-col items-center">
+                            <div class="order-status-dot bg-primary-500 animate-pulse"></div>
+                            <span class="text-xs text-primary-600 mt-2 font-medium">Dimasak</span>
+                        </div>
+                        <div class="order-status-line bg-gray-200 mx-1"></div>
+
+                        <!-- Step 3: Ready -->
+                        <div class="flex flex-col items-center">
+                            <div class="order-status-dot bg-gray-200"></div>
+                            <span class="text-xs text-gray-400 mt-2">Siap</span>
+                        </div>
+                        <div class="order-status-line bg-gray-200 mx-1"></div>
+
+                        <!-- Step 4: Served -->
+                        <div class="flex flex-col items-center">
+                            <div class="order-status-dot bg-gray-200"></div>
+                            <span class="text-xs text-gray-400 mt-2">Selesai</span>
+                        </div>
+                    </div>
+
+                    <!-- Status Timeline -->
+                    <div class="space-y-4">
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div class="w-px h-8 bg-gray-200"></div>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">Pesanan Diterima</p>
+                                <p class="text-sm text-gray-500">10:30 AM</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-primary-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="w-px h-8 bg-gray-200"></div>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">Sedang Dimasak</p>
+                                <p class="text-sm text-gray-500">Estimasi 15 menit</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                    </svg>
+                                </div>
+                                <div class="w-px h-8 bg-gray-200"></div>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-400">Siap Disajikan</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-400">Selesai</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-2 bg-gray-100"></div>
+
+                <!-- Items Status -->
+                <div class="p-4">
+                    <h2 class="font-semibold text-gray-900 mb-4">Detail Item</h2>
+
+                    <div class="space-y-3">
+                        <!-- Item 1: Preparing -->
+                        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3">
+                            <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center text-2xl">
+                                🍚
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">Nasi Goreng Seafood</p>
+                                <p class="text-sm text-gray-500">Jumbo + Extra Telur</p>
+                            </div>
+                            <div class="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1 rounded-full">
+                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-xs font-medium">Dimasak</span>
+                            </div>
+                        </div>
+
+                        <!-- Item 2: Ready -->
+                        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3">
+                            <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center text-2xl">
+                                🍹
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">Es Teh Manis</p>
+                                <p class="text-sm text-gray-500">x2</p>
+                            </div>
+                            <div class="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="text-xs font-medium">Siap</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Action -->
+            <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 p-4">
+                <button onclick="showScreen('screen-menu')" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors">
+                    Pesan Menu Lain
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation Helper (for demo only) -->
+    <div class="fixed bottom-4 right-4 bg-gray-900 text-white p-4 rounded-xl shadow-2xl max-w-xs z-50">
+        <p class="text-sm font-medium mb-3">Demo Navigation</p>
+        <div class="flex flex-wrap gap-2">
+            <button onclick="showScreen('screen-landing')" class="text-xs bg-gray-700 px-2 py-1 rounded">Landing</button>
+            <button onclick="showScreen('screen-menu')" class="text-xs bg-gray-700 px-2 py-1 rounded">Menu</button>
+            <button onclick="showScreen('screen-detail')" class="text-xs bg-gray-700 px-2 py-1 rounded">Detail</button>
+            <button onclick="showScreen('screen-cart')" class="text-xs bg-gray-700 px-2 py-1 rounded">Cart</button>
+            <button onclick="showScreen('screen-checkout')" class="text-xs bg-gray-700 px-2 py-1 rounded">Checkout</button>
+            <button onclick="showScreen('screen-confirmation')" class="text-xs bg-gray-700 px-2 py-1 rounded">Confirm</button>
+            <button onclick="showScreen('screen-tracking')" class="text-xs bg-gray-700 px-2 py-1 rounded">Tracking</button>
+        </div>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Category chip toggle
+        document.querySelectorAll('.category-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

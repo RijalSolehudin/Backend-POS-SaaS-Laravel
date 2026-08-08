@@ -6,7 +6,7 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 
 - Tahap: Phase 09 Offline and Scale done
 - Implementasi aplikasi: Phase 01 sampai Phase 09 selesai dan lulus automated verification di MariaDB testing
-- Target saat ini: production-readiness review dan manual QA end-to-end sebelum deployment nyata
+- Target saat ini: perencanaan UI/UX Web Admin sebelum implementasi frontend
 
 ## Cara Membaca
 
@@ -18,9 +18,10 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 6. [Architecture Decisions](architecture/decisions/README.md)
 7. [Development Roadmap](roadmap/README.md)
 8. [Execution Plans](execution/README.md)
-9. [Module Map](modules/README.md)
-10. [Operational Runbooks](runbooks/)
-11. [Testing Documentation](testing/README.md)
+9. [Web Admin Planning](web-admin/README.md)
+10. [Module Map](modules/README.md)
+11. [Operational Runbooks](runbooks/)
+12. [Testing Documentation](testing/README.md)
 
 ## Struktur Dokumentasi
 
@@ -33,6 +34,7 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 | `modules/` | Batas dan tanggung jawab setiap domain module |
 | `roadmap/` | Urutan delivery, acceptance criteria, dan Definition of Done |
 | `execution/` | Work package implementasi, dependency, verifikasi, dan evidence |
+| `web-admin/` | Perencanaan UI/UX Web Admin, information architecture, readiness matrix, dan work package frontend/backend |
 | `runbooks/` | Prosedur operasional terkontrol untuk bootstrap, recovery, dan deployment |
 | `testing/` | Manual test case, checklist QA, dan alur verifikasi end-to-end |
 | `archive/` | Dokumen versi lama untuk referensi historis |

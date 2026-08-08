@@ -23,6 +23,7 @@ Roadmap menggunakan vertical slices. Setiap phase harus menghasilkan capability 
 | [07](phase-07-dining-kitchen.md) | Table service, kitchen, dan printer | Done |
 | [08](phase-08-growth.md) | QR order, payment gateway, dan growth features | Done |
 | [09](phase-09-offline-scale.md) | Offline sync, scale, dan production maturity | Done |
+| [[rencana] 10](phase-10-saas-lifecycle-billing.md) | SaaS lifecycle, onboarding, subscription, dan billing | Not Started |
 
 ## Architecture Decision Gate
 

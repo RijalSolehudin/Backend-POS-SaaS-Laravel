@@ -15,6 +15,7 @@ Dokumen modul mendefinisikan ownership dan capability. Nama class, tabel, endpoi
 | Dining | Post-MVP | [Dining](dining.md) |
 | Kitchen | Post-MVP | [Kitchen](kitchen.md) |
 | Reporting | MVP dasar | [Reporting](reporting.md) |
+| [rencana] SaaS Lifecycle and Billing | Proposed | [[rencana] SaaS Lifecycle and Billing](saas-lifecycle-billing.md) |
 
 ## Boundary Rules
 
