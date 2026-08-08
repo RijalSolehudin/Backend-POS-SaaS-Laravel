@@ -16,7 +16,8 @@ Dokumen ini adalah checklist manual untuk mencoba seluruh capability sistem POS 
 
 - Feature test berbasis MariaDB membutuhkan service `mariadb-testing` pada `127.0.0.1:33067`.
 - Jika Docker daemon atau MariaDB belum aktif, test manual yang membutuhkan database ditandai `Blocked`.
-- Phase 07 sampai Phase 09 saat ini berstatus implemented dan perlu verifikasi runtime di MariaDB/staging.
+- Phase 01 sampai Phase 09 sudah lulus automated verification di MariaDB testing.
+- Production readiness tetap membutuhkan manual QA end-to-end, staging smoke test, dan deployment/integration evidence.
 
 ## Global Design Rules
 

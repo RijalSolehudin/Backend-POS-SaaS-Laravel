@@ -1,6 +1,6 @@
 # P07-07 — Printer Dispatch and Reprint
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

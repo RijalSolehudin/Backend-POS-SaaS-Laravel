@@ -1,6 +1,6 @@
 # P08-03 — Customer Cart and Staff Confirmation
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

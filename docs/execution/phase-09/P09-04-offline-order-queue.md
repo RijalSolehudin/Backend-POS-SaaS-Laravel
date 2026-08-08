@@ -1,6 +1,6 @@
 # P09-04 — Offline Order Queue
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

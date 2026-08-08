@@ -1,6 +1,6 @@
 # P08-04 — Waiter Workflow
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

@@ -1,6 +1,6 @@
 # P08-05 — Payment Gateway Abstraction
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

@@ -1,6 +1,6 @@
 # P09-06 — Device Trust and Local Data Security
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

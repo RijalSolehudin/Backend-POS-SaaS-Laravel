@@ -1,6 +1,6 @@
 # P08-02 — QR Self-Order Session
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

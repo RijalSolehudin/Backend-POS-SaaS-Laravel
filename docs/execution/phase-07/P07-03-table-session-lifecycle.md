@@ -1,6 +1,6 @@
 # P07-03 — Table Session Lifecycle
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

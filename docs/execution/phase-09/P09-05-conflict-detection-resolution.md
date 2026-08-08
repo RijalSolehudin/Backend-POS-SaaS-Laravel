@@ -1,6 +1,6 @@
 # P09-05 — Conflict Detection and Resolution
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

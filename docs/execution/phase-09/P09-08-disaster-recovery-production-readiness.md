@@ -1,6 +1,6 @@
 # P09-08 — Disaster Recovery and Production Readiness
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

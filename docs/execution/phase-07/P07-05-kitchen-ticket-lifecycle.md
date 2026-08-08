@@ -1,6 +1,6 @@
 # P07-05 — Kitchen Ticket Lifecycle
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

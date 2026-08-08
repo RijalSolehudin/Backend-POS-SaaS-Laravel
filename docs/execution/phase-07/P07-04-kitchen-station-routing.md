@@ -1,6 +1,6 @@
 # P07-04 — Kitchen Station Routing
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

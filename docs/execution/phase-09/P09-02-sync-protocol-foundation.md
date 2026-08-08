@@ -1,6 +1,6 @@
 # P09-02 — Sync Protocol Foundation
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

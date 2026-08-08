@@ -1,6 +1,6 @@
 # P07-06 — Realtime KDS Updates
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

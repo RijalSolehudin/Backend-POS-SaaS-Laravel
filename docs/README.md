@@ -4,9 +4,9 @@ Dokumentasi ini adalah sumber kebenaran untuk perencanaan sistem POS F&B. Dokume
 
 ## Status Proyek
 
-- Tahap: Phase 01 Foundation done
-- Implementasi aplikasi: P01-01 sampai P01-11 selesai; Phase 02 menjadi tahap berikutnya
-- Target awal: MVP POS vertical slice
+- Tahap: Phase 09 Offline and Scale done
+- Implementasi aplikasi: Phase 01 sampai Phase 09 selesai dan lulus automated verification di MariaDB testing
+- Target saat ini: production-readiness review dan manual QA end-to-end sebelum deployment nyata
 
 ## Cara Membaca
 

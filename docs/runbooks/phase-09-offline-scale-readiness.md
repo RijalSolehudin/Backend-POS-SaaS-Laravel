@@ -1,6 +1,6 @@
 # Phase 09 Offline Scale Readiness Runbook
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Scope
 
@@ -82,3 +82,10 @@ php artisan sync:performance-baseline sync_push_p95 900 --target=1000 --fail-on-
 - Tidak ada mutation offline di luar allowlist.
 - Revoked device ditolak untuk push mutation baru.
 - Baseline performance dan RPO/RTO tercatat.
+
+## Latest Verification Evidence
+
+- `php artisan test` passed: 164 tests, 1444 assertions.
+- `composer quality:static` passed with 0 architecture violations.
+- `npm run build` passed.
+- `sync_push_p95` baseline recorded with measured `900ms`, target `1000ms`, status `passed`.

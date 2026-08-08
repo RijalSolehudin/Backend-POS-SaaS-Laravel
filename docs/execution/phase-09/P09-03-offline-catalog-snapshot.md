@@ -1,6 +1,6 @@
 # P09-03 — Offline Catalog Snapshot
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 

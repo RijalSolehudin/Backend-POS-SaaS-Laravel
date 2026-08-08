@@ -19,10 +19,10 @@ Roadmap menggunakan vertical slices. Setiap phase harus menghasilkan capability 
 | [03](phase-03-operational-safety.md) | Reliability, audit, dan operational safety | Done |
 | [04](phase-04-catalog-expansion.md) | Catalog, variants, modifiers, dan pricing lanjutan | Done |
 | [05](phase-05-inventory.md) | Inventory ledger dan stock operations | Done |
-| [06](phase-06-recipe-procurement.md) | Recipe costing dan procurement | Not Started |
-| [07](phase-07-dining-kitchen.md) | Table service, kitchen, dan printer | Not Started |
-| [08](phase-08-growth.md) | QR order, payment gateway, dan growth features | Not Started |
-| [09](phase-09-offline-scale.md) | Offline sync, scale, dan production maturity | Implemented — Pending MariaDB Verification |
+| [06](phase-06-recipe-procurement.md) | Recipe costing dan procurement | Done |
+| [07](phase-07-dining-kitchen.md) | Table service, kitchen, dan printer | Done |
+| [08](phase-08-growth.md) | QR order, payment gateway, dan growth features | Done |
+| [09](phase-09-offline-scale.md) | Offline sync, scale, dan production maturity | Done |
 
 ## Architecture Decision Gate
 

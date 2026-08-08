@@ -1,6 +1,6 @@
 # P07-02 — Dining Floor and Table Foundation
 
-Status: **Implemented — Pending MariaDB Verification**
+Status: **Done**
 
 ## Outcome
 
